@@ -1,0 +1,12 @@
+---
+title: Wanna Ride
+category: music
+status: 2
+image: https://ph.0824.uk/file/music/WannaRideHSlangChocoFingazz.jpg
+artist: H-Slang & Choco / Fingazz
+audioUrl: https://ph.0824.uk/file/music/WannaRideHSlangChocoFingazz.m4a
+lrcUrl: https://ph.0824.uk/file/music/WannaRideHSlangChocoFingazz.lrc
+score: 0
+published: 2026-07-01
+---
+

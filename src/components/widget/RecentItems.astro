@@ -357,6 +357,14 @@ const style = Astro.props.style;
   function render() {
     var localItems = collectLocalItems();
     var all = allRemote.concat(localItems);
+    // 去重：同标题+同日期只保留第一个（远程优先）
+    var seen = {};
+    all = all.filter(function(item) {
+      var key = (item.title || "") + "|" + (item.date || "");
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
     all.sort(function(a, b) { return (b.date || "").localeCompare(a.date || ""); });
 
     var total = Math.min(all.length, 10);

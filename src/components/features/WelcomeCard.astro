@@ -458,8 +458,15 @@ const typeIconSVG: Record<string, string> = {
     if (remoteFetched < remoteTotal) return;
     if (!allRemoteItems.length) return;
 
-    // 合并到 recentDetail 并重新排序
+    // 合并到 recentDetail 并重新排序（去重：同标题+同日期只保留第一个）
     var merged = recentDetail.concat(allRemoteItems);
+    var seen = {};
+    merged = merged.filter(function(item) {
+      var key = (item.title || "") + "|" + (item.date || "");
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
     merged.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
     var top8 = merged.slice(0, 8);
 

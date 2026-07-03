@@ -37,6 +37,12 @@ import sys
 import unicodedata
 from datetime import date
 
+# Windows 控制台 UTF-8 编码
+if sys.platform == "win32":
+    os.system("chcp 65001 >nul 2>&1")
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 FETCH_LRC = os.path.join(SCRIPT_DIR, "fetch-lrc.py")
 DEFAULT_INPUT = os.path.join(SCRIPT_DIR, "playlist.txt")
