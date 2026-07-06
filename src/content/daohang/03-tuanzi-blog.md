@@ -1,7 +1,7 @@
 ---
 name: 团子和蛋糕的博客
 url: https://blog.tsh520.cn/
-icon: material-symbols:article
+icon: https://ph.0824.uk/file/网络资源/blog.tsh520.cn-icon.webp
 description: 个人技术与生活分享博客
 category: 我的网站
 tags: [个人网站, 博客]

@@ -1,7 +1,7 @@
 ---
 name: 免费在线抠图
 url: https://www.koukoutu.com/removebgtool/all
-icon: material-symbols:auto-fix-high
+icon: https://ph.0824.uk/file/网络资源/www.koukoutu.com-icon.png
 description: 无需上传的在线图像抠图工具
 category: 工具网站
 tags: [图片处理, AI]

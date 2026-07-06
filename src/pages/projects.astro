@@ -188,11 +188,38 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
     <div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
       <!-- 页面标题 -->
       <div class="mb-6">
-        <div class="flex items-center gap-3 mb-3">
-          <Icon name="material-symbols:bookmark" class="text-[1.875rem] text-neutral-900 dark:text-neutral-100" />
-          <div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-            网站导航
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div class="flex items-center gap-3">
+            <Icon name="material-symbols:bookmark" class="text-[1.875rem] text-neutral-900 dark:text-neutral-100" />
+            <div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+              网站导航
+            </div>
           </div>
+          <!-- 迷你模式切换按钮 -->
+          <button
+            id="mini-mode-toggle"
+            class="mini-mode-btn"
+            aria-label="切换迷你模式"
+            title="切换迷你模式"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mini-mode-icon-normal">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mini-mode-icon-compact hidden">
+              <rect x="3" y="3" width="5" height="5" rx="1" />
+              <rect x="10" y="3" width="5" height="5" rx="1" />
+              <rect x="17" y="3" width="5" height="5" rx="1" />
+              <rect x="3" y="10" width="5" height="5" rx="1" />
+              <rect x="10" y="10" width="5" height="5" rx="1" />
+              <rect x="17" y="10" width="5" height="5" rx="1" />
+              <rect x="3" y="17" width="5" height="5" rx="1" />
+              <rect x="10" y="17" width="5" height="5" rx="1" />
+              <rect x="17" y="17" width="5" height="5" rx="1" />
+            </svg>
+          </button>
         </div>
         <p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">
           收录个人网站、常用工具和收藏网站
@@ -256,6 +283,8 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
                           {site.data.icon ? (
                             site.data.icon.startsWith('http') ? (
                               <img src={site.data.icon} alt={site.data.name} class="w-6 h-6 rounded object-contain shrink-0" />
+                            ) : site.data.icon.startsWith('/') ? (
+                              <img src={site.data.icon} alt={site.data.name} class="w-6 h-6 rounded object-contain shrink-0" />
                             ) : (
                               <Icon name={site.data.icon} class="text-2xl text-neutral-600 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-300 shrink-0" />
                             )
@@ -309,6 +338,8 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
                       <div class="flex items-center gap-2 mb-3">
                         {site.data.icon ? (
                           site.data.icon.startsWith('http') ? (
+                            <img src={site.data.icon} alt={site.data.name} class="w-6 h-6 rounded object-contain shrink-0" />
+                          ) : site.data.icon.startsWith('/') ? (
                             <img src={site.data.icon} alt={site.data.name} class="w-6 h-6 rounded object-contain shrink-0" />
                           ) : (
                             <Icon name={site.data.icon} class="text-2xl text-neutral-600 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-300 shrink-0" />
@@ -559,6 +590,102 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
     border-color: oklch(0.2 0 0);
   }
 
+  /* ===== 迷你模式切换按钮 ===== */
+  .mini-mode-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 200ms ease, border-color 200ms ease, transform 150ms ease;
+    flex-shrink: 0;
+  }
+  :root.dark .mini-mode-btn {
+    border-color: #fff;
+    background: #000;
+    color: #fff;
+  }
+  .mini-mode-btn:hover {
+    background: oklch(0.95 0 0);
+    transform: scale(1.05);
+  }
+  :root.dark .mini-mode-btn:hover {
+    background: oklch(0.15 0 0);
+  }
+  .mini-mode-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* ===== 迷你模式样式 ===== */
+  :global(.tools-mini-mode) .tools-card-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  :global(.tools-mini-mode) .tools-card {
+    padding: 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  :global(.tools-mini-mode) .tools-card:hover {
+    transform: translateY(-1px);
+  }
+  :global(.tools-mini-mode) .tools-card .flex.items-center.gap-2.mb-3 {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  :global(.tools-mini-mode) .tools-card h3 {
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    margin: 0;
+  }
+  :global(.tools-mini-mode) .tools-card .tools-card-desc,
+  :global(.tools-mini-mode) .tools-card .tools-card-footer,
+  :global(.tools-mini-mode) .tools-card .tools-card-jump-icon {
+    display: none !important;
+  }
+  :global(.tools-mini-mode) .tools-card img {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  :global(.tools-mini-mode) .tools-card .iconify {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 1.25rem;
+  }
+  :global(.tools-mini-mode) .tools-category-group {
+    margin-top: 1.5rem;
+  }
+  :global(.tools-mini-mode) .tools-category-group:first-child {
+    margin-top: 0;
+  }
+  :global(.tools-mini-mode) .tools-category-group > .flex.items-center.gap-3.mb-5 {
+    margin-bottom: 0.75rem;
+  }
+
+  /* 迷你模式响应式 */
+  @media (max-width: 1280px) {
+    :global(.tools-mini-mode) .tools-card-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    :global(.tools-mini-mode) .tools-card-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    :global(.tools-mini-mode) .tools-card-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @keyframes toolsCardSlideIn {
     to {
       opacity: 1;
@@ -566,3 +693,48 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
     }
   }
 </style>
+
+<script>
+  window.miniModeInit = function() {
+    var toggleBtn = document.getElementById('mini-mode-toggle');
+    if (!toggleBtn) return;
+
+    function enableMiniMode() {
+      document.body.classList.add('tools-mini-mode');
+      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
+      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
+      if (iconNormal) iconNormal.classList.add('hidden');
+      if (iconCompact) iconCompact.classList.remove('hidden');
+      localStorage.setItem('tools-mini-mode', 'true');
+    }
+
+    function disableMiniMode() {
+      document.body.classList.remove('tools-mini-mode');
+      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
+      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
+      if (iconNormal) iconNormal.classList.remove('hidden');
+      if (iconCompact) iconCompact.classList.add('hidden');
+      localStorage.setItem('tools-mini-mode', 'false');
+    }
+
+    var savedMode = localStorage.getItem('tools-mini-mode');
+    if (savedMode === 'true') {
+      enableMiniMode();
+    }
+
+    toggleBtn.addEventListener('click', function() {
+      var isMini = document.body.classList.contains('tools-mini-mode');
+      if (isMini) {
+        disableMiniMode();
+      } else {
+        enableMiniMode();
+      }
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.miniModeInit);
+  } else {
+    window.miniModeInit();
+  }
+</script>

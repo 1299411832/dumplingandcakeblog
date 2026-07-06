@@ -1,7 +1,7 @@
 ---
 name: 团子的邮箱
 url: https://email.0824.uk/inbox
-icon: material-symbols:mail
+icon: https://ph.0824.uk/file/网络资源/blog.tsh520.cn-icon.webp
 description: 个人使用的邮箱服务
 category: 我的网站
 tags: [个人网站, 实用工具]

@@ -1,7 +1,7 @@
 ---
 name: Uiverse
 url: https://uiverse.io/
-icon: material-symbols:palette-outline
+icon: https://ph.0824.uk/file/网络资源/uiverse.io-icon.ico
 description: 开源 UI 组件库，复制即用
 category: 设计资源
 tags: [UI, 组件, CSS, 开源]

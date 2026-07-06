@@ -1,7 +1,7 @@
 ---
 name: Emoji词典
 url: https://www.emojiall.com/
-icon: material-symbols:psychology
+icon: https://ph.0824.uk/file/网络资源/www.emojiall.com-icon.png
 description: 全面的emoji表情查询工具
 category: 资源网站
 tags: [工具, emoji]

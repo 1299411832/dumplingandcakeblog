@@ -1,10 +1,10 @@
 ---
 name: SkillsMP
 url: https://skillsmp.com/zh/
-icon: material-symbols:hub-outline
-description: 技能学习和分享平台
-category: 学习资源
-tags: [学习, 技能, 教程]
+icon: https://ph.0824.uk/file/网络资源/skillsmp.com-icon.png
+description: skill技能学习和分享平台
+category: 资源网站
+tags: [学习, skill, 阿里]
 color: "#10b981"
 featured: false
 order: 39

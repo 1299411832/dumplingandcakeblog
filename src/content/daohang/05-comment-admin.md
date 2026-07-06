@@ -1,7 +1,7 @@
 ---
 name: 评论管理后台
 url: https://co.tsh520.cn/
-icon: material-symbols:comment
+icon: https://ph.0824.uk/file/网络资源/blog.tsh520.cn-icon.webp
 description: Waline 评论管理系统
 category: 我的网站
 tags: [个人网站, 管理工具]

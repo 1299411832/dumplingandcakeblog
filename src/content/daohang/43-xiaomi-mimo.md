@@ -1,7 +1,7 @@
 ---
 name: 小米 MiMo
 url: https://platform.xiaomimimo.com/
-icon: material-symbols:smart-toy-outline
+icon: https://ph.0824.uk/file/网络资源/platform.xiaomimimo.com-icon.png
 description: 小米 MiMo AI 平台
 category: AI 工具
 tags: [AI, 小米, 大模型]

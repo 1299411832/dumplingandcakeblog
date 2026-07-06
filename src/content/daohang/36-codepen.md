@@ -3,7 +3,7 @@ name: CodePen
 url: https://codepen.io/
 icon: material-symbols:code-rounded
 description: 在线前端代码编辑器和社区
-category: 工具网站
+category: 设计资源
 tags: [前端, 代码, 编辑器]
 color: "#000000"
 featured: false

@@ -1,9 +1,9 @@
 ---
 name: React Bits
 url: https://www.reactbits.dev/
-icon: fa7-solid:atom
+icon: https://ph.0824.uk/file/网络资源/www.reactbits.dev-icon.png
 description: React 组件和模式集合
-category: 开发工具
+category: 设计资源
 tags: [React, 组件, 前端]
 color: "#61dafb"
 featured: false

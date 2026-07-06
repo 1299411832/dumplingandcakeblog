@@ -1,7 +1,7 @@
 ---
 name: 团子的图床
 url: https://ph.0824.uk.cn/
-icon: material-symbols:photo-library
+icon: https://ph.0824.uk/file/网络资源/blog.tsh520.cn-icon.webp
 description: 个人照片存储与展示
 category: 我的网站
 tags:
