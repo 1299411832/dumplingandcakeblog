@@ -118,6 +118,9 @@ const lifeCollection = defineCollection({
 		visitCount: z.number().optional().default(1),
 		lat: z.number().optional(),
 		lng: z.number().optional(),
+		url: z.string().optional().default(""),
+		urlLabel: z.string().optional().default(""),
+		photos: z.array(z.string()).optional().default([]),
 
 		// Legacy fields (keep compatibility with existing data)
 		waterCups: z.number().optional(),

@@ -1,0 +1,757 @@
+---
+import { externalMomentsConfig } from "@/config/externalMomentsConfig";
+import { externalPlacesConfig } from "@/config/externalPlacesConfig";
+---
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>足迹管理</title>
+  <style is:inline>
+    :root {
+      --bg: #fff; --card: #fff; --border: #e8e8e8; --text: #1a1a1a;
+      --text-2: #666; --text-3: #999; --primary: #8b5cf6;
+      --input-bg: #fafafa; --hover: #f3f0ff; --danger: #ef4444;
+      --success: #22c55e; --radius: 12px;
+    }
+    :root.dark {
+      --bg: #111; --card: #1a1a1a; --border: #2a2a2a; --text: #eee;
+      --text-2: #aaa; --text-3: #666; --input-bg: #222; --hover: #2a2040;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .navbar { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .navbar-inner { max-width: 720px; margin: 0 auto; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; height: 48px; }
+    .navbar-left { display: flex; align-items: center; gap: 0.5rem; }
+    .navbar-left .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+    .navbar-left h1 { font-size: 0.9375rem; font-weight: 600; }
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.8125rem; color: var(--text-2); text-decoration: none; }
+    .back-link:hover { color: var(--primary); }
+    .logout-btn { font-size: 0.8125rem; color: var(--danger); background: none; border: none; cursor: pointer; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem; }
+
+    .status-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 0.75rem; margin-bottom: 1rem;
+      border: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-2);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-dot.ok { background: var(--success); }
+    .status-dot.err { background: var(--danger); }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.25rem; margin-bottom: 1rem;
+    }
+
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 8px; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 0.25rem 0.625rem; font-size: 0.75rem; }
+
+    .form-section { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--text); margin-bottom: 0.375rem; }
+    .form-hint { font-size: 0.75rem; color: var(--text-3); margin-bottom: 0.5rem; }
+    .form-hint a { color: var(--primary); text-decoration: none; }
+    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--input-bg); color: var(--text); font-size: 0.875rem; outline: none;
+      font-family: inherit;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus, select:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .coord-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+    .coord-row .form-section { flex: 1; }
+    .coord-row .btn { margin-bottom: 0.375rem; }
+
+    .preview-card { padding: 0.875rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; }
+    .preview-card .title { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .preview-card .meta { font-size: 0.75rem; color: var(--text-2); }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .section-title { font-size: 1rem; font-weight: 600; }
+    .count-badge { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: var(--hover); color: var(--primary); }
+    
+    .places-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .place-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.625rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+    .place-item .info { flex: 1; min-width: 0; }
+    .place-item .name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .place-item .exp { font-size: 0.75rem; color: var(--text-2); margin-top: 0.125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .place-item .meta { font-size: 0.6875rem; color: var(--text-3); margin-top: 0.25rem; }
+    .place-item .actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+
+    .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px); padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 100; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok { background: var(--success); color: #fff; }
+    .toast.err { background: var(--danger); color: #fff; }
+
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; padding: 1.5rem; color: var(--text-3); font-size: 0.875rem; }
+    .dark-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); font-size: 1.25rem; cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; }
+    
+    .tags-input { display: flex; flex-wrap: wrap; gap: 0.375rem; padding: 0.375rem; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); min-height: 44px; }
+    .tag-item { display: flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; background: var(--hover); color: var(--text); border-radius: 4px; font-size: 0.75rem; }
+    .tag-item .remove { cursor: pointer; color: var(--text-3); }
+    .tag-item .remove:hover { color: var(--danger); }
+    .tag-input-wrap { display: flex; gap: 0.25rem; }
+    .tag-input-wrap input { flex: 1; border: none; background: transparent; padding: 0; font-size: 0.75rem; }
+    .tag-input-wrap input:focus { outline: none; }
+    
+    .photos-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .photo-item { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--input-bg); }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-item .remove { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <nav class="navbar">
+      <div class="navbar-inner">
+        <div class="navbar-left">
+          <span class="dot"></span>
+          <h1>足迹管理</h1>
+        </div>
+        <div class="nav-right">
+          <a href="/admin/" class="back-link" data-no-swup>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>后台</span>
+          </a>
+          <button class="logout-btn" onclick="doLogout()">退出</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- 连接状态 -->
+      <div class="status-bar" id="status-bar">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">正在连接...</span>
+      </div>
+
+      <!-- Token 输入 -->
+      <div class="card" id="token-card">
+        <div class="form-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.375rem;">
+            <label class="form-label">GitHub Token</label>
+            <span id="gist-status" class="count-badge" style="font-size:0.7rem;"></span>
+          </div>
+          <p class="form-hint">用于同步到 Gist，需要 <a href="https://github.com/settings/tokens/new?scopes=gist&description=places-writer" target="_blank" style="color:var(--primary);">gist 权限</a>，保存后会记住</p>
+          <div style="display:flex;gap:0.5rem;">
+            <input type="password" id="token-input" placeholder="ghp_xxxxxxxx..." style="flex:1;" />
+            <button class="btn btn-ghost btn-sm" onclick="saveToken()">保存 Token</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 创建新足迹 -->
+      <div class="card">
+        <div class="form-section">
+          <label class="form-label">创建新足迹</label>
+          <p class="form-hint">输入地点名称后点击「获取坐标」自动填充经纬度</p>
+        </div>
+
+      <div class="form-grid">
+        <div class="form-section">
+          <label class="form-label">省份</label>
+          <input type="text" id="field-province" placeholder="如：河南" />
+        </div>
+        <div class="form-section">
+          <label class="form-label">城市</label>
+          <input type="text" id="field-city" placeholder="如：商丘" />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">详细地址</label>
+        <p class="form-hint">支持村庄、街道、门牌号等，如：睢县董店乡</p>
+        <input type="text" id="field-address" placeholder="如：睢县董店乡/北京朝阳区三里屯" />
+      </div>
+
+      <div class="coord-row">
+        <div class="form-section">
+          <label class="form-label">纬度 (lat)</label>
+          <input type="text" id="field-lat" placeholder="34.4608" />
+        </div>
+        <div class="form-section">
+          <label class="form-label">经度 (lng)</label>
+          <input type="text" id="field-lng" placeholder="115.0718" />
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="fetchCoordinates()">📍 获取坐标</button>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">日期</label>
+        <input type="date" id="field-date" />
+      </div>
+
+      <div class="form-grid">
+        <div class="form-section">
+          <label class="form-label">到访次数</label>
+          <input type="number" id="field-count" value="1" min="1" />
+        </div>
+        <div class="form-section">
+          <label class="form-label">链接文字</label>
+          <input type="text" id="field-url-label" placeholder="如：游记" />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">链接 URL</label>
+        <input type="text" id="field-url" placeholder="https://..." />
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">描述</label>
+        <textarea id="field-experience" placeholder="说说你的经历..."></textarea>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">标签</label>
+        <p class="form-hint">输入标签后按 Enter 添加</p>
+        <div class="tags-input" id="tags-input">
+          <div class="tag-input-wrap">
+            <input type="text" id="tag-input" placeholder="输入标签..." />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">照片 URL</label>
+        <p class="form-hint">每行一张照片地址，或点击下方添加</p>
+        <div class="photos-list" id="photos-list"></div>
+        <input type="text" id="photo-input" placeholder="输入照片 URL..." style="margin-top: 0.5rem;" />
+        <button class="btn btn-ghost btn-sm" onclick="addPhoto()" style="margin-top: 0.375rem;">➕ 添加照片</button>
+      </div>
+
+      <div class="preview-card" id="preview-card" class="hidden">
+        <div class="title" id="preview-name"></div>
+        <div class="meta" id="preview-meta"></div>
+      </div>
+
+      <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button class="btn btn-primary" id="submit-btn" onclick="submitPlace()">保存</button>
+        <button class="btn btn-ghost" onclick="clearForm()">清空</button>
+      </div>
+
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">已有的足迹</span>
+        <span id="list-count" class="count-badge"></span>
+      </div>
+      <div id="places-list" class="places-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <button class="dark-fab" onclick="toggleDark()" title="切换暗色模式">🌙</button>
+
+  <script is:inline
+    data-hash={externalMomentsConfig.adminPasswordHash || ""}
+    data-gist-id={externalPlacesConfig.gistId || ""}
+    data-file-name={externalPlacesConfig.fileName || "places"}
+    data-token={externalPlacesConfig.githubToken || ""}>
+    (function() {
+      var _script = document.currentScript;
+      var AMAP_KEY = "ffc18bba47161a9b5f20dd2bdb80b6fc";
+      var GIST_ID = _script.getAttribute("data-gist-id") || "";
+      var FILE_NAME = _script.getAttribute("data-file-name") || "places";
+      var ENV_TOKEN = _script.getAttribute("data-token") || "";
+      var TOKEN = localStorage.getItem("gh_moments_token") || ENV_TOKEN || "";
+      var API = "https://api.github.com";
+      
+      function $(id) { return document.getElementById(id); }
+      function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+
+      function toast(msg, type) {
+        var el = $("toast"); el.textContent = msg; el.className = "toast " + type + " show";
+        clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800);
+      }
+
+      function toggleDark() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+      }
+      if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark");
+
+      function doLogout() {
+        sessionStorage.removeItem("admin_auth");
+        window.location.href = "/admin/";
+      }
+
+      // ===== Token =====
+      function saveToken() {
+        var token = $("token-input").value.trim();
+        if (!token) { toast("请输入 Token", "err"); return; }
+        localStorage.setItem("gh_moments_token", token);
+        TOKEN = token;
+        toast("Token 已保存 ✓", "ok");
+        checkGistStatus();
+        loadPlacesList();
+      }
+
+      function setStatus(ok, text) {
+        $("status-dot").className = "status-dot " + (ok ? "ok" : "err");
+        $("status-text").textContent = text;
+      }
+
+      function checkGistStatus() {
+        if (!GIST_ID) { 
+          $("gist-status").textContent = "未配置 Gist"; 
+          setStatus(false, "未配置 Gist");
+          return; 
+        }
+        if (!TOKEN) { 
+          $("gist-status").textContent = "未设置 Token"; 
+          setStatus(false, "请输入 Token");
+          return; 
+        }
+        
+        setStatus(false, "正在连接...");
+        fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN } })
+          .then(function(r) {
+            if (r.ok) {
+              $("gist-status").textContent = "✓ 已连接";
+              $("gist-status").style.color = "#22c55e";
+              setStatus(true, "已连接");
+            } else {
+              $("gist-status").textContent = "✗ 连接失败";
+              $("gist-status").style.color = "#ef4444";
+              setStatus(false, "连接失败");
+            }
+          })
+          .catch(function() {
+            $("gist-status").textContent = "✗ 连接失败";
+            $("gist-status").style.color = "#ef4444";
+            setStatus(false, "网络错误");
+          });
+      }
+
+      // ===== Gist 操作 =====
+      var editingId = null; // 当前编辑的条目 id
+
+      async function fetchGistEntries() {
+        if (!TOKEN || !GIST_ID) return [];
+        var gist = await fetch(API + "/gists/" + GIST_ID, {
+          headers: { "Authorization": "Bearer " + TOKEN }
+        }).then(function(r) { return r.json(); });
+        var file = gist.files[FILE_NAME];
+        if (!file) return [];
+        var entries = [];
+        try { entries = JSON.parse(file.content || "[]"); } catch(e) { return []; }
+        // 给没有 id 的旧数据自动补上
+        var needSave = false;
+        entries.forEach(function(e, i) {
+          if (!e.id) { e.id = "p-legacy-" + i; needSave = true; }
+        });
+        if (needSave) {
+          fetch(API + "/gists/" + GIST_ID, {
+            method: "PATCH",
+            headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(entries, null, 2) } } })
+          }).catch(function(){});
+        }
+        return entries;
+      }
+
+      async function saveToGist(data, editId) {
+        if (!TOKEN || !GIST_ID) { toast("请先设置 Token", "err"); return false; }
+        try {
+          var existing = await fetchGistEntries();
+          
+          var entry = {
+            id: editId || ("p-" + Date.now()),
+            province: data.province || "",
+            city: data.city || "",
+            lat: data.lat || "",
+            lng: data.lng || "",
+            experience: data.experience || "",
+            visitCount: data.visitCount || 1,
+            date: data.date || new Date().toISOString().split("T")[0],
+            tags: data.tags && data.tags.length > 0 ? data.tags : ["去过"],
+            markerColor: data.markerColor || ["sunset", "ocean", "forest", "lavender", "sunshine", "rose"][existing.length % 6],
+            url: data.url || "",
+            urlLabel: data.urlLabel || "",
+            photos: data.photos || [],
+          };
+          
+          if (editId) {
+            var idx = existing.findIndex(function(e) { return e.id === editId; });
+            if (idx !== -1) { existing[idx] = entry; }
+            else { existing.push(entry); }
+          } else {
+            existing.push(entry);
+          }
+          
+          await fetch(API + "/gists/" + GIST_ID, {
+            method: "PATCH",
+            headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(existing, null, 2) } } })
+          });
+          
+          return true;
+        } catch (e) {
+          console.log("Gist save failed:", e);
+          toast("Gist 保存失败: " + e.message, "err");
+          return false;
+        }
+      }
+
+      async function deleteFromGist(entryId) {
+        if (!TOKEN || !GIST_ID) return false;
+        try {
+          var existing = await fetchGistEntries();
+          existing = existing.filter(function(e) { return e.id !== entryId; });
+          await fetch(API + "/gists/" + GIST_ID, {
+            method: "PATCH",
+            headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(existing, null, 2) } } })
+          });
+          return true;
+        } catch (e) {
+          console.log("Gist delete failed:", e);
+          return false;
+        }
+      }
+
+      // ===== 标签管理 =====
+      var tags = [];
+      function renderTags() {
+        var container = $("tags-input");
+        var inputWrap = container.querySelector(".tag-input-wrap");
+        container.innerHTML = "";
+        tags.forEach(function(tag, i) {
+          var d = document.createElement("div");
+          d.className = "tag-item";
+          d.innerHTML = esc(tag) + '<span class="remove" onclick="removeTag(' + i + ')">×</span>';
+          container.appendChild(d);
+        });
+        container.appendChild(inputWrap);
+        $("tag-input").value = "";
+      }
+      function addTag() {
+        var val = $("tag-input").value.trim();
+        if (val && !tags.includes(val)) {
+          tags.push(val);
+          renderTags();
+        }
+        $("tag-input").value = "";
+      }
+      function removeTag(index) {
+        tags.splice(index, 1);
+        renderTags();
+      }
+      $("tag-input").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") { e.preventDefault(); addTag(); }
+      });
+
+      // ===== 照片管理 =====
+      var photos = [];
+      function renderPhotos() {
+        var container = $("photos-list");
+        container.innerHTML = "";
+        photos.forEach(function(url, i) {
+          var d = document.createElement("div");
+          d.className = "photo-item";
+          d.innerHTML = '<img src="' + esc(url) + '" alt="" />' +
+            '<span class="remove" onclick="removePhoto(' + i + ')">×</span>';
+          container.appendChild(d);
+        });
+      }
+      function addPhoto() {
+        var val = $("photo-input").value.trim();
+        if (val) {
+          photos.push(val);
+          renderPhotos();
+          $("photo-input").value = "";
+        }
+      }
+      function removePhoto(index) {
+        photos.splice(index, 1);
+        renderPhotos();
+      }
+      $("photo-input").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") { e.preventDefault(); addPhoto(); }
+      });
+
+      // ===== 获取坐标 =====
+      async function fetchCoordinates() {
+        var province = $("field-province").value.trim();
+        var city = $("field-city").value.trim();
+        var addressDetail = $("field-address").value.trim();
+        
+        if (!province && !city && !addressDetail) { 
+          toast("请先填写省份、城市或详细地址", "err"); 
+          return; 
+        }
+        
+        var fullAddress = [province, city, addressDetail].filter(Boolean).join(" ");
+        var btn = document.querySelector('.coord-row .btn');
+        var origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "获取中...";
+
+        try {
+          // 直接调用高德地理编码 API
+          var geocodeUrl = "https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY;
+          var resp = await fetch(geocodeUrl);
+          var data = await resp.json();
+
+          var lng = "", lat = "", resultProvince = "", resultCity = "";
+
+          if (data.status === "1" && data.geocodes && data.geocodes.length > 0) {
+            var result = data.geocodes[0];
+            var loc = result.location.split(",");
+            lng = loc[0]; lat = loc[1];
+            resultProvince = result.province || "";
+            resultCity = result.city || "";
+          } else {
+            // 降级到 POI 搜索
+            var poiUrl = "https://restapi.amap.com/v3/place/text?keywords=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY + "&offset=1";
+            var poiResp = await fetch(poiUrl);
+            var poiData = await poiResp.json();
+            if (poiData.status === "1" && poiData.pois && poiData.pois.length > 0) {
+              var poiLoc = poiData.pois[0].location.split(",");
+              lng = poiLoc[0]; lat = poiLoc[1];
+            }
+          }
+
+          if (lng && lat) {
+            $("field-lng").value = lng;
+            $("field-lat").value = lat;
+            if (!province && resultProvince) $("field-province").value = resultProvince;
+            if (!city && resultCity) $("field-city").value = resultCity;
+            toast("坐标获取成功 ✓", "ok");
+            updatePreview();
+          } else {
+            toast("未找到该地点，建议：1. 填写更完整的地址；2. 使用 https://lbs.amap.com/tools/picker 手动获取坐标", "err");
+          }
+        } catch (e) {
+          toast("获取坐标失败: " + e.message, "err");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+
+      // ===== 预览 =====
+      function updatePreview() {
+        var province = $("field-province").value.trim();
+        var city = $("field-city").value.trim();
+        var name = [province, city].filter(Boolean).join(" · ");
+        
+        if (name) {
+          $("preview-card").classList.remove("hidden");
+          $("preview-name").textContent = name;
+          var metaParts = [];
+          if ($("field-date").value) metaParts.push($("field-date").value);
+          if ($("field-count").value) metaParts.push("到访 " + $("field-count").value + " 次");
+          if ($("field-lat").value && $("field-lng").value) metaParts.push("已获取坐标");
+          $("preview-meta").textContent = metaParts.join(" · ");
+        } else {
+          $("preview-card").classList.add("hidden");
+        }
+      }
+
+      ["field-province", "field-city", "field-date", "field-count", "field-lat", "field-lng"].forEach(function(id) {
+        $(id).addEventListener("input", updatePreview);
+      });
+
+      // ===== 提交 =====
+      async function submitPlace() {
+        var province = $("field-province").value.trim();
+        var city = $("field-city").value.trim();
+        var lat = $("field-lat").value.trim();
+        var lng = $("field-lng").value.trim();
+        
+        if (!province && !city) { toast("请填写省份或城市", "err"); return; }
+        if (!lat || !lng) { toast("请获取或填写经纬度", "err"); return; }
+
+        if (!TOKEN || !GIST_ID) { toast("请先设置 Token", "err"); return; }
+
+        var btn = $("submit-btn");
+        btn.disabled = true;
+        btn.textContent = "保存中...";
+
+        var date = $("field-date").value || new Date().toISOString().split("T")[0];
+        
+        var success = await saveToGist({
+          province: province,
+          city: city,
+          lat: lat,
+          lng: lng,
+          date: date,
+          experience: $("field-experience").value.trim(),
+          tags: tags,
+          url: $("field-url").value.trim(),
+          urlLabel: $("field-url-label").value.trim(),
+          photos: photos,
+          visitCount: parseInt($("field-count").value) || 1,
+        }, editingId);
+        
+        if (success) {
+          toast(editingId ? "已更新 ✓" : "保存成功 ✓", "ok");
+          clearForm();
+          loadPlacesList();
+        }
+        
+        btn.disabled = false;
+        btn.textContent = "保存";
+      }
+
+      // ===== 列表 =====
+      async function loadPlacesList() {
+        var list = $("places-list");
+        list.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
+
+        if (!TOKEN || !GIST_ID) {
+          list.innerHTML = '<div class="empty-state">请先设置 Token</div>';
+          $("list-count").textContent = "";
+          return;
+        }
+
+        try {
+          var entries = await fetchGistEntries();
+          if (!entries || !entries.length) {
+            list.innerHTML = '<div class="empty-state">还没有足迹数据</div>';
+            $("list-count").textContent = "";
+            return;
+          }
+          
+          entries.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+          $("list-count").textContent = entries.length + " 个";
+          list.innerHTML = "";
+          
+          entries.forEach(function(item, index) {
+            var d = document.createElement("div");
+            d.className = "place-item";
+            var name = [item.province, item.city].filter(Boolean).join(" · ") || "未命名";
+            var metaParts = [item.date];
+            if (item.visitCount) metaParts.push("到访 " + item.visitCount + " 次");
+            if (!item.lat || !item.lng) metaParts.push("缺少坐标");
+            if (item.tags && item.tags.length) metaParts.push(item.tags.join(", "));
+            
+            d.innerHTML = '<div class="info">' +
+              '<div class="name">' + esc(name) + '</div>' +
+              (item.experience ? '<div class="exp">' + esc(item.experience) + '</div>' : '') +
+              '<div class="meta">' + metaParts.join(" · ") + '</div></div>' +
+              '<div class="actions">' +
+              '<button class="btn btn-ghost btn-sm" onclick="editPlace(\'' + esc(item.id) + '\')">编辑</button>' +
+              '<button class="btn btn-danger btn-sm" onclick="deletePlace(\'' + esc(item.id) + '\')">删除</button>' +
+              '</div>';
+            list.appendChild(d);
+          });
+        } catch (e) {
+          list.innerHTML = '<div class="empty-state" style="color:var(--danger)">加载失败: ' + esc(e.message) + '</div>';
+        }
+      }
+
+      async function editPlace(entryId) {
+        try {
+          var entries = await fetchGistEntries();
+          var item = entries.find(function(e) { return e.id === entryId; });
+          if (!item) { toast("未找到该条目", "err"); return; }
+          
+          editingId = entryId;
+          $("field-province").value = item.province || "";
+          $("field-city").value = item.city || "";
+          $("field-address").value = "";
+          $("field-lng").value = item.lng || "";
+          $("field-lat").value = item.lat || "";
+          $("field-date").value = item.date || "";
+          $("field-count").value = item.visitCount || 1;
+          $("field-experience").value = item.experience || "";
+          $("field-url").value = item.url || "";
+          $("field-url-label").value = item.urlLabel || "";
+          
+          tags = item.tags || [];
+          photos = item.photos || [];
+          renderTags();
+          renderPhotos();
+          updatePreview();
+          
+          $("submit-btn").textContent = "保存修改";
+          toast("正在编辑: " + ([item.province, item.city].filter(Boolean).join(" · ") || "未命名"), "ok");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (e) { toast("加载失败", "err"); }
+      }
+
+      async function deletePlace(entryId) {
+        if (!confirm("确定删除这个足迹？")) return;
+        var success = await deleteFromGist(entryId);
+        if (success) {
+          if (editingId === entryId) clearForm();
+          toast("已删除", "ok");
+          loadPlacesList();
+        } else {
+          toast("删除失败", "err");
+        }
+      }
+
+      function clearForm() {
+        editingId = null;
+        $("field-province").value = "";
+        $("field-city").value = "";
+        $("field-address").value = "";
+        $("field-lat").value = "";
+        $("field-lng").value = "";
+        $("field-date").value = new Date().toISOString().split("T")[0];
+        $("field-count").value = "1";
+        $("field-experience").value = "";
+        $("field-url").value = "";
+        $("field-url-label").value = "";
+        $("photo-input").value = "";
+        tags = [];
+        photos = [];
+        renderTags();
+        renderPhotos();
+        $("preview-card").classList.add("hidden");
+        $("submit-btn").textContent = "保存";
+      }
+
+      // ===== 暴露全局 =====
+      window.toggleDark = toggleDark;
+      window.doLogout = doLogout;
+      window.fetchCoordinates = fetchCoordinates;
+      window.submitPlace = submitPlace;
+      window.addTag = addTag;
+      window.removeTag = removeTag;
+      window.addPhoto = addPhoto;
+      window.removePhoto = removePhoto;
+      window.editPlace = editPlace;
+      window.deletePlace = deletePlace;
+      window.clearForm = clearForm;
+
+      // ===== 初始化 =====
+      (function() {
+        if (sessionStorage.getItem("admin_auth") !== "1") {
+          window.location.href = "/admin/";
+          return;
+        }
+        $("field-date").value = new Date().toISOString().split("T")[0];
+        if (TOKEN) $("token-input").value = TOKEN;
+        checkGistStatus();
+        loadPlacesList();
+      })();
+    })();
+  </script>
+</body>
+</html>
