@@ -95,6 +95,12 @@ const commands = [
 		run: () => spawn("pnpm", ["exec", "tsx", resolve(__dirname, "fill-descriptions", "index.ts")], { stdio: "inherit", shell: true }),
 	},
 	{
+		name: "nav",
+		desc: "添加网站导航条目（自动获取 ICO 图标）",
+		usage: "pnpm cli nav [--url=https://example.com]",
+		run: (args) => spawn("node", [resolve(__dirname, "add-daohang", "index.js"), ...args], { stdio: "inherit" }),
+	},
+	{
 		name: "gist-migrate",
 		desc: "Gist 数据迁移到本地（说说/友链/影视/笔记本）",
 		usage: "pnpm cli gist-migrate [moments|friends|bangumi|notebooks] [--dry-run]",
