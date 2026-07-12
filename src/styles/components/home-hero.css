@@ -49,6 +49,17 @@
 	z-index: 0;
 }
 
+/* ---------- 玻璃雨珠 + 撞击水花画布 ---------- */
+.home-hero__rain-canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	/* 位于内容之上，模拟最前方的镜头玻璃；不拦截交互 */
+	z-index: 20;
+	pointer-events: none;
+}
+
 /* ---------- 全屏内容容器 ---------- */
 .home-hero__canvas-container {
 	position: absolute;

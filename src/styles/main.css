@@ -60,6 +60,7 @@
 @import './features/movies-games.css';
 @import './pages/music-visualizer.css';
 @import './pages/friends.css';
+@import './pages/categories.css';
 
 /* --- 布局样式 --- */
 @import './layout/layout-styles.css';

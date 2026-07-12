@@ -187,6 +187,210 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 	let vfxInstance: VFX | null = null;
 	let heroHatchEffect: HatchEffect | null = null;
 
+	// ============================================
+	// 玻璃雨珠 + 撞击水花（Canvas 2D）
+	// ============================================
+	type RainDrop = { x: number; y: number; r: number; vy: number; len: number; alpha: number };
+	type SplashParticle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; r: number };
+	type HitEdge = { x1: number; x2: number; y: number };
+	let rainCanvas: HTMLCanvasElement | null = null;
+	let rainCtx: CanvasRenderingContext2D | null = null;
+	let rainRaf = 0;
+	let rainDrops: RainDrop[] = [];
+	let rainSplashes: SplashParticle[] = [];
+	let rainEdges: HitEdge[] = [];
+	let rainResizeHandler: (() => void) | null = null;
+	let rainEdgeTimer = 0;
+	let rainDpr = 1;
+	const rainIntensity = 0.6;
+
+	// 轻量伪随机
+	let vfxSeed = 20260712;
+	function vfxRand() {
+		vfxSeed = (vfxSeed * 1664525 + 1013904223) % 4294967296;
+		return vfxSeed / 4294967296;
+	}
+
+	function rainStroke() {
+		return "255, 255, 255";
+	}
+
+	function collectRainEdges(hero: HTMLElement) {
+		const heroRect = hero.getBoundingClientRect();
+		const edges: HitEdge[] = [];
+		// 聊天框和装饰角标作为撞击线
+		const selectors = [
+			".home-hero__speech",
+			".home-hero__bracket",
+		];
+		for (const selector of selectors) {
+			hero.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+				const rect = el.getBoundingClientRect();
+				if (rect.width < 2 || rect.height < 2) return;
+				edges.push({
+					x1: rect.left - heroRect.left,
+					x2: rect.right - heroRect.left,
+					y: rect.top - heroRect.top,
+				});
+			});
+		}
+		rainEdges = edges;
+	}
+
+	function spawnSplash(x: number, y: number) {
+		if (rainSplashes.length > 90) return;
+		const count = 6 + Math.floor(vfxRand() * 4);
+		for (let i = 0; i < count; i++) {
+			const angle = -Math.PI / 2 + (vfxRand() - 0.5) * 1.9;
+			const speed = 1.1 + vfxRand() * 2.2;
+			rainSplashes.push({
+				x,
+				y,
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				life: 0,
+				maxLife: 22 + Math.floor(vfxRand() * 16),
+				r: 0.8 + vfxRand() * 1.1,
+			});
+		}
+	}
+
+	function makeDrop(w: number, h: number, fromTop: boolean): RainDrop {
+		return {
+			x: vfxRand() * w,
+			y: fromTop ? -vfxRand() * h * 0.5 : vfxRand() * h,
+			r: 0.9 + vfxRand() * 1.4,
+			vy: 2.4 + vfxRand() * 3.2,
+			len: 9 + vfxRand() * 16,
+			alpha: 0.12 + vfxRand() * 0.2,
+		};
+	}
+
+	function initHeroRain() {
+		const hero = document.getElementById("home-hero");
+		if (!hero) return;
+		if (prefersReducedMotion() || isMobile()) return;
+
+		destroyHeroRain();
+
+		const canvas = document.createElement("canvas");
+		canvas.className = "home-hero__rain-canvas";
+		canvas.setAttribute("aria-hidden", "true");
+		hero.appendChild(canvas);
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			canvas.remove();
+			return;
+		}
+		rainCanvas = canvas;
+		rainCtx = ctx;
+		rainDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+		function resize() {
+			if (!rainCanvas || !rainCtx || !hero) return;
+			const rect = hero.getBoundingClientRect();
+			rainCanvas.width = Math.round(rect.width * rainDpr);
+			rainCanvas.height = Math.round(rect.height * rainDpr);
+			rainCtx.setTransform(rainDpr, 0, 0, rainDpr, 0, 0);
+			const target = Math.round((20 + rainIntensity * 40) * Math.min(1, rect.width / 1280));
+			rainDrops = Array.from({ length: target }, () => makeDrop(rect.width, rect.height, false));
+			collectRainEdges(hero);
+		}
+		resize();
+		rainResizeHandler = resize;
+		window.addEventListener("resize", resize);
+		rainEdgeTimer = window.setInterval(() => collectRainEdges(hero), 500);
+
+		function frame() {
+			if (!rainCanvas || !rainCtx) return;
+			const w = rainCanvas.width / rainDpr;
+			const h = rainCanvas.height / rainDpr;
+			rainCtx.clearRect(0, 0, w, h);
+			const rgb = rainStroke();
+
+			// 雨珠 + 水痕拖尾
+			for (const d of rainDrops) {
+				const prevY = d.y;
+				d.y += d.vy;
+
+				// 撞击检测
+				let consumed = false;
+				for (const e of rainEdges) {
+					if (prevY < e.y && d.y >= e.y && d.x >= e.x1 && d.x <= e.x2) {
+						spawnSplash(d.x, e.y);
+						d.y = -vfxRand() * 40;
+						d.x = vfxRand() * w;
+						consumed = true;
+						break;
+					}
+				}
+				// 落到底部同样迸溅
+				if (!consumed && prevY < h && d.y >= h) {
+					spawnSplash(d.x, h - 1);
+					d.y = -vfxRand() * 40;
+					d.x = vfxRand() * w;
+				}
+
+				// 竖向水痕
+				rainCtx.strokeStyle = `rgba(${rgb}, ${d.alpha})`;
+				rainCtx.lineWidth = d.r;
+				rainCtx.beginPath();
+				rainCtx.moveTo(d.x, d.y - d.len);
+				rainCtx.lineTo(d.x, d.y);
+				rainCtx.stroke();
+				// 珠头高光
+				rainCtx.fillStyle = `rgba(${rgb}, ${Math.min(0.5, d.alpha + 0.18)})`;
+				rainCtx.beginPath();
+				rainCtx.arc(d.x, d.y, d.r * 0.9, 0, Math.PI * 2);
+				rainCtx.fill();
+			}
+
+			// 水花粒子
+			for (let i = rainSplashes.length - 1; i >= 0; i--) {
+				const p = rainSplashes[i];
+				p.life++;
+				p.vy += 0.16;
+				p.x += p.vx;
+				p.y += p.vy;
+				const t = 1 - p.life / p.maxLife;
+				if (t <= 0) {
+					rainSplashes.splice(i, 1);
+					continue;
+				}
+				rainCtx.fillStyle = `rgba(${rgb}, ${0.4 * t})`;
+				rainCtx.beginPath();
+				rainCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+				rainCtx.fill();
+			}
+
+			rainRaf = requestAnimationFrame(frame);
+		}
+		rainRaf = requestAnimationFrame(frame);
+	}
+
+	function destroyHeroRain() {
+		if (rainRaf) {
+			cancelAnimationFrame(rainRaf);
+			rainRaf = 0;
+		}
+		if (rainEdgeTimer) {
+			window.clearInterval(rainEdgeTimer);
+			rainEdgeTimer = 0;
+		}
+		if (rainResizeHandler) {
+			window.removeEventListener("resize", rainResizeHandler);
+			rainResizeHandler = null;
+		}
+		if (rainCanvas) {
+			rainCanvas.remove();
+			rainCanvas = null;
+		}
+		rainCtx = null;
+		rainDrops = [];
+		rainSplashes = [];
+		rainEdges = [];
+	}
+
 	function prefersReducedMotion() {
 		return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	}
@@ -676,6 +880,7 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 		initHeroOpening();
 		initParallax();
 		initWorkStatus();
+		initHeroRain();
 		void initHeroHatch();
 
 		requestAnimationFrame(() => {
@@ -687,6 +892,7 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 		killHomeMotion();
 		destroyParallax();
 		destroyWorkStatus();
+		destroyHeroRain();
 		destroyHeroHatch();
 	}
 
