@@ -65,6 +65,8 @@ const avatarOffUrl = profileConfig.avatarOffWork
 const heroBioText = Array.isArray(profileConfig.bio)
 	? profileConfig.bio[0] || ""
 	: profileConfig.bio || "";
+
+const nameLetters = Array.from(profileConfig.displayName || "");
 ---
 
 <section class="home-hero home-hero--motion-pending" id="home-hero"
@@ -90,7 +92,11 @@ const heroBioText = Array.isArray(profileConfig.bio)
 							<p class="home-hero__occupation">{profileConfig.occupation}</p>
 						)}
 						{profileConfig.displayName && (
-							<h1 class="home-hero__name">{profileConfig.displayName}</h1>
+							<h1 class="home-hero__name home-hero__name--rainbow">
+								{nameLetters.map((letter, i) => (
+									<span class="home-hero__name-letter" data-letter-index={i}>{letter}</span>
+								))}
+							</h1>
 						)}
 						<div class="home-hero__name-badge">{siteConfig.title}</div>
 					</div>
@@ -210,7 +216,6 @@ const heroBioText = Array.isArray(profileConfig.bio)
 		}
 
 		const occupation = hero.querySelector(".home-hero__occupation");
-		const name = hero.querySelector(".home-hero__name");
 		const badge = hero.querySelector(".home-hero__name-badge");
 		const avatar = hero.querySelector(".home-hero__avatar-group");
 		const motto = hero.querySelector(".home-hero__motto-text");
@@ -271,19 +276,20 @@ const heroBioText = Array.isArray(profileConfig.bio)
 				duration: 0.92,
 				ease: "expo.out",
 			}, 0.82)
-			.fromTo(name, {
+			// 名字逐字弹入动画
+			.fromTo(hero.querySelectorAll(".home-hero__name-letter"), {
 				autoAlpha: 0,
-				x: -78,
-				scaleX: 0.78,
-				clipPath: "inset(0 100% 0 0)",
-				transformOrigin: "0% 50%",
+				y: 20,
+				rotateX: 40,
+				scale: 0.85,
 			}, {
 				autoAlpha: 1,
-				x: 0,
-				scaleX: 1,
-				clipPath: "inset(0 0% 0 0)",
-				duration: 1.18,
-				ease: "expo.out",
+				y: 0,
+				rotateX: 0,
+				scale: 1,
+				duration: 0.5,
+				stagger: 0.04,
+				ease: "back.out(1.4)",
 			}, 0.98)
 			.fromTo(badge, {
 				autoAlpha: 0,
@@ -607,17 +613,18 @@ const heroBioText = Array.isArray(profileConfig.bio)
 		if (!nameEl) return;
 		if (prefersReducedMotion()) return;
 
-		await new Promise((r) => setTimeout(r, 2200));
+		// 等待逐字弹入动画基本完成（从 0.98s 开始，10 字 × 0.04s + 0.5s ≈ 1.88s 结束）
+		await new Promise((r) => setTimeout(r, 1500));
 
 		if (!document.contains(nameEl)) return;
 
 		destroyHeroHatch();
 
-		const heroEl = document.getElementById("home-hero");
+		const heroEl = document.getElementById("home-hero") ?? undefined;
 		const vfx = VFX.init({
 			pixelRatio: Math.min(window.devicePixelRatio, 1.5),
-			wrapper: heroEl || undefined,
-			fixedCanvas: false,
+			zIndex: 10,
+			wrapper: heroEl,
 		});
 		if (!vfx) return;
 		vfxInstance = vfx;
@@ -634,7 +641,7 @@ const heroBioText = Array.isArray(profileConfig.bio)
 			speed: 8,
 			roundCap: true,
 			soft: 0,
-			originalColor: false,
+			originalColor: true,
 			bypass: false,
 		});
 

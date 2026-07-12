@@ -281,6 +281,25 @@
 	color: #000000;
 }
 
+/* 逐字母彩虹着色 */
+.home-hero__name-letter {
+	display: inline-block;
+	min-height: 1em;
+	vertical-align: bottom;
+	will-change: transform, opacity;
+}
+
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(1) { color: #d63031; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(2) { color: #e17055; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(3) { color: #f9ca24; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(4) { color: #ffeaa7; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(5) { color: #ffeaa7; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(6) { color: #00b894; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(7) { color: #0984e3; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(8) { color: #6c5ce7; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(9) { color: #0984e3; }
+.home-hero__name--rainbow .home-hero__name-letter:nth-child(10) { color: #6c5ce7; }
+
 .home-hero__name-badge {
 	display: flex;
 	position: relative;
@@ -402,11 +421,10 @@
 	filter: blur(14px);
 }
 
-.home-hero--motion-pending .home-hero__name {
+/* h1 直接可见，字母初始隐藏由 GSAP 控制弹入 */
+.home-hero--motion-pending .home-hero__name-letter {
 	opacity: 0;
-	transform: translateX(-78px) scaleX(0.78);
-	transform-origin: 0% 50%;
-	clip-path: inset(0 100% 0 0);
+	transform: translateY(20px) rotateX(40deg) scale(0.85);
 }
 
 .home-hero--motion-pending .home-hero__name-badge {
@@ -479,24 +497,7 @@
 
 /* 磨砂玻璃卡片 */
 .home-hero__art-window {
-	width: 82%;
-	height: clamp(8.5rem, 18vh, 12rem);
-	position: absolute;
-	right: calc(6% - 1vw);
-	bottom: clamp(5.5rem, 10vh, 8rem);
-	overflow: visible;
-	transform: translateX(1vw);
-	z-index: 21;
-	border-radius: 8px;
-	background: linear-gradient(135deg, rgba(20, 30, 30, 0.08) 0%, rgba(10, 15, 15, 0.16) 100%);
-	backdrop-filter: blur(12px) saturate(150%);
-	-webkit-backdrop-filter: blur(12px) saturate(150%);
-	border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="light"] .home-hero__art-window {
-	background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.2) 100%);
-	border: 1px solid rgba(0, 0, 0, 0.05);
+	display: none;
 }
 
 .home-hero__speech {
@@ -511,8 +512,6 @@
 	background:
 		linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
 		rgba(8, 10, 12, 0.44);
-	backdrop-filter: blur(18px) saturate(145%);
-	-webkit-backdrop-filter: blur(18px) saturate(145%);
 	box-shadow: 0 22px 54px rgba(0, 0, 0, 0.32);
 	color: rgba(255, 255, 255, 0.86);
 	pointer-events: none;
