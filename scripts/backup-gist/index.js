@@ -15,6 +15,7 @@
  *   node scripts/backup-gist/index.js friends       # 仅迁移友链
  *   node scripts/backup-gist/index.js bangumi       # 仅迁移影视
  *   node scripts/backup-gist/index.js notebooks     # 仅迁移笔记本
+ *   node scripts/backup-gist/index.js places        # 仅迁移足迹
  *   node scripts/backup-gist/index.js --dry-run     # 仅预览，不写入不删除
  */
 
@@ -24,6 +25,23 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
+
+// 加载 .env 文件（Node.js 不会自动读取）
+function loadEnv() {
+	const envPath = path.join(ROOT, ".env");
+	if (!fs.existsSync(envPath)) return;
+	const lines = fs.readFileSync(envPath, "utf-8").split("\n");
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith("#")) continue;
+		const eqIndex = trimmed.indexOf("=");
+		if (eqIndex === -1) continue;
+		const key = trimmed.slice(0, eqIndex).trim();
+		const value = trimmed.slice(eqIndex + 1).trim().replace(/^["']|["']$/g, "");
+		if (!process.env[key]) process.env[key] = value;
+	}
+}
+loadEnv();
 
 // ═══════════════════════════════════════════════════
 // 配置
@@ -53,6 +71,11 @@ const EXTERNAL_FRIENDS_CONFIG = {
 const EXTERNAL_BANGUMI_CONFIG = {
 	gistId: "6045e8306c907fbe7962f507c45dc1dc",
 	fileName: "bangumi.json",
+};
+
+const EXTERNAL_PLACES_CONFIG = {
+	gistId: "3664c0266410b5a28c496733c1ee2c98",
+	fileName: "places",
 };
 
 const CONTENT_DIR = path.join(ROOT, "src/content");
@@ -203,7 +226,7 @@ function readExistingIds(dir) {
 			const content = fs.readFileSync(path.join(dir, file), "utf-8");
 			const match = content.match(/^---\n([\s\S]*?)\n---/);
 			if (!match) continue;
-			const idMatch = match[1].match(/^# id:\s*(.+)$/m);
+			const idMatch = match[1].match(/^id:\s*(.+)$/m);
 			if (idMatch) result.add(idMatch[1].trim());
 		} catch {}
 	}
@@ -668,6 +691,108 @@ async function migrateNotebooks() {
 }
 
 // ═══════════════════════════════════════════════════
+// Places 迁移（足迹）
+// ═══════════════════════════════════════════════════
+
+async function migratePlaces() {
+	console.log("\n📍 迁移 Places (足迹)...");
+	const config = EXTERNAL_PLACES_CONFIG;
+	const placesDir = path.join(CONTENT_DIR, "life/places");
+
+	let data;
+	try {
+		data = await fetchGistRaw(config.gistId);
+	} catch (e) {
+		console.log(`  ✗ 获取失败: ${e.message}`);
+		return 0;
+	}
+
+	if (!Array.isArray(data) || data.length === 0) {
+		console.log("  (空，无需迁移)");
+		return 0;
+	}
+	console.log(`  Gist 中有 ${data.length} 条`);
+
+	// 去重：用 date + city 组合
+	const existingKeys = readExistingPlaceKeys(placesDir);
+
+	let migrated = 0;
+	let skipped = 0;
+	const remaining = [];
+
+	for (const entry of data) {
+		const dateStr = entry.date || new Date().toISOString().split("T")[0];
+		const dedupKey = `${dateStr}|${(entry.city || "").trim()}`;
+
+		if (existingKeys.has(dedupKey)) {
+			skipped++;
+			continue;
+		}
+
+		const fm = {
+			date: dateStr,
+			province: entry.province || "",
+			city: entry.city || "",
+			experience: entry.experience || "",
+			visitCount: entry.visitCount || 1,
+		};
+		if (entry.lat) fm.lat = parseFloat(entry.lat) || entry.lat;
+		if (entry.lng) fm.lng = parseFloat(entry.lng) || entry.lng;
+		if (entry.url) fm.url = entry.url;
+		if (entry.urlLabel) fm.urlLabel = entry.urlLabel;
+		if (entry.photos?.length) fm.photos = entry.photos;
+		if (entry.tags?.length) fm.tags = entry.tags.map((t) => /^\d+$/.test(t) ? `"${t}"` : t);
+
+		// 文件名只用日期，同日期则加后缀
+		let filename = `${dateStr}.md`;
+		let filepath = path.join(placesDir, filename);
+		let suffix = 2;
+		while (fs.existsSync(filepath)) {
+			filename = `${dateStr}-${suffix}.md`;
+			filepath = path.join(placesDir, filename);
+			suffix++;
+		}
+
+		if (writeMarkdownFile(filepath, fm, "")) {
+			migrated++;
+			existingKeys.add(dedupKey);
+			console.log(`  ✓ ${filename}`);
+		} else {
+			remaining.push(entry);
+		}
+	}
+
+	if (remaining.length < data.length) {
+		await updateGist(config.gistId, config.fileName, remaining);
+	}
+
+	console.log(`  结果: 迁移 ${migrated}, 跳过 ${skipped}, Gist 剩余 ${remaining.length}`);
+	return migrated;
+}
+
+function readExistingPlaceKeys(dir) {
+	const result = new Set();
+	if (!fs.existsSync(dir)) return result;
+	const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
+	for (const file of files) {
+		try {
+			const content = fs.readFileSync(path.join(dir, file), "utf-8");
+			const match = content.match(/^---\n([\s\S]*?)\n---/);
+			if (!match) continue;
+			const fm = match[1];
+			const dateMatch = fm.match(/^date:\s*(.+)$/m);
+			const cityMatch = fm.match(/^city:\s*(.+)$/m);
+			if (dateMatch) {
+				const date = dateMatch[1].trim();
+				const city = cityMatch ? cityMatch[1].trim() : "";
+				result.add(`${date}|${city}`);
+			}
+		} catch {}
+	}
+	return result;
+}
+
+// ═══════════════════════════════════════════════════
 // 主流程
 // ═══════════════════════════════════════════════════
 
@@ -696,19 +821,21 @@ async function main() {
 		friends: migrateFriends,
 		bangumi: migrateBangumi,
 		notebooks: migrateNotebooks,
+		places: migratePlaces,
 	};
 
 	if (target && targets[target]) {
 		total = await targets[target]();
 	} else if (target && !targets[target]) {
 		console.log(`\n未知类型: ${target}`);
-		console.log("可选: moments, friends, bangumi, notebooks");
+		console.log("可选: moments, friends, bangumi, notebooks, places");
 		process.exit(1);
 	} else if (!target) {
 		total += await migrateMoments();
 		total += await migrateFriends();
 		total += await migrateBangumi();
 		total += await migrateNotebooks();
+		total += await migratePlaces();
 	}
 
 	console.log(`\n════════════════════════════════════════`);

@@ -102,11 +102,11 @@ const commands = [
 	},
 	{
 		name: "gist-migrate",
-		desc: "Gist 数据迁移到本地（说说/友链/影视/笔记本）",
-		usage: "pnpm cli gist-migrate [moments|friends|bangumi|notebooks] [--dry-run]",
+		desc: "Gist 数据迁移到本地（说说/友链/影视/笔记本/足迹）",
+		usage: "pnpm cli gist-migrate [moments|friends|bangumi|notebooks|places] [--dry-run]",
 		run: (args) => spawn("node", [resolve(__dirname, "backup-gist", "index.js"), ...args], { stdio: "inherit" }),
 		prompt: async (q) => {
-			console.log("可选类型: moments(说说), friends(友链), bangumi(影视), notebooks(笔记本)");
+			console.log("可选类型: moments(说说), friends(友链), bangumi(影视), notebooks(笔记本), places(足迹)");
 			const type = await q("迁移类型 (回车=全部): ");
 			const dryRun = await q("仅预览不实际操作？(y/n，默认 n): ");
 			const args = [];

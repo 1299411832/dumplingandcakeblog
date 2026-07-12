@@ -1,0 +1,440 @@
+---
+// 后台管理统一布局
+import { externalMomentsConfig } from "@/config/externalMomentsConfig";
+
+interface Props {
+  title: string;
+  activeItem: string;
+}
+const { title, activeItem } = Astro.props;
+
+const navItems = [
+  { key: "dashboard", label: "仪表盘", icon: "◉", href: "/admin/dashboard/" },
+  { key: "moments", label: "说说", icon: "✎", href: "/admin/moments/" },
+  { key: "notebooks", label: "笔记", icon: "▤", href: "/admin/notebooks/" },
+  { key: "friends", label: "友链", icon: "⚭", href: "/admin/friends/" },
+  { key: "bangumi", label: "影视", icon: "▶", href: "/admin/bangumi/" },
+  { key: "places", label: "足迹", icon: "◎", href: "/admin/places/" },
+];
+---
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} · 后台</title>
+  <style is:inline>
+    :root {
+      --sidebar-bg: #0f0f14;
+      --sidebar-text: #8888a0;
+      --sidebar-text-active: #ffffff;
+      --sidebar-hover: rgba(255,255,255,0.06);
+      --sidebar-accent: #7c5cfc;
+      --sidebar-divider: rgba(255,255,255,0.08);
+      --sidebar-w: 220px;
+      --topbar-h: 52px;
+
+      --bg: #fafafa;
+      --bg-elevated: #ffffff;
+      --border: #e8e8ec;
+      --text: #171717;
+      --text-2: #525252;
+      --text-3: #a0a0a0;
+      --accent: #171717;
+      --accent-text: #ffffff;
+      --hover: #f4f4f6;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 8px;
+    }
+    :root.dark {
+      --sidebar-bg: #0a0a0f;
+      --sidebar-hover: rgba(255,255,255,0.08);
+      --bg: #0a0a0a;
+      --bg-elevated: #141414;
+      --border: #222;
+      --text: #ededed;
+      --text-2: #a0a0a0;
+      --text-3: #555;
+      --accent: #ededed;
+      --accent-text: #0a0a0a;
+      --hover: #1a1a1a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "AaZongYiYuan", "MiSans", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== 整体布局 ===== */
+    .admin-layout { display: flex; flex-direction: column; min-height: 100vh; }
+    .admin-body { display: flex; flex: 1; }
+
+    /* ===== 顶栏 ===== */
+    .admin-topbar {
+      height: var(--topbar-h); flex-shrink: 0;
+      background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .topbar-brand {
+      font-size: 13px; color: var(--text-3); font-weight: 500;
+    }
+
+    /* ===== 侧边栏 ===== */
+    .admin-sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: sticky; top: var(--topbar-h);
+      height: calc(100vh - var(--topbar-h));
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 20px 20px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-brand .brand-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sidebar-accent);
+      box-shadow: 0 0 8px rgba(124,92,252,0.4);
+    }
+    .sidebar-brand .brand-text {
+      font-size: 14px; font-weight: 600; color: var(--sidebar-text-active);
+      letter-spacing: -0.01em;
+    }
+    .sidebar-nav { flex: 1; padding: 4px 8px; }
+    .sidebar-section-label {
+      font-size: 11px; font-weight: 500; color: var(--sidebar-text);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 16px 12px 6px; opacity: 0.6;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--sidebar-text);
+      transition: all 0.15s; cursor: pointer;
+      border: none; background: none; width: 100%;
+      text-align: left; font-family: inherit;
+      position: relative;
+    }
+    .nav-item:hover { color: var(--sidebar-text-active); background: var(--sidebar-hover); }
+    .nav-item.active {
+      color: var(--sidebar-text-active); background: rgba(124,92,252,0.12);
+    }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 10px; bottom: 10px;
+      width: 3px; background: var(--sidebar-accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; opacity: 0.7;
+    }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .sidebar-footer {
+      padding: 12px 8px 16px;
+      border-top: 1px solid var(--sidebar-divider);
+      margin-top: auto;
+    }
+    .sidebar-footer .nav-item { font-size: 12px; padding: 7px 12px; }
+
+    /* ===== 主内容区 ===== */
+    .admin-main { flex: 1; min-width: 0; overflow-y: auto; }
+    .admin-content { padding: 24px; max-width: 960px; }
+    .content-split {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .content-split { grid-template-columns: 1fr; }
+    }
+
+    /* ===== 按钮 ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 7px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 13px; font-weight: 500; cursor: pointer; background: var(--bg-elevated);
+      color: var(--text); font-family: inherit; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--text-3); }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+    .btn-ghost:hover { color: var(--text); background: var(--hover); }
+    .btn-danger { color: var(--danger); }
+    .btn-danger:hover { background: rgba(220,38,38,0.08); color: var(--danger); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    /* ===== 表单 ===== */
+    .form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .form-hint { font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+    .form-input {
+      width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 14px; background: var(--bg-elevated);
+      color: var(--text); outline: none; transition: border-color 0.15s; font-family: inherit;
+    }
+    .form-input:focus { border-color: var(--text-3); }
+    .form-input::placeholder { color: var(--text-3); }
+    textarea.form-input { resize: vertical; line-height: 1.6; }
+    select.form-input { cursor: pointer; appearance: auto; }
+    .form-group { margin-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input-group { display: flex; gap: 8px; }
+    .input-group .form-input { flex: 1; }
+    .form-check {
+      display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;
+    }
+    .form-check input[type="checkbox"] {
+      width: 16px; height: 16px; accent-color: var(--sidebar-accent); cursor: pointer;
+    }
+
+    /* ===== 卡片 ===== */
+    .card {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 16px;
+    }
+    .card-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-size: 14px; font-weight: 600; }
+    .card-body { padding: 16px; }
+    .card-footer { padding: 12px 16px; border-top: 1px solid var(--border); }
+
+    /* ===== 列表行 ===== */
+    .list-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .list-row:last-child { border-bottom: none; }
+    .list-row:hover { background: var(--hover); }
+
+    /* ===== Toast ===== */
+    .toast-wrap { position: fixed; top: 12px; right: 12px; z-index: 9999; }
+    .toast {
+      padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; opacity: 0; transform: translateY(-8px);
+      transition: all 0.2s; pointer-events: none; border: 1px solid;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.ok { background: var(--bg-elevated); color: var(--success); border-color: var(--success); }
+    .toast.err { background: var(--bg-elevated); color: var(--danger); border-color: var(--danger); }
+
+    /* ===== 加载 ===== */
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 1.5px solid var(--border); border-top-color: var(--text-3);
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+    .d-none { display: none; }
+    .d-flex { display: flex; }
+    .flex-1 { flex: 1; }
+    .min-w-0 { min-width: 0; }
+    .flex-wrap { flex-wrap: wrap; }
+    .align-items-center { align-items: center; }
+    .gap-1 { gap: 4px; }
+    .gap-2 { gap: 8px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 16px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 16px; }
+    .fw-500 { font-weight: 500; }
+    .fw-600 { font-weight: 600; }
+    .text-center { text-align: center; }
+    .text-secondary { color: var(--text-2); }
+    .text-tertiary { color: var(--text-3); }
+    .text-danger { color: var(--danger); }
+    .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cursor-pointer { cursor: pointer; }
+    .w-100 { width: 100%; }
+
+    /* ===== 移动端汉堡按钮 ===== */
+    .hamburger {
+      display: none; background: none; border: none; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 8px;
+      align-items: center; justify-content: center;
+      color: var(--text); font-size: 18px; transition: background 0.15s;
+    }
+    .hamburger:hover { background: var(--hover); }
+
+    /* ===== 移动端下拉菜单 ===== */
+    .mobile-dropdown {
+      display: none; position: fixed; top: var(--topbar-h); left: 0; right: 0;
+      background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+      z-index: 99; max-height: 0; overflow: hidden;
+      transition: max-height 0.25s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .mobile-dropdown.open { max-height: 400px; }
+    .mobile-dropdown-inner { padding: 8px; }
+    .mobile-dropdown .nav-item {
+      color: var(--text-2); border-radius: 8px; padding: 10px 12px;
+      font-size: 14px; font-weight: 500;
+    }
+    .mobile-dropdown .nav-item:hover { background: var(--hover); color: var(--text); }
+    .mobile-dropdown .nav-item.active {
+      color: var(--sidebar-accent); background: rgba(124,92,252,0.08);
+    }
+    .mobile-dropdown .nav-icon { opacity: 0.6; }
+    .mobile-dropdown .nav-item.active .nav-icon { opacity: 1; }
+    .mobile-dropdown .mobile-divider {
+      height: 1px; background: var(--border); margin: 6px 12px;
+    }
+
+    @media (max-width: 768px) {
+      .admin-sidebar { display: none; }
+      .hamburger { display: flex; }
+      .mobile-dropdown { display: block; }
+      .admin-content { padding: 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .topbar-brand { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- 统一顶栏 -->
+    <div class="admin-topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger-btn" aria-label="菜单">
+          <span id="hamburger-icon">☰</span>
+        </button>
+        <span class="topbar-title">{title}</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-brand">团子和蛋糕的博客</span>
+      </div>
+    </div>
+
+    <!-- 移动端下拉菜单 -->
+    <div class="mobile-dropdown" id="mobile-dropdown">
+      <div class="mobile-dropdown-inner">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class={`nav-item ${activeItem === item.key ? "active" : ""}`}
+            data-no-swup
+          >
+            <span class="nav-icon">{item.icon}</span>
+            <span>{item.label}</span>
+          </a>
+        ))}
+        <div class="mobile-divider"></div>
+        <a href="/" class="nav-item" data-no-swup>
+          <span class="nav-icon">←</span>
+          <span>返回首页</span>
+        </a>
+        <button class="nav-item" onclick="toggleDark()" style="width:100%;text-align:left;">
+          <span class="nav-icon">◐</span>
+          <span>暗色模式</span>
+        </button>
+        <button class="nav-item" onclick="doLogout()" style="width:100%;text-align:left;color:var(--danger);">
+          <span class="nav-icon">⏻</span>
+          <span>退出登录</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="admin-body">
+      <!-- 桌面端侧边栏 -->
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-dot"></span>
+          <span class="brand-text">后台管理</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="sidebar-section-label">功能</div>
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class={`nav-item ${activeItem === item.key ? "active" : ""}`}
+              data-no-swup
+            >
+              <span class="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="nav-item" onclick="toggleDark()" id="dark-btn">
+            <span class="nav-icon">◐</span>
+            <span>暗色模式</span>
+          </button>
+          <a href="/" class="nav-item" data-no-swup>
+            <span class="nav-icon">←</span>
+            <span>返回首页</span>
+          </a>
+          <button class="nav-item" onclick="doLogout()" style="color:var(--danger);">
+            <span class="nav-icon">⏻</span>
+            <span>退出登录</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- 主内容 -->
+      <main class="admin-main">
+        <div class="admin-content">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script is:inline data-hash={externalMomentsConfig.adminPasswordHash || ""}>
+    if (sessionStorage.getItem("admin_auth") !== "1") {
+      window.location.href = "/admin/";
+    }
+
+    function toggleDark() {
+      var root = document.documentElement;
+      root.classList.toggle("dark");
+      localStorage.setItem("admin_theme", root.classList.contains("dark") ? "dark" : "light");
+    }
+    if (localStorage.getItem("admin_theme") === "dark" ||
+        (!localStorage.getItem("admin_theme") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+    }
+
+    function doLogout() {
+      sessionStorage.removeItem("admin_auth");
+      window.location.href = "/admin/";
+    }
+
+    (function() {
+      var btn = document.getElementById("hamburger-btn");
+      var icon = document.getElementById("hamburger-icon");
+      var dropdown = document.getElementById("mobile-dropdown");
+      if (!btn || !dropdown) return;
+      var isOpen = false;
+      btn.addEventListener("click", function() {
+        isOpen = !isOpen;
+        dropdown.classList.toggle("open", isOpen);
+        icon.textContent = isOpen ? "✕" : "☰";
+      });
+      dropdown.querySelectorAll(".nav-item").forEach(function(a) {
+        a.addEventListener("click", function() {
+          isOpen = false;
+          dropdown.classList.remove("open");
+          icon.textContent = "☰";
+        });
+      });
+    })();
+
+    window.toggleDark = toggleDark;
+    window.doLogout = doLogout;
+  </script>
+</body>
+</html>
