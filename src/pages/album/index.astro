@@ -31,7 +31,7 @@ const formatDateRange = (start: Date, end: Date) => {
 
 function getPreviewPhotos(album: any) {
 	const photos = album.data.photos || [];
-	return photos.slice(0, 5);
+	return photos.slice(0, 4);
 }
 ---
 
@@ -111,8 +111,8 @@ function getPreviewPhotos(album: any) {
                       <Icon name="material-symbols:add-photo-alternate-outline" class="text-4xl" />
                     </div>
                   )}
-                  {photoCount > 5 && (
-                    <div class="photo-badge">+{photoCount - 5}</div>
+                  {photoCount > 4 && (
+                    <div class="photo-badge">+{photoCount - 4}</div>
                   )}
                 </div>
 
@@ -177,14 +177,16 @@ function getPreviewPhotos(album: any) {
   .album-card {
     display: flex;
     flex-direction: column;
-    background: transparent;
-    border-radius: 16px;
+    background: var(--card-bg);
+    border: 2px dashed var(--line-divider);
+    border-radius: 20px;
     overflow: visible;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .album-card:hover {
     transform: translateY(-6px);
+    border-color: var(--primary);
   }
 
   /* BounceCards 堆叠区域 */

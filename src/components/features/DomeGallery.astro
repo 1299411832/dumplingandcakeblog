@@ -344,6 +344,31 @@ const items = buildItems(images, segments);
     let lastDragEndAt = 0;
     let originalTilePos: any = null;
 
+    // 自动旋转
+    let autoRotRAF: number | null = null;
+    let autoRotSpeed = -0.06; // deg/frame
+    let autoRotPaused = false;
+
+    function startAutoRot() {
+      if (autoRotRAF) return;
+      const step = () => {
+        if (!autoRotPaused && !dragging && !focusedEl) {
+          rot.y = wrapAngle(rot.y + autoRotSpeed);
+          applyTransform(rot.x, rot.y);
+        }
+        autoRotRAF = requestAnimationFrame(step);
+      };
+      autoRotRAF = requestAnimationFrame(step);
+    }
+
+    function pauseAutoRot() {
+      autoRotPaused = true;
+      clearTimeout((pauseAutoRot as any)._timer);
+      (pauseAutoRot as any)._timer = setTimeout(() => { autoRotPaused = false; }, 3000);
+    }
+
+    startAutoRot();
+
     function applyTransform(xDeg: number, yDeg: number) {
       sphere.style.transform = `translateZ(calc(var(--radius) * -1)) rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
     }
@@ -403,6 +428,7 @@ const items = buildItems(images, segments);
     mainEl.addEventListener("pointerdown", (e) => {
       if (focusedEl) return;
       stopInertia();
+      pauseAutoRot();
       dragging = true; moved = false;
       startRot = { ...rot };
       startPos = { x: e.clientX, y: e.clientY };

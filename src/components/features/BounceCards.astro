@@ -121,7 +121,7 @@ const widgetId = customId || `bc-${Math.random().toString(36).substring(2, 9)}`;
               overwrite: "auto",
             });
           } else {
-            const offsetX = i < idx ? -80 : 80;
+            const offsetX = i < idx ? -30 : 30;
             const translateRegex = /translate\(([-0-9.]+)px\)/;
             const match = baseTransform.match(translateRegex);
             let pushedTransform: string;
