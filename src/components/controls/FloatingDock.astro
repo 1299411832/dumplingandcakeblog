@@ -62,34 +62,28 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
   <!-- 可展开堆叠 -->
   <div class="dock-stack" id="dock-stack" data-expanded="false">
     <div class="dock-buttons">
-      <!-- 搜索 -->
-      <button class="dock-btn" id="dock-search-btn" aria-label={i18n(I18nKey.search)} type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:search" class="text-2xl" /></span>
-        <span class="dock-btn-label">搜索</span>
-      </button>
-
       <!-- 标签 -->
       <button class="dock-btn" id="dock-tags-btn" aria-label={i18n(I18nKey.tags)} type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:label-outline" class="text-2xl" /></span>
+        <span class="dock-btn-icon"><Icon name="material-symbols:label-outline" is:inline class="text-2xl" /></span>
         <span class="dock-btn-label">标签</span>
       </button>
 
       <!-- 分类 -->
       <button class="dock-btn" id="dock-categories-btn" aria-label={i18n(I18nKey.categories)} type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:folder-outline" class="text-2xl" /></span>
+        <span class="dock-btn-icon"><Icon name="material-symbols:folder-outline" is:inline class="text-2xl" /></span>
         <span class="dock-btn-label">分类</span>
       </button>
 
       <!-- 公告 -->
       <button class="dock-btn" id="dock-announcement-btn" aria-label="公告" type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:campaign-outline-rounded" class="text-2xl" /></span>
+        <span class="dock-btn-icon"><Icon name="material-symbols:campaign-outline-rounded" is:inline class="text-2xl" /></span>
         <span class="dock-btn-label">公告</span>
       </button>
 
       <!-- 音乐 -->
       {musicPlayerConfig.showInNavbar !== false && (
         <button class="dock-btn" id="dock-music-btn" aria-label={i18n(I18nKey.music)} type="button">
-          <span class="dock-btn-icon"><Icon name="material-symbols:music-note-rounded" class="text-2xl" /></span>
+          <span class="dock-btn-icon"><Icon name="material-symbols:music-note-rounded" is:inline class="text-2xl" /></span>
           <span class="dock-btn-label">音乐</span>
         </button>
       )}
@@ -97,13 +91,20 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
 
       <!-- 笔记本 -->
       <button class="dock-btn" id="dock-notebook-btn" aria-label="Notebook" type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:book-outline-rounded" class="text-2xl" /></span>
+        <span class="dock-btn-icon"><Icon name="material-symbols:book-outline-rounded" is:inline class="text-2xl" /></span>
         <span class="dock-btn-label">笔记</span>
+      </button>
+
+      <!-- 亮暗色切换 -->
+      <button class="dock-btn" id="dock-theme-btn" aria-label="Theme" type="button">
+        <span class="dock-btn-icon dock-theme-icon-light"><Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="text-2xl" /></span>
+        <span class="dock-btn-icon dock-theme-icon-dark" style="display:none"><Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="text-2xl" /></span>
+        <span class="dock-btn-label">主题</span>
       </button>
 
       <!-- 回首页 -->
       <button class="dock-btn dock-btn-home hide" id="dock-home-btn" aria-label={i18n(I18nKey.home)} type="button">
-        <span class="dock-btn-icon"><Icon name="material-symbols:home-outline-rounded" class="text-2xl" /></span>
+        <span class="dock-btn-icon"><Icon name="material-symbols:home-outline-rounded" is:inline class="text-2xl" /></span>
         <span class="dock-btn-label">首页</span>
       </button>
     </div>
@@ -111,8 +112,8 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
     <!-- 展开/收起切换 -->
     <button class="dock-btn dock-toggle" id="dock-toggle-btn" aria-label="Toggle" type="button">
       <span class="dock-btn-icon">
-        <Icon name="material-symbols:more-horiz" class="text-2xl dock-icon-collapsed" />
-        <Icon name="material-symbols:close" class="text-2xl dock-icon-expanded hidden" />
+        <Icon name="material-symbols:more-horiz" is:inline class="text-2xl dock-icon-collapsed" />
+        <Icon name="material-symbols:close" is:inline class="text-2xl dock-icon-expanded hidden" />
       </span>
       <span class="dock-btn-label" id="dock-toggle-label">展开</span>
     </button>
@@ -120,31 +121,31 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
 
   <!-- 回到顶部 -->
   <button class="dock-btn dock-btn-top hide" id="dock-top-btn" aria-label="Top" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" class="text-2xl" /></span>
+    <span class="dock-btn-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline class="text-2xl" /></span>
     <span class="dock-btn-label">Top</span>
   </button>
 
   <!-- 直达评论区（仅在 moments 页面滚动后显示） -->
   <button class="dock-btn hide" id="dock-comment-btn" aria-label="Comment" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:chat-bubble-outline" class="text-2xl" /></span>
+    <span class="dock-btn-icon"><Icon name="material-symbols:chat-bubble-outline" is:inline class="text-2xl" /></span>
     <span class="dock-btn-label">评论</span>
   </button>
 
   <!-- 返回书架（仅在书籍详情页显示） -->
   <button class="dock-btn hide" id="dock-bookshelf-btn" aria-label="Back to bookshelf" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:arrow-back-rounded" class="text-2xl" /></span>
+    <span class="dock-btn-icon"><Icon name="material-symbols:arrow-back-rounded" is:inline class="text-2xl" /></span>
     <span class="dock-btn-label">书架</span>
   </button>
 
   <!-- 全部文章（文章页显示） -->
   <button class="dock-btn hide dock-btn-posts" id="dock-posts-btn" aria-label="全部文章" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:list-alt-outline" class="text-2xl" /></span>
+    <span class="dock-btn-icon"><Icon name="material-symbols:list-alt-outline" is:inline class="text-2xl" /></span>
     <span class="dock-btn-label">文章</span>
   </button>
 
   <!-- 目录（文章页显示） -->
   <button class="dock-btn hide dock-btn-toc" id="dock-toc-btn" aria-label="TOC" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:format-list-bulleted" class="text-2xl" /></span>
+    <span class="dock-btn-icon"><Icon name="material-symbols:format-list-bulleted" is:inline class="text-2xl" /></span>
     <span class="dock-btn-label">目录</span>
   </button>
 </div>
@@ -312,6 +313,33 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
       e.stopPropagation();
       window.location.href = "/life/notebooks/";
     });
+
+    // 亮暗色切换
+    function updateDockThemeIcon() {
+      const isDark = document.documentElement.classList.contains("dark");
+      const lightIcon = document.querySelector(".dock-theme-icon-light") as HTMLElement;
+      const darkIcon = document.querySelector(".dock-theme-icon-dark") as HTMLElement;
+      if (lightIcon) lightIcon.style.display = isDark ? "none" : "";
+      if (darkIcon) darkIcon.style.display = isDark ? "" : "none";
+    }
+
+    document.getElementById("dock-theme-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isDark = document.documentElement.classList.contains("dark");
+      const next = isDark ? "light" : "dark";
+      localStorage.setItem("theme", next);
+      if (next === "dark") {
+        document.documentElement.classList.add("dark");
+        document.documentElement.setAttribute("data-theme", "one-dark-pro");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.setAttribute("data-theme", "one-light");
+      }
+      updateDockThemeIcon();
+    });
+
+    updateDockThemeIcon();
+    window.addEventListener("theme-change", updateDockThemeIcon);
 
     // 回顶
     document.getElementById("dock-top-btn")?.addEventListener("click", (e) => {

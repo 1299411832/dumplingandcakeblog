@@ -46,11 +46,6 @@
   }
 }
 
-/* ============ 导航栏图标隐藏 ============ */
-@media (max-width: 1199px) {
-  .navbar-icon { display: none !important; }
-}
-
 /* ============ 响应式文字缩小 ============ */
 @media (max-width: 1400px) {
   #navbar .dropdown-container>a,

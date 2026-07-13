@@ -376,6 +376,49 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
       )}
     </div>
   </div>
+
+<script is:inline>
+  // 使用事件委托，不受 Swup DOM 替换影响
+  document.addEventListener('click', function(e) {
+    var toggleBtn = e.target.closest('#mini-mode-toggle');
+    if (!toggleBtn) return;
+
+    var isMini = document.body.classList.contains('tools-mini-mode');
+    if (isMini) {
+      document.body.classList.remove('tools-mini-mode');
+      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
+      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
+      if (iconNormal) iconNormal.classList.remove('hidden');
+      if (iconCompact) iconCompact.classList.add('hidden');
+      localStorage.setItem('tools-mini-mode', 'false');
+    } else {
+      document.body.classList.add('tools-mini-mode');
+      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
+      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
+      if (iconNormal) iconNormal.classList.add('hidden');
+      if (iconCompact) iconCompact.classList.remove('hidden');
+      localStorage.setItem('tools-mini-mode', 'true');
+    }
+  });
+
+  // 初始化状态
+  function initMiniMode() {
+    var toggleBtn = document.getElementById('mini-mode-toggle');
+    if (!toggleBtn) return;
+    var savedMode = localStorage.getItem('tools-mini-mode');
+    if (savedMode === 'true') {
+      document.body.classList.add('tools-mini-mode');
+      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
+      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
+      if (iconNormal) iconNormal.classList.add('hidden');
+      if (iconCompact) iconCompact.classList.remove('hidden');
+    }
+  }
+
+  initMiniMode();
+  document.addEventListener('astro:page-load', initMiniMode);
+</script>
+
 </MainGridLayout>
 
 <style>
@@ -693,48 +736,3 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
     }
   }
 </style>
-
-<script>
-  window.miniModeInit = function() {
-    var toggleBtn = document.getElementById('mini-mode-toggle');
-    if (!toggleBtn) return;
-
-    function enableMiniMode() {
-      document.body.classList.add('tools-mini-mode');
-      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
-      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
-      if (iconNormal) iconNormal.classList.add('hidden');
-      if (iconCompact) iconCompact.classList.remove('hidden');
-      localStorage.setItem('tools-mini-mode', 'true');
-    }
-
-    function disableMiniMode() {
-      document.body.classList.remove('tools-mini-mode');
-      var iconNormal = toggleBtn.querySelector('.mini-mode-icon-normal');
-      var iconCompact = toggleBtn.querySelector('.mini-mode-icon-compact');
-      if (iconNormal) iconNormal.classList.remove('hidden');
-      if (iconCompact) iconCompact.classList.add('hidden');
-      localStorage.setItem('tools-mini-mode', 'false');
-    }
-
-    var savedMode = localStorage.getItem('tools-mini-mode');
-    if (savedMode === 'true') {
-      enableMiniMode();
-    }
-
-    toggleBtn.addEventListener('click', function() {
-      var isMini = document.body.classList.contains('tools-mini-mode');
-      if (isMini) {
-        disableMiniMode();
-      } else {
-        enableMiniMode();
-      }
-    });
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.miniModeInit);
-  } else {
-    window.miniModeInit();
-  }
-</script>

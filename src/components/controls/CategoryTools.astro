@@ -492,8 +492,14 @@ const { class: className } = Astro.props;
   }
 </style>
 
-<script is:inline data-swup-ignore-script>
+<script is:inline>
 (function() {
+  // 清理可能残留的旧覆盖层（Swup 导航时 overlay 可能被移到 body）
+  var staleOverlay = document.getElementById("cat-bubble-overlay");
+  if (staleOverlay && staleOverlay.parentElement === document.body) {
+    staleOverlay.remove();
+  }
+
   var isOpen = false;
 
   function openMenu() {

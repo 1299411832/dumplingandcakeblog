@@ -46,7 +46,7 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 				aria-label={processedLink.name}
 				aria-haspopup="true"
 				aria-expanded="false"
-				class="btn-plain rounded-lg h-11 font-bold px-5 active:scale-95 dropdown-trigger-link navbar-link-item"
+				class="btn-plain rounded-lg h-9 font-bold px-3 active:scale-95 dropdown-trigger-link navbar-link-item"
 				data-dropdown-trigger
 			>
 				<div class="flex items-center">
@@ -80,7 +80,7 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 			aria-label={processedLink.name}
 			href={processedLink.external ? processedLink.url : url(processedLink.url)}
 			target={processedLink.external ? "_blank" : null}
-			class="btn-plain rounded-lg h-11 font-bold px-5 active:scale-95 navbar-link-item"
+			class="btn-plain rounded-lg h-9 font-bold px-3 active:scale-95 navbar-link-item"
 		>
 			<div class="flex items-center">
 				{processedLink.icon && <Icon name={processedLink.icon} class="text-[1.1rem] mr-2 navbar-icon" />}

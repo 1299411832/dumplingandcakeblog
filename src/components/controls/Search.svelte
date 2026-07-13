@@ -207,9 +207,10 @@ $effect(() => {
   }
   @media (max-width: 768px) {
     .search-panel {
-      right: 1rem;
-      left: 1rem;
+      right: 0.5rem;
+      left: 0.5rem;
       width: auto;
+      bottom: calc(0.75rem + 4.25rem + 0.5rem);
     }
   }
 </style>

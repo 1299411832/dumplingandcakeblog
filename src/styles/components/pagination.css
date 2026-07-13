@@ -17,11 +17,6 @@
   @apply text-sm text-(--text-secondary) text-center mb-2;
 }
 
-/* 首页文章卡片边框 */
-.post-card-wrapper {
-  border: 2px solid var(--primary) !important;
-}
-
 /* 分页控件 - 粗边框 */
 .pagination-btn,
 .pagination-page {

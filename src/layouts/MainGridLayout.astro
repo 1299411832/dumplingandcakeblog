@@ -3,7 +3,9 @@ import Live2DWidget from "@components/features/Live2DWidget.astro";
 
 import SpineModel from "@components/features/SpineModel.astro";
 import Footer from "@components/layout/Footer.astro";
+import MobileDock from "@components/layout/MobileDock.astro";
 import Navbar from "@components/layout/Navbar.astro";
+import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
 import SideBar from "@components/layout/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
@@ -14,10 +16,13 @@ import {
 	backgroundWallpaper,
 	commentConfig,
 	live2dModelConfig,
+	navBarConfig,
 	sidebarLayoutConfig,
 	siteConfig,
 } from "@/config";
 import { externalMomentsConfig } from "@/config/externalMomentsConfig";
+import { LinkPresets } from "@/constants/link-presets";
+import { LinkPreset, type NavBarLink } from "@/types/config";
 import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
@@ -267,6 +272,11 @@ const transparentClass = shouldEnableTransparency
 
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
+const navLinks = navBarConfig.links.map((item: NavBarLink | LinkPreset) => {
+	if (typeof item === "number") return LinkPresets[item];
+	return item;
+});
+
 // 获取图片质量配置
 const configQuality = getImageQuality();
 const mobileQuality = Math.round(configQuality * 0.9);
@@ -284,9 +294,13 @@ const mobileQuality = Math.round(configQuality * 0.9);
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
-<div id="navbar-wrapper" class="pointer-events-auto transition-all" data-full-width={String(navbarWidthFull)}>
-    <Navbar></Navbar>
+<div id="top-row" class="z-50 pointer-events-none relative mx-auto" style="position: sticky; top: 0;">
+  <div id="navbar-wrapper" class="pointer-events-auto bg-transparent" data-full-width={String(navbarWidthFull)}>
+      <Navbar></Navbar>
+  </div>
 </div>
+
+<NavMenuPanel links={navLinks} />
 
 <!-- Wallpaper - 如果允许切换则始终渲染，否则只渲染当前模式 -->
 {(isWallpaperSwitchable || isBannerMode || isOverlayMode) && (
@@ -641,6 +655,7 @@ const mobileQuality = Math.round(configQuality * 0.9);
 
                 </div>
                 <FloatingDock headings={headings} />
+                <MobileDock />
             </main>
             </div>
 
