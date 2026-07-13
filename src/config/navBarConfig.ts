@@ -125,6 +125,9 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			// 友链
 			LinkPreset.Friends,
 
+			// 朋友圈
+			LinkPreset.Circle,
+
 			// 赞助
 			...(siteConfig.pages.sponsor ? [LinkPreset.Sponsor] : []),
 		],

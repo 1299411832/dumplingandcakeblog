@@ -57,6 +57,17 @@ export const en: Translation = {
 	[Key.friends]: "Friends",
 	[Key.friendsDescription]:
 		"Here are my friends, welcome to visit and communicate with each other",
+	[Key.circle]: "Circle",
+	[Key.circleTitle]: "Friends Circle",
+	[Key.circleSubtitle]: "Latest articles from friends",
+	[Key.circleFriends]: "Total Friends",
+	[Key.circleActive]: "Active",
+	[Key.circleLost]: "Lost Contact",
+	[Key.circleArticles]: "Total Articles",
+	[Key.circleLastUpdated]: "Last Updated",
+	[Key.circleNoData]: "No articles yet",
+	[Key.circleLoading]: "Loading friends circle...",
+	[Key.circleError]: "Failed to load, please try again later",
 	[Key.guestbook]: "Guestbook",
 	[Key.guestbookDescription]:
 		"Welcome to leave your mark here, share your thoughts and suggestions",

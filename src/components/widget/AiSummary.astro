@@ -8,11 +8,8 @@ interface Props {
 
 const { description, descriptionSource } = Astro.props;
 
-const sourceLabel = descriptionSource === "manual" ? "人工编写" : "AI 摘要";
-const iconName =
-	descriptionSource === "manual"
-		? "material-symbols:edit-note-rounded"
-		: "material-symbols:psychiatry-rounded";
+const isAI = descriptionSource !== "manual";
+const sourceLabel = isAI ? "AI 摘要" : "人工编写";
 ---
 
 <div
@@ -22,7 +19,14 @@ const iconName =
   <div class="ai-summary-inner">
     <div class="ai-summary-header">
       <div class="ai-summary-icon">
-        <Icon name={iconName} class="text-lg" />
+        {isAI ? (
+          <>
+            <img src="/assets/images/em/openai黑色.png" alt="" class="ai-icon-img ai-icon-light" width="20" height="20" />
+            <img src="/assets/images/em/openai白色.png" alt="" class="ai-icon-img ai-icon-dark" width="20" height="20" />
+          </>
+        ) : (
+          <Icon name="material-symbols:edit-note-rounded" class="text-lg" />
+        )}
       </div>
       <span class="ai-summary-label">{sourceLabel}</span>
     </div>
@@ -119,6 +123,27 @@ const iconName =
     border-radius: 0.5rem;
     background: color-mix(in srgb, var(--primary) 14%, transparent);
     color: var(--primary);
+  }
+
+  .ai-icon-img {
+    display: block;
+    object-fit: contain;
+  }
+
+  .ai-icon-light {
+    display: block;
+  }
+
+  .ai-icon-dark {
+    display: none;
+  }
+
+  :global(html.dark) .ai-icon-light {
+    display: none;
+  }
+
+  :global(html.dark) .ai-icon-dark {
+    display: block;
   }
 
   .ai-summary-label {

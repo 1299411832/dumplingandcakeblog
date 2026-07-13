@@ -69,9 +69,9 @@ import { externalFriendsConfig } from "@/config/externalFriendsConfig";
       function parsePastedText(text) {
         var result = { title: "", desc: "", siteurl: "", imgurl: "" };
         text.split("\n").map(function(s) { return s.trim(); }).filter(Boolean).forEach(function(line) {
-          var m = line.match(/^(站点名称|名称|标题|title)\s*[:：]\s*(.+)$/i); if (m) { result.title = m[2].trim(); return; }
-          m = line.match(/^(站点描述|描述|desc|description)\s*[:：]\s*(.+)$/i); if (m) { result.desc = m[2].trim(); return; }
-          m = line.match(/^(站点链接|链接|url|siteurl|site_url)\s*[:：]\s*(.+)$/i); if (m) { result.siteurl = m[2].trim(); return; }
+          var m = line.match(/^(站点名称|名称|标题|title|name|我的名称)\s*[:：]\s*(.+)$/i); if (m) { result.title = m[2].trim(); return; }
+          m = line.match(/^(站点描述|描述|desc|descr|description)\s*[:：]\s*(.+)$/i); if (m) { result.desc = m[2].trim(); return; }
+          m = line.match(/^(站点链接|链接|url|link|siteurl|site_url|网站地址|地址)\s*[:：]\s*(.+)$/i); if (m) { result.siteurl = m[2].trim(); return; }
           m = line.match(/^(头像链接|头像|avatar|imgurl|img_url|image)\s*[:：]\s*(.+)$/i); if (m) { result.imgurl = m[2].trim(); return; }
         });
         return result;

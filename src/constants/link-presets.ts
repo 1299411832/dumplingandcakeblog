@@ -63,4 +63,9 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 		url: "/posts/",
 		icon: "material-symbols:article-outline",
 	},
+	[LinkPreset.Circle]: {
+		name: i18n(I18nKey.circle),
+		url: "/circle/",
+		icon: "material-symbols:public",
+	},
 };
