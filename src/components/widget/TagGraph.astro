@@ -271,7 +271,7 @@ const chartData = {
 
   document.addEventListener("swup:willReplaceContent", cleanupState);
   document.addEventListener("astro:page-load", initTagGraph);
-  document.addEventListener("swup:contentReplaced", initTagGraph);
+  document.addEventListener("swup:content:replaced", initTagGraph);
   initTagGraph();
 })();
 </script>

@@ -216,7 +216,7 @@ const stats = [
   updateDynamicStats();
 
   // 页面切换时重新更新
-  document.addEventListener("swup:contentReplaced", () => {
+  document.addEventListener("swup:content:replaced", () => {
     setTimeout(updateDynamicStats, 100);
   });
 </script>

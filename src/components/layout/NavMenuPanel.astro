@@ -404,7 +404,7 @@ const githubLink =
 
 	document.addEventListener("astro:page-load", onLoad);
 	document.addEventListener("swup:page:view", onPageTransition);
-	document.addEventListener("swup:contentReplaced", onPageTransition);
+	document.addEventListener("swup:content:replaced", onPageTransition);
 	if (document.readyState === "complete" || document.readyState === "interactive") onLoad();
 
 	window.openNavMenu = openMenu;

@@ -180,7 +180,7 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
       }
       document.addEventListener("astro:page-load", initToolsTabs);
       document.addEventListener("astro:after-swap", initToolsTabs);
-      document.addEventListener("swup:contentReplaced", initToolsTabs);
+      document.addEventListener("swup:content:replaced", initToolsTabs);
     })();
   </script>
 

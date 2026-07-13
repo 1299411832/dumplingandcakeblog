@@ -161,6 +161,6 @@ const totalCount = categories.reduce((sum, c) => sum + c.count, 0);
 
   initCategoryRose();
   document.addEventListener("astro:page-load", initCategoryRose);
-  document.addEventListener("swup:contentReplaced", initCategoryRose);
+  document.addEventListener("swup:content:replaced", initCategoryRose);
 })();
 </script>

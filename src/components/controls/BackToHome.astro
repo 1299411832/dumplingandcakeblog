@@ -46,5 +46,5 @@ import { url } from "@/utils/url-utils";
   
   // Re-check on view transitions or swup navigation
   document.addEventListener("astro:page-load", updateBackToHomeVisibility);
-  document.addEventListener("swup:contentReplaced", updateBackToHomeVisibility);
+  document.addEventListener("swup:content:replaced", updateBackToHomeVisibility);
 </script>

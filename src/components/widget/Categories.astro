@@ -72,5 +72,5 @@ const archivePath = url("/archive/");
 
   updateBannerTitleFromCategory();
   document.addEventListener("astro:page-load", updateBannerTitleFromCategory);
-  document.addEventListener("swup:contentReplaced", updateBannerTitleFromCategory);
+  document.addEventListener("swup:content:replaced", updateBannerTitleFromCategory);
 </script>

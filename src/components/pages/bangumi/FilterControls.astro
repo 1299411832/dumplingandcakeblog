@@ -111,7 +111,7 @@ const { filters, activeFilter, sectionId } = Astro.props;
 	}
 
 	document.addEventListener('astro:page-load', initFilterControls);
-	document.addEventListener('swup:contentReplaced', initFilterControls);
+	document.addEventListener('swup:content:replaced', initFilterControls);
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initFilterControls);

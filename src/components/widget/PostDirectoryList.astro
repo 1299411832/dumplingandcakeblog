@@ -605,7 +605,7 @@ const { rows } = walk(root);
 			document.addEventListener("astro:page-load", function () {
 				setTimeout(updatePostDirectories, 60);
 			});
-			document.addEventListener("swup:contentReplaced", function () {
+			document.addEventListener("swup:content:replaced", function () {
 				setTimeout(updatePostDirectories, 60);
 			});
 			window.addEventListener("popstate", function () {

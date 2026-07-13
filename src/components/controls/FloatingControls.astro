@@ -701,7 +701,7 @@ function tagHue(name: string): number {
 			document.addEventListener("astro:page-load", function () {
 				setTimeout(refreshFloatingControls, 60);
 			});
-			document.addEventListener("swup:contentReplaced", function () {
+			document.addEventListener("swup:content:replaced", function () {
 				setTimeout(refreshFloatingControls, 60);
 			});
 			window.addEventListener("popstate", function () {
@@ -754,7 +754,7 @@ function tagHue(name: string): number {
 	document.addEventListener("astro:page-load", () => {
 		setTimeout(initFloatingTOC, 100);
 	});
-	document.addEventListener("swup:contentReplaced", () => {
+	document.addEventListener("swup:content:replaced", () => {
 		setTimeout(initFloatingTOC, 100);
 	});
 </script>

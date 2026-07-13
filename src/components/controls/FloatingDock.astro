@@ -379,7 +379,7 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
 
     // 页面切换后重新绑定
     document.addEventListener("astro:page-load", () => bindDockEvents(), { signal });
-    document.addEventListener("swup:contentReplaced", () => bindDockEvents(), { signal });
+    document.addEventListener("swup:content:replaced", () => bindDockEvents(), { signal });
   }
 
   // 初始化

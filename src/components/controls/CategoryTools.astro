@@ -602,6 +602,6 @@ const { class: className } = Astro.props;
   // 初始化
   initCoverToggle();
   document.addEventListener("astro:page-load", initCoverToggle);
-  document.addEventListener("swup:contentReplaced", initCoverToggle);
+  document.addEventListener("swup:content:replace", initCoverToggle);
 })();
 </script>

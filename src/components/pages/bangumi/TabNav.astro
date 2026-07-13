@@ -94,7 +94,7 @@ const { tabs, activeTab } = Astro.props;
 	}
 
 	document.addEventListener('astro:page-load', initTabNavigation);
-	document.addEventListener('swup:contentReplaced', initTabNavigation);
+	document.addEventListener('swup:content:replaced', initTabNavigation);
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initTabNavigation);
