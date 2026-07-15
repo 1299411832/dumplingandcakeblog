@@ -262,9 +262,13 @@
   }
 
   /* 移除 banner 禁用时的顶部间距 */
+  .absolute.w-full.z-30.no-banner-layout.mobile-main-no-banner,
   .absolute.w-full.z-30.no-banner-layout,
+  .absolute.w-full.z-30.mobile-main-no-banner,
   .absolute.w-full.z-30 {
     top: 0 !important;
+    min-height: 100vh !important;
+    transition: none !important;
   }
 
   #main-grid {

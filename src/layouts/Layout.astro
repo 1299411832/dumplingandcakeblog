@@ -94,7 +94,7 @@ const siteLang = lang.replace("_", "-");
 ---
 
 <!doctype html>
-<html lang={siteLang} class:list={["bg-(--page-bg) text-[14px] md:text-[16px]", {"is-navigating-to-music": Astro.url.pathname === "/music/" || Astro.url.pathname === "/music", "dark": Astro.url.pathname === "/music/" || Astro.url.pathname === "/music"}]}>
+<html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px]">
   <head>
     <meta charset="UTF-8" />
     {siteConfig.analytics?.googleAnalyticsId && (
@@ -713,18 +713,6 @@ function disableAnimation() {
     });
   }
 
-  // Capture 阶段全局 click 监听：点击音乐链接时立即隐藏侧边栏并切换暗色主题（比 Swup link:click 更早）
-  document.addEventListener("click", function(e) {
-    var link = e.target && (e.target.closest ? e.target.closest('a[href]') : null);
-    if (!link) return;
-    var href = link.getAttribute("href") || "";
-    if (href === "/music/" || href === "/music") {
-      document.documentElement.classList.add("is-navigating-to-music");
-      document.documentElement.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "one-dark-pro");
-    }
-  }, true);
-
   const setup = () => {
     // TODO: temp solution to change the height of the banner
     /*
@@ -775,22 +763,9 @@ function disableAnimation() {
       }
     });
 
-    // Swup 内容替换后移除音乐页面过渡类，并恢复主题
+    // Swup 内容替换后移除音乐页面过渡类
     window.swup.hooks.on("content:replace", () => {
       document.documentElement.classList.remove("is-navigating-to-music");
-      // 如果离开音乐页面，恢复用户原始主题
-      const isMusicPage = window.location.pathname === "/music/" || window.location.pathname === "/music";
-      if (!isMusicPage) {
-        const storedTheme = localStorage.getItem("theme") || "system";
-        let isDark = storedTheme === "dark" || (storedTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          document.documentElement.classList.add("dark");
-          document.documentElement.setAttribute("data-theme", "one-dark-pro");
-        } else {
-          document.documentElement.classList.remove("dark");
-          document.documentElement.setAttribute("data-theme", "one-light");
-        }
-      }
     });
     window.swup.hooks.on("content:replace", () => {
       // 修复 Swup 过渡：在此处切换布局类，避免 visit:start 时切换导致 Banner 高度跳动
@@ -912,6 +887,11 @@ function disableAnimation() {
           }
         }
       }
+
+      // 通知 Svelte 组件重新初始化（等待 @swup/scripts-plugin 完成脚本重新执行）
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("swup:content:replaced"));
+      }, 200);
 
     });
     window.swup.hooks.on("visit:start", (visit: { to: { url: string } }) => {

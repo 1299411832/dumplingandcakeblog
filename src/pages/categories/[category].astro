@@ -1,20 +1,33 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getCollection } from "astro:content";
+import type { ImageMetadata } from "astro";
+import { getCollection, render } from "astro:content";
+import * as path from "node:path";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import type { GetStaticPaths } from "astro";
 import { Icon } from "astro-icon/components";
-import PostCard from "@/components/layout/PostCard.astro";
+import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
+import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
+import { siteConfig } from "@/config";
 import { getCategoryList } from "@/utils/content-utils";
-import { getCategoryPageUrl, getTagUrl } from "@/utils/url-utils";
-
-type PostEntry = CollectionEntry<"posts">;
+import {
+	getApiUrlList,
+	processCoverImageSync,
+} from "@/utils/image-utils";
+import {
+	getCategoryPageUrl,
+	getCategoryUrl,
+	getFileDirFromPath,
+	getPostUrlBySlug,
+	getTagUrl,
+	url,
+} from "@/utils/url-utils";
 
 export const getStaticPaths = (async () => {
 	const categories = await getCategoryList();
-	const allPosts = await getCollection<PostEntry>("posts", ({ data }) => {
+	const allPosts = await getCollection("posts", ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
@@ -73,12 +86,120 @@ const { posts, totalPosts, tags } = Astro.props;
 
 // 解码分类名称
 const decodedCategory = decodeURIComponent(categoryName);
+
+// 图片解析（与文章列表页一致）
+const articleImageFiles = import.meta.glob<ImageMetadata>(
+	"../../content/**/*.{png,jpg,jpeg,webp,avif}",
+	{
+		import: "default",
+	},
+);
+
+const dateFormatter = new Intl.DateTimeFormat(
+	siteConfig.lang.replace("_", "-"),
+	{
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	},
+);
+
+async function resolveArticleImage(entry: CollectionEntry<"posts">) {
+	const processedImage = processCoverImageSync(entry.data.image || "api", entry.id);
+	const imageApiUrls = getApiUrlList(entry.data.image, entry.id);
+
+	if (!processedImage) {
+		return {
+			imageUrl: "",
+			imageApiUrls,
+		};
+	}
+
+	const isLocal = !(
+		processedImage.startsWith("/") ||
+		processedImage.startsWith("http") ||
+		processedImage.startsWith("https") ||
+		processedImage.startsWith("data:")
+	);
+
+	if (isLocal) {
+		const basePath = getFileDirFromPath(entry.filePath || "");
+		const normalizedPath = path
+			.normalize(path.join("../../content/", basePath, processedImage))
+			.replace(/\\/g, "/");
+		const imageFile = articleImageFiles[normalizedPath];
+
+		if (!imageFile) {
+			return {
+				imageUrl: "",
+				imageApiUrls,
+			};
+		}
+
+		const image = await imageFile();
+		return {
+			imageUrl: image.src,
+			imageApiUrls,
+		};
+	}
+
+	const imageUrl = processedImage.startsWith("/")
+		? url(processedImage)
+		: processedImage;
+
+	return {
+		imageUrl,
+		imageApiUrls,
+	};
+}
+
+// 转换文章数据为 ArticleVirtualList 所需格式
+const articleListPosts = await Promise.all(
+	posts.map(async (entry) => {
+		const { remarkPluginFrontmatter } = await render(entry);
+		const articleImage = await resolveArticleImage(entry);
+		const rawCategory = entry.data.category?.trim();
+		const category = rawCategory || "未分类";
+		const tags = (entry.data.tags || [])
+			.map((tag) => tag.trim())
+			.filter(Boolean)
+			.map((tag) => ({
+				name: tag,
+				url: getTagUrl(tag),
+			}));
+
+		const hasRealCover = !!entry.data.image;
+
+		return {
+			id: entry.id,
+			title: entry.data.title,
+			url: getPostUrlBySlug(entry.id),
+			publishedIso: entry.data.published.toISOString(),
+			publishedText: dateFormatter.format(entry.data.published),
+			category,
+			categoryUrl: getCategoryUrl(rawCategory || null),
+			tags,
+			description:
+				entry.data.description ||
+				remarkPluginFrontmatter.excerpt ||
+				"暂无文章简介，点击卡片查看完整内容。",
+			imageUrl: articleImage.imageUrl,
+			imageApiUrls: articleImage.imageApiUrls,
+			pinned: !!entry.data.pinned,
+			hasRealCover,
+		};
+	}),
+);
+
+const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
+const allowLayoutSwitch = siteConfig.postListLayout.allowSwitch;
 ---
 
 <MainGridLayout title={`${decodedCategory} - ${i18n(I18nKey.categories)}`}>
-    <!-- 面包屑导航 -->
-    <div class="card-base px-6 py-4 mb-6">
-        <nav class="flex items-center gap-2 text-sm text-30">
+    <!-- 面包屑 + 标签筛选（合并卡片） -->
+    <div class="card-base px-6 py-5 mb-6 tag-section">
+        <!-- 面包屑导航 -->
+        <nav class="flex items-center gap-2 text-sm text-30 mb-4">
             <a href="/" class="hover:text-(--primary) transition-colors">
                 <Icon name="material-symbols:home" class="inline-block align-middle" />
             </a>
@@ -89,81 +210,123 @@ const decodedCategory = decodeURIComponent(categoryName);
             <span class="opacity-50">/</span>
             <span class="text-90 font-medium">{decodedCategory}</span>
         </nav>
-    </div>
 
-    <!-- 分类标题 -->
-    <div class="card-base px-8 py-6 mb-6">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-(--primary)/10 flex items-center justify-center flex-shrink-0">
-                <Icon name="material-symbols:folder-open" class="text-3xl text-(--primary)" />
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-90">{decodedCategory}</h1>
-                <p class="text-sm text-30 mt-1">
-                    {totalPosts} {i18n(I18nKey.postsCount)}
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- 标签筛选区域 -->
-    {
-        tags.length > 0 && (
-            <div class="card-base px-6 py-5 mb-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <Icon name="material-symbols:label" class="text-lg text-(--primary)" />
-                    <span class="text-sm font-medium text-90">{i18n(I18nKey.tags)}</span>
-                    <span class="text-xs text-30">({tags.length})</span>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    {tags.map((tag: { name: string; count: number }) => (
-                        <a
-                            href={getTagUrl(tag.name)}
-                            class="btn-regular px-3 py-1.5 text-sm rounded-md
-                                   transition-all duration-200
-                                   hover:scale-105 hover:bg-(--primary)/20
-                                   active:scale-95"
-                        >
-                            #{tag.name}
-                            <span class="ml-1 text-xs opacity-60">({tag.count})</span>
-                        </a>
-                    ))}
-                </div>
-            </div>
-        )
-    }
-
-    <!-- 文章列表 -->
-    <div class="flex flex-col gap-4 mb-6">
+        <!-- 标签筛选 -->
         {
-            posts.length > 0 ? (
-                posts.map((entry: PostEntry, index: number) => (
-                    <div
-                        class="onload-animation"
-                        style={`animation-delay: calc(var(--content-delay) + ${index * 50}ms);`}
-                    >
-                        <PostCard
-                            entry={entry}
-                            title={entry.data.title}
-                            tags={entry.data.tags || []}
-                            category={entry.data.category || null}
-                            published={entry.data.published}
-                            updated={entry.data.updated}
-                            url={`/posts/${entry.id}/`}
-                            image={entry.data.image || ""}
-                            description={entry.data.description || ""}
-                            draft={entry.data.draft || false}
-                            pinned={entry.data.pinned}
-                            loading={index < 2 ? "eager" : "lazy"}
-                        />
+            tags.length > 0 && (
+                <>
+                    <div class="flex items-center gap-3 mb-3">
+                        <Icon name="material-symbols:label" class="text-lg text-(--primary)" />
+                        <span class="text-sm font-medium text-90">{i18n(I18nKey.tags)}</span>
+                        <span class="text-xs text-30">({tags.length})</span>
                     </div>
-                ))
-            ) : (
-                <div class="card-base px-8 py-12 text-center">
-                    <Icon name="material-symbols:article" class="text-5xl text-30 mx-auto mb-4" />
-                    <p class="text-30">{i18n(I18nKey.bangumiNoData)}</p>
+                <div class="tag-list" id="tag-list">
+                    <div class="flex flex-wrap gap-2">
+                        {tags.map((tag: { name: string; count: number }, index: number) => (
+                            <a
+                                href={getTagUrl(tag.name)}
+                                class:list={[
+                                    "btn-regular px-3 py-1.5 text-sm rounded-md transition-all duration-200 hover:scale-105 hover:bg-(--primary)/20 active:scale-95",
+                                    { "tag-hidden": index >= 8 },
+                                ]}
+                                data-tag-index={index}
+                            >
+                                #{tag.name}
+                                <span class="ml-1 text-xs opacity-60">({tag.count})</span>
+                            </a>
+                        ))}
+                    </div>
                 </div>
+                {tags.length > 8 && (
+                    <button
+                        class="tag-toggle-btn mt-3 flex items-center gap-1.5 text-xs text-30 hover:text-(--primary) transition-colors cursor-pointer"
+                        id="tag-toggle-btn"
+                        data-expanded="false"
+                        data-total={tags.length}
+                    >
+                        <Icon name="material-symbols:expand-more" class="text-base tag-toggle-icon" />
+                        <span class="tag-toggle-text">展开全部 {tags.length} 个标签</span>
+                    </button>
+                )}
+                </>
             )
         }
     </div>
+
+    <!-- 文章列表（与文章列表页一致） -->
+    <section class="article-list-page">
+        <header class="article-list-page__header">
+            <!-- 控制栏 -->
+            <div class="article-list-page__controls">
+                <!-- 左侧：骷髅开关 -->
+                <div class:list={["article-list-page__tabs", { "is-hidden": !allowLayoutSwitch }]}>
+                    <AnimatedTabs client:load activeTab={defaultLayout === "grid" ? "grid" : "list"} />
+                </div>
+
+                <!-- 右侧：分类和归档按钮 -->
+                <div class="article-list-page__actions">
+                    <a href="/categories/" class="article-action-pill" data-astro-prefetch>
+                        <Icon name="material-symbols:folder-outline" is:inline class="text-base" />
+                        分类
+                    </a>
+                    <a href="/archive/" class="article-action-pill" data-astro-prefetch>
+                        <Icon name="material-symbols:archive" is:inline class="text-base" />
+                        归档
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <ArticleVirtualList
+            client:load
+            posts={articleListPosts}
+            defaultView={defaultLayout === "grid" ? "grid" : "list"}
+            postsPerPage={9}
+        />
+    </section>
 </MainGridLayout>
+
+<style>
+    .tag-hidden {
+        display: none;
+    }
+
+    .tag-section[data-expanded="true"] .tag-hidden {
+        display: inline-flex;
+    }
+
+    .tag-toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .tag-section[data-expanded="true"] .tag-toggle-icon {
+        transform: rotate(180deg);
+    }
+</style>
+
+<script>
+    function initTagToggle() {
+        const btn = document.getElementById("tag-toggle-btn");
+        const section = btn?.closest(".tag-section");
+        if (!btn || !section) return;
+
+        btn.addEventListener("click", () => {
+            const isExpanded = section.getAttribute("data-expanded") === "true";
+            const total = btn.getAttribute("data-total") || "0";
+            const textEl = btn.querySelector(".tag-toggle-text");
+
+            if (isExpanded) {
+                section.setAttribute("data-expanded", "false");
+                if (textEl) textEl.textContent = `展开全部 ${total} 个标签`;
+            } else {
+                section.setAttribute("data-expanded", "true");
+                if (textEl) textEl.textContent = "收起标签";
+            }
+        });
+    }
+
+    initTagToggle();
+    document.addEventListener("swup:content:replace", () => {
+        requestAnimationFrame(initTagToggle);
+    });
+</script>

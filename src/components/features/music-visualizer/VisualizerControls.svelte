@@ -283,6 +283,15 @@ onDestroy(() => {
 			<Icon icon="material-symbols:skip-next-rounded" size="2xl" />
 		</button>
 
+		<button
+			class="music-visualizer__btn music-visualizer__btn--back"
+			onclick={() => window.location.href = '/'}
+			title="返回首页"
+			aria-label="返回首页"
+		>
+			<Icon icon="material-symbols:home-outline-rounded" size="lg" />
+		</button>
+
 		<div class="music-visualizer__volume-group">
 			<button
 				class="music-visualizer__btn music-visualizer__btn--mute"

@@ -195,15 +195,19 @@ onMount(() => {
 
 	window.addEventListener("resize", onResize);
 	window.addEventListener("layoutChange", handleLayoutChange);
-	document.addEventListener("astro:page-load", () => {
+
+	// Swup 替换 DOM 后重新初始化（Svelte onMount 不会重新执行）
+	const onSwupReplaced = () => {
+		syncViewFromStorage();
 		updateGridColumns();
 		checkMobile();
-	});
+	};
+	window.addEventListener("swup:content:replaced", onSwupReplaced);
 
 	return () => {
 		window.removeEventListener("resize", onResize);
 		window.removeEventListener("layoutChange", handleLayoutChange);
-		document.removeEventListener("astro:page-load", updateGridColumns);
+		window.removeEventListener("swup:content:replaced", onSwupReplaced);
 	};
 });
 

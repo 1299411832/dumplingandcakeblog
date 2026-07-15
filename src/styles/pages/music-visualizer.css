@@ -1077,21 +1077,19 @@ html:has(.music-visualizer-page) .footer {
 	}
 
 	.music-visualizer__controls {
-		grid-template-columns: auto 1fr auto;
-		gap: 8px;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto auto;
+		gap: 6px;
 		width: calc(100vw - 24px);
 		bottom: max(12px, env(safe-area-inset-bottom));
 		padding: 10px;
 		border-radius: 12px;
 	}
 
-	.music-visualizer__progress-wrapper {
-		grid-column: 1 / -1;
-		grid-row: 2;
-	}
-
 	.music-visualizer__track-info {
-		order: 1;
+		grid-column: 1;
+		grid-row: 1;
+		order: 0;
 	}
 
 	.music-visualizer__track-summary {
@@ -1104,11 +1102,22 @@ html:has(.music-visualizer-page) .footer {
 		flex-basis: 36px;
 	}
 
-	.music-visualizer__controls-buttons {
-		order: 2;
+	.music-visualizer__progress-wrapper {
+		grid-column: 1;
+		grid-row: 2;
 	}
 
-	.music-visualizer__volume-group,
+	.music-visualizer__controls-buttons {
+		grid-column: 1;
+		grid-row: 3;
+		order: 0;
+		justify-content: center;
+	}
+
+	.music-visualizer__volume-group {
+		gap: 0;
+	}
+
 	.music-visualizer__btn--theme {
 		display: none;
 	}
