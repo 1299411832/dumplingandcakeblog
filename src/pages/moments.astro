@@ -2,7 +2,6 @@
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
-import Comment from "@/components/comment/index.astro";
 import MomentCard from "@/components/moments/MomentCard.astro";
 import MomentsCover from "@/components/moments/MomentsCover.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
@@ -119,11 +118,6 @@ const albums = await getCollection("album");
     )}
   </div>
 
-  <!-- 评论区 -->
-  <div id="moments-comments">
-    <Comment customPath="/moments/" />
-  </div>
-
   <!-- 访客统计 -->
   <div class="wx-visitor">
     <Icon name="material-symbols:visibility-outline" class="wx-visitor-icon" />
@@ -146,6 +140,103 @@ const albums = await getCollection("album");
         countElements.forEach(function(el) { el.textContent = "-"; });
       });
   }
+</script>
+
+<!-- 说说评论展开/收起 -->
+<script is:inline>
+(function() {
+  var loadedComments = {};
+  var walineInit = null;
+
+  function loadWalineComment(section, commentPath) {
+    if (loadedComments[commentPath]) return;
+    loadedComments[commentPath] = true;
+
+    var inner = section.querySelector('.comment-section-inner');
+    if (!inner) return;
+
+    var serverURL = "https://co.tsh520.cn";
+    var containerId = 'waline-' + commentPath.replace(/[^a-zA-Z0-9]/g, '-');
+
+    // 创建 Waline 容器（骨架屏保持显示）
+    var walineContainer = document.createElement('div');
+    walineContainer.id = containerId;
+    walineContainer.style.opacity = '0';
+    walineContainer.style.transition = 'opacity 0.3s ease';
+    inner.appendChild(walineContainer);
+
+    function initWaline(init) {
+      init({
+        el: '#' + containerId,
+        serverURL: serverURL,
+        path: commentPath,
+        lang: 'zh-CN',
+        dark: 'html.dark',
+        wordLimit: [2, 300],
+        pageview: false,
+        comment: true,
+      });
+      // Waline 渲染后：隐藏骨架屏，显示评论区
+      setTimeout(function() {
+        var skeleton = inner.querySelector('.comment-loading');
+        if (skeleton) {
+          skeleton.style.transition = 'opacity 0.3s ease';
+          skeleton.style.opacity = '0';
+          setTimeout(function() { skeleton.remove(); }, 300);
+        }
+        walineContainer.style.opacity = '1';
+      }, 100);
+    }
+
+    // 加载 Waline CSS
+    if (!document.querySelector('link[href*="waline"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/@waline/client@v3/dist/waline.css';
+      document.head.appendChild(link);
+    }
+
+    if (walineInit) {
+      initWaline(walineInit);
+    } else {
+      import('https://unpkg.com/@waline/client@v3/dist/waline.js').then(function(mod) {
+        walineInit = mod.init;
+        initWaline(walineInit);
+      }).catch(function(err) {
+        console.error('[Waline] 加载失败:', err);
+        var skeleton = inner.querySelector('.comment-loading');
+        if (skeleton) skeleton.remove();
+        walineContainer.style.opacity = '1';
+        walineContainer.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--content-meta);font-size:0.8125rem;">评论加载失败</div>';
+      });
+    }
+  }
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.comment-toggle-btn');
+    if (!btn) return;
+
+    var momentId = btn.dataset.momentId;
+    var commentPath = btn.dataset.commentPath;
+    var section = document.getElementById('comment-section-' + momentId);
+    if (!section) return;
+
+    var isExpanded = section.classList.contains('is-expanded');
+    if (isExpanded) {
+      section.classList.remove('is-expanded');
+      btn.classList.remove('is-active');
+    } else {
+      section.classList.add('is-expanded');
+      btn.classList.add('is-active');
+      loadWalineComment(section, commentPath);
+    }
+  });
+
+  // Swup 页面切换后重新初始化
+  document.addEventListener('swup:content:replaced', function() {
+    loadedComments = {};
+  });
+})();
 </script>
 
 

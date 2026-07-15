@@ -8,7 +8,6 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import type { GetStaticPaths } from "astro";
 import { Icon } from "astro-icon/components";
-import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
 import { getCategoryList } from "@/utils/content-utils";
@@ -192,12 +191,11 @@ const articleListPosts = await Promise.all(
 );
 
 const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
-const allowLayoutSwitch = siteConfig.postListLayout.allowSwitch;
 ---
 
 <MainGridLayout title={`${decodedCategory} - ${i18n(I18nKey.categories)}`}>
     <!-- 面包屑 + 标签筛选（合并卡片） -->
-    <div class="card-base px-6 py-5 mb-6 tag-section">
+    <div class="card-base px-6 py-5 mb-4 tag-section">
         <!-- 面包屑导航 -->
         <nav class="flex items-center gap-2 text-sm text-30 mb-4">
             <a href="/" class="hover:text-(--primary) transition-colors">
@@ -253,29 +251,8 @@ const allowLayoutSwitch = siteConfig.postListLayout.allowSwitch;
         }
     </div>
 
-    <!-- 文章列表（与文章列表页一致） -->
-    <section class="article-list-page">
-        <header class="article-list-page__header">
-            <!-- 控制栏 -->
-            <div class="article-list-page__controls">
-                <!-- 左侧：骷髅开关 -->
-                <div class:list={["article-list-page__tabs", { "is-hidden": !allowLayoutSwitch }]}>
-                    <AnimatedTabs client:load activeTab={defaultLayout === "grid" ? "grid" : "list"} />
-                </div>
-
-                <!-- 右侧：分类和归档按钮 -->
-                <div class="article-list-page__actions">
-                    <a href="/categories/" class="article-action-pill" data-astro-prefetch>
-                        <Icon name="material-symbols:folder-outline" is:inline class="text-base" />
-                        分类
-                    </a>
-                    <a href="/archive/" class="article-action-pill" data-astro-prefetch>
-                        <Icon name="material-symbols:archive" is:inline class="text-base" />
-                        归档
-                    </a>
-                </div>
-            </div>
-        </header>
+    <!-- 文章列表 -->
+    <section class="article-list-page" style="padding-top: 0;">
 
         <ArticleVirtualList
             client:load

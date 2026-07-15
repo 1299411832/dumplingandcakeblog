@@ -201,16 +201,54 @@ const formatTimeAgo = (date: Date): string => {
 		</div>
 	)}
 
-	<!-- 底部标签 -->
-	{tags && tags.length > 0 && (
-		<div class="card-tags">
-			{tags.map((tag) => (
-				<a href={getTagUrl(tag)} class="tag-item">
-					#{tag.trim()}
-				</a>
-			))}
+	<!-- 底部：标签 + 评论按钮 -->
+	<div class="card-bottom-row">
+		{tags && tags.length > 0 && (
+			<div class="card-tags">
+				{tags.map((tag) => (
+					<a href={getTagUrl(tag)} class="tag-item">
+						#{tag.trim()}
+					</a>
+				))}
+			</div>
+		)}
+		<div class="card-comment-toggle">
+			<button
+				class="comment-toggle-btn"
+				data-moment-id={moment.id}
+				data-comment-path={`/moments/${moment.id}/`}
+				aria-label="评论"
+				type="button"
+			>
+				<Icon name="material-symbols:chat-bubble-outline-rounded" class="comment-toggle-icon" />
+				<span class="comment-toggle-text">评论</span>
+			</button>
 		</div>
-	)}
+	</div>
+
+	<!-- 评论区（默认隐藏，点击展开） -->
+	<div class="card-comment-section" id={`comment-section-${moment.id}`}>
+		<div class="comment-section-inner">
+			<div class="comment-loading">
+				<div class="comment-skeleton">
+					<div class="comment-skeleton-item">
+						<div class="skeleton-avatar"></div>
+						<div class="skeleton-lines">
+							<div class="skeleton-line"></div>
+							<div class="skeleton-line"></div>
+						</div>
+					</div>
+					<div class="comment-skeleton-item">
+						<div class="skeleton-avatar"></div>
+						<div class="skeleton-lines">
+							<div class="skeleton-line"></div>
+							<div class="skeleton-line"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -225,7 +263,6 @@ const formatTimeAgo = (date: Date): string => {
 		border-radius: var(--radius-large);
 		padding: 1.25rem 1.25rem 1.25rem 2.25rem;
 		border: 2px solid #000;
-		overflow: hidden;
 		transition:
 			box-shadow 0.25s ease,
 			transform 0.25s ease,
@@ -428,14 +465,19 @@ const formatTimeAgo = (date: Date): string => {
 	}
 
 	/* ============================================
-	 * 标签 - 胶囊描边样式
+	 * 底部行：标签 + 评论按钮
 	 * ============================================ */
+	.card-bottom-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.card-tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.375rem;
-		padding-top: 0.625rem;
-		border-top: 1px solid var(--border);
 	}
 
 	.tag-item {
@@ -484,6 +526,141 @@ const formatTimeAgo = (date: Date): string => {
 
 		.more-text {
 			font-size: 1.25rem;
+		}
+	}
+
+	/* ============================================
+	 * 评论按钮
+	 * ============================================ */
+	.card-comment-toggle {
+		display: flex;
+		flex-shrink: 0;
+	}
+
+	.comment-toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		border: 1.5px solid var(--line-color);
+		border-radius: 9999px;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 0.75rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.comment-toggle-btn:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+
+	.comment-toggle-btn.is-active {
+		border-color: var(--primary);
+		color: var(--primary);
+		background: color-mix(in oklch, var(--primary) 8%, transparent);
+	}
+
+	.comment-toggle-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	/* ============================================
+	 * 评论区（可展开，grid 动画）
+	 * ============================================ */
+	.card-comment-section {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.card-comment-section.is-expanded {
+		grid-template-rows: 1fr;
+	}
+
+	.comment-section-inner {
+		overflow: hidden;
+		min-height: 0;
+		padding-top: 0;
+		border-top: none;
+		margin-top: 0;
+		transition:
+			padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+			margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+			border-top 0.4s ease;
+	}
+
+	.card-comment-section.is-expanded .comment-section-inner {
+		padding-top: 0.75rem;
+		border-top: 1px dashed var(--line-divider);
+		margin-top: 0.75rem;
+	}
+
+	/* 骨架屏加载动画 */
+	.comment-loading {
+		padding: 1rem 0;
+	}
+
+	.comment-skeleton {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.comment-skeleton-item {
+		display: flex;
+		gap: 0.625rem;
+		align-items: flex-start;
+	}
+
+	.skeleton-avatar {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		background: var(--skeleton-bg, linear-gradient(90deg, var(--line-divider) 25%, transparent 50%, var(--line-divider) 75%));
+		background-size: 200% 100%;
+		animation: shimmer 1.5s infinite;
+		flex-shrink: 0;
+	}
+
+	.skeleton-lines {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.skeleton-line {
+		height: 0.625rem;
+		border-radius: 0.25rem;
+		background: var(--skeleton-bg, linear-gradient(90deg, var(--line-divider) 25%, transparent 50%, var(--line-divider) 75%));
+		background-size: 200% 100%;
+		animation: shimmer 1.5s infinite;
+	}
+
+	.skeleton-line:nth-child(1) { width: 75%; animation-delay: 0.1s; }
+	.skeleton-line:nth-child(2) { width: 50%; animation-delay: 0.2s; }
+
+	@keyframes shimmer {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
+	}
+
+	/* 评论区加载完成后的淡入 */
+	.comment-section-inner :global(.wl-card) {
+		animation: commentFadeIn 0.4s ease-out both;
+	}
+
+	@keyframes commentFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
 	}
 </style>

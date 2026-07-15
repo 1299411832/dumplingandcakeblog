@@ -125,12 +125,6 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
     <span class="dock-btn-label">Top</span>
   </button>
 
-  <!-- 直达评论区（仅在 moments 页面滚动后显示） -->
-  <button class="dock-btn hide" id="dock-comment-btn" aria-label="Comment" type="button">
-    <span class="dock-btn-icon"><Icon name="material-symbols:chat-bubble-outline" is:inline class="text-2xl" /></span>
-    <span class="dock-btn-label">评论</span>
-  </button>
-
   <!-- 返回书架（仅在书籍详情页显示） -->
   <button class="dock-btn hide" id="dock-bookshelf-btn" aria-label="Back to bookshelf" type="button">
     <span class="dock-btn-icon"><Icon name="material-symbols:arrow-back-rounded" is:inline class="text-2xl" /></span>
@@ -353,13 +347,6 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
       window.location.href = "/";
     });
 
-    // 跳评论
-    document.getElementById("dock-comment-btn")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const target = document.getElementById("scissor-divider") || document.getElementById("album-comments");
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-
     // 返回书架
     document.getElementById("dock-bookshelf-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -392,12 +379,6 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
       // 文章页显示全部文章 + 目录按钮
       document.getElementById("dock-posts-btn")?.classList.toggle("hide", !isPost);
       document.getElementById("dock-toc-btn")?.classList.toggle("hide", !isPost);
-      // 评论按钮
-      const isPostDetail = /\/posts\/.+\//.test(window.location.pathname);
-      const isMoments = /\/moments/.test(window.location.pathname);
-      const isAlbum = /\/album\//.test(window.location.pathname) && !/\/album\/?$/.test(window.location.pathname);
-      const showComment = isPostDetail || (isMoments && scrolled) || (isAlbum && scrolled);
-      document.getElementById("dock-comment-btn")?.classList.toggle("hide", !showComment);
       // 书籍详情页显示返回书架按钮
       const isBookDetail = /\/books\/book\//.test(window.location.pathname);
       document.getElementById("dock-bookshelf-btn")?.classList.toggle("hide", !isBookDetail);

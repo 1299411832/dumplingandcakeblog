@@ -86,10 +86,6 @@ import { Icon } from "astro-icon/components";
 			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:format-list-bulleted" is:inline /></span>
 			<span class="mobile-dock__sheet-item-label">目录</span>
 		</button>
-		<button class="mobile-dock__sheet-item hide" id="md-comment-btn" aria-label="评论" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:chat-bubble-outline" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">评论</span>
-		</button>
 		<button class="mobile-dock__sheet-item hide" id="md-top-btn" aria-label="回到顶部" type="button">
 			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline /></span>
 			<span class="mobile-dock__sheet-item-label">顶部</span>
@@ -298,14 +294,6 @@ import { Icon } from "astro-icon/components";
 		window.scroll({ top: 0, behavior: "smooth" });
 	});
 
-	// 评论
-	document.getElementById("md-comment-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		closeSheet();
-		var target = document.getElementById("scissor-divider") || document.getElementById("post-comments");
-		if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-	});
-
 	// 笔记
 	document.getElementById("md-notebook-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
@@ -331,7 +319,6 @@ import { Icon } from "astro-icon/components";
 
 		document.getElementById("mobile-dock-home-btn")?.classList.toggle("is-active", !isHome);
 		document.getElementById("md-toc-btn")?.classList.toggle("hide", !isPost);
-		document.getElementById("md-comment-btn")?.classList.toggle("hide", !hasComment);
 	}
 
 	updatePathDependent();

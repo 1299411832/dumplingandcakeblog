@@ -1,13 +1,12 @@
 ---
 export interface Props {
 	title: string;
-	href: string;
 	imgurl: string;
 	desc: string;
 	tags?: string[];
 }
 
-const { title, href, imgurl, desc, tags = [] } = Astro.props;
+const { title, imgurl, desc, tags = [] } = Astro.props;
 
 const tagLabels: Record<string, string> = {
 	AI: "AI",
@@ -21,12 +20,11 @@ const tagLabel = tagLabels[primaryTag] || primaryTag;
 const initial = title.trim().slice(0, 1);
 ---
 
-<a
+<div
   class="app-card-link"
-  href={href}
-  target="_blank"
-  rel="noopener noreferrer"
   title={desc}
+  role="button"
+  tabindex="0"
 >
   {/* 顶部标签：胶带样式 */}
   <span class="app-card-tab">{tagLabel}</span>
@@ -48,4 +46,4 @@ const initial = title.trim().slice(0, 1);
   <div class="app-card-intro">
     <p class="app-card-intro__text">{desc}</p>
   </div>
-</a>
+</div>
