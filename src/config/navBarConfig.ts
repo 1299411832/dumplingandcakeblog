@@ -14,6 +14,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		// 主页
 		LinkPreset.Home,
 
+		// 网站导航
+		{
+			name: "网站导航",
+			url: "/projects/",
+			icon: "material-symbols:public",
+		},
+
 		// 文章（带下拉子菜单）
 		{
 			name: "文章",
@@ -33,13 +40,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				// 归档
 				LinkPreset.Archive,
 			],
-		},
-
-		// 网站导航
-		{
-			name: "网站导航",
-			url: "/projects/",
-			icon: "material-symbols:public",
 		},
 	];
 
@@ -124,6 +124,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 
 			// 友链
 			LinkPreset.Friends,
+
+			// 应用展示
+			{
+				name: "应用展示",
+				url: "/apps/",
+				icon: "material-symbols:apps",
+			},
 
 			// 朋友圈
 			LinkPreset.Circle,

@@ -325,6 +325,32 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
+  /* ── 浮动工具按钮（dock 隐藏时右下角显示） ── */
+  .mobile-dock__floating-tools {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 69;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 2px solid var(--deep-text);
+    background: var(--float-panel-bg);
+    color: var(--deep-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .mobile-dock__floating-tools:active {
+    transform: scale(0.9);
+  }
 }
 
 /* 桌面端（>768px）隐藏品牌区与遮罩 */

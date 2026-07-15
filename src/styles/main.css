@@ -48,6 +48,7 @@
 @import './components/home-portfolio-shutter.css';
 @import './components/page-loader.css';
 @import './components/friend-card.css';
+@import './components/app-card.css';
 
 /* --- 功能样式 --- */
 @import './features/content.css';
@@ -63,6 +64,7 @@
 @import './features/movies-games.css';
 @import './pages/music-visualizer.css';
 @import './pages/friends.css';
+@import './pages/apps.css';
 @import './pages/categories.css';
 
 /* --- 布局样式 --- */

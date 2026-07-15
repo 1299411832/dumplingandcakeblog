@@ -239,6 +239,19 @@ const friendsCollection = defineCollection({
 	}),
 });
 
+const appsCollection = defineCollection({
+	loader: glob({ pattern: "**/*.md", base: "./src/content/apps" }),
+	schema: z.object({
+		title: z.string(),
+		imgurl: z.string(),
+		desc: z.string(),
+		siteurl: z.string(),
+		tags: z.array(z.string()).optional().default([]),
+		weight: z.number().optional().default(0),
+		enabled: z.boolean().optional().default(true),
+	}),
+});
+
 const daohangCollection = defineCollection({
 	loader: glob({ pattern: "**/*.md", base: "./src/content/daohang" }),
 	schema: z.object({
@@ -286,6 +299,7 @@ export const collections = {
 	daohang: daohangCollection,
 	ziyuan: ziyuanCollection,
 	friends: friendsCollection,
+	apps: appsCollection,
 	changelog: changelogCollection,
 	danmu: danmuCollection,
 };
