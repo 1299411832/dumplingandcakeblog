@@ -146,6 +146,8 @@
   background: var(--page-bg);
   overflow: hidden;
   transition: border-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* 有封面图的卡片缩小高度 */

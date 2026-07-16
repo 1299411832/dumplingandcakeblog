@@ -269,9 +269,27 @@ const chartData = {
     });
   }
 
+  // 懒加载：滚动到可见时才初始化图表
+  function lazyInit() {
+    var container = document.getElementById("tag-graph-container");
+    if (!container) return;
+
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          observer.disconnect();
+          initTagGraph();
+        }
+      }, { rootMargin: "200px" });
+      observer.observe(container);
+    } else {
+      initTagGraph();
+    }
+  }
+
   document.addEventListener("swup:willReplaceContent", cleanupState);
-  document.addEventListener("astro:page-load", initTagGraph);
-  document.addEventListener("swup:content:replaced", initTagGraph);
-  initTagGraph();
+  document.addEventListener("astro:page-load", lazyInit);
+  document.addEventListener("swup:content:replaced", lazyInit);
+  lazyInit();
 })();
 </script>

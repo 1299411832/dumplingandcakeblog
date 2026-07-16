@@ -44,19 +44,16 @@ const gameCount = bangumi.filter(
 
 // 统计生活数据
 const lifeEntries = await getCollection("life");
-const routinesEntries = await getCollection("routines");
-
 // 足迹记录
 const isIn = (entryId: string, folder: string) =>
 	entryId.replace(/\\/g, "/").startsWith(`${folder}/`);
 const placesCount = lifeEntries.filter((entry) =>
 	isIn(entry.id, "places"),
 ).length;
-const routinesCount = routinesEntries.length;
 
-// 记录次数 = 影视 + 书籍 + 游戏 + 音乐 + 足迹 + 日常规划
+// 记录次数 = 影视 + 书籍 + 游戏 + 音乐 + 足迹
 const recordCount =
-	animeCount + bookCount + gameCount + musicCount + placesCount + routinesCount;
+	animeCount + bookCount + gameCount + musicCount + placesCount;
 
 // 计算总字数
 let totalWords = 0;

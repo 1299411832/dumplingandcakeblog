@@ -13,8 +13,6 @@ const posts = await getCollection("posts", ({ data }) => {
 const moments = await getCollection("moments");
 const bangumi = await getCollection("bangumi");
 const notebooksEntries = await getCollection("notebooks");
-const routinesEntries = await getCollection("routines");
-
 const notebookNames: Record<string, string> = {};
 for (const n of notebooksEntries) {
 	if (n.id.includes("_index")) {
@@ -107,23 +105,6 @@ const allItems = [
 			image: "https://re.tsh520.cn/zl/life-notebook.webp",
 			id: n.id,
 		})),
-	...routinesEntries
-		.sort((a, b) => {
-			const dateA =
-				a.data.updatedAt instanceof Date ? a.data.updatedAt.getTime() : 0;
-			const dateB =
-				b.data.updatedAt instanceof Date ? b.data.updatedAt.getTime() : 0;
-			return dateB - dateA;
-		})
-		.slice(0, 2)
-		.map((r) => ({
-			type: "life-routine",
-			title: `规划: ${r.data.name}`,
-			date: r.data.updatedAt instanceof Date ? r.data.updatedAt : new Date(),
-			url: "/life/routines/",
-			image: "https://re.tsh520.cn/zl/life-routine.webp",
-			id: r.id,
-		})),
 ];
 
 const recentItems = allItems
@@ -136,7 +117,6 @@ const typeLabel: Record<string, () => string> = {
 	moment: () => i18n(I18nKey.recentMoments),
 	bangumi: () => i18n(I18nKey.recentLife),
 	"life-notebook": () => "笔记",
-	"life-routine": () => "规划",
 };
 
 interface Props {

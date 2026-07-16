@@ -37,11 +37,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 		{
 			// 组件类型：用户资料组件
 			type: "profile",
-			// 是否启用该组件
 			enable: true,
-			// 组件位置
 			position: "top",
-			// 是否在文章详情页显示
 			showOnPostPage: false,
 		},
 		{
@@ -133,12 +130,19 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: false,
 		},
 		{
+			// 组件类型：天气组件
+			type: "weather" as any,
+			enable: true,
+			position: "top",
+			showOnPostPage: false,
+		},
+		{
 			// 组件类型：日历组件
 			type: "calendar",
 			// 是否启用该组件
 			enable: true,
 			// 组件位置
-			position: "sticky",
+			position: "top",
 			// 是否在文章详情页显示
 			showOnPostPage: false,
 		},
@@ -164,8 +168,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: false,
 		},
 		{
-			// 组件类型：站点访问量
-			type: "siteVisitCounter" as any,
+			// 组件类型：抖音热搜
+			type: "douyinHot" as any,
 			enable: true,
 			position: "top",
 			showOnPostPage: false,

@@ -432,7 +432,9 @@ export type WidgetComponentType =
 	| "recentItems"
 	| "lifeStats"
 	| "siteHeatmap"
-	| "quoteOfTheDay";
+	| "quoteOfTheDay"
+	| "douyinHot"
+	| "weather";
 
 // 恋爱计时小组件配置
 export type RelationshipConfig = {

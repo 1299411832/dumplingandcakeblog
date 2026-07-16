@@ -65,6 +65,7 @@
 @import './pages/music-visualizer.css';
 @import './pages/friends.css';
 @import './pages/apps.css';
+@import './pages/notebooks.css';
 @import './pages/categories.css';
 
 /* --- 布局样式 --- */
@@ -76,6 +77,8 @@
 
 /* --- 移动端组件 --- */
 @import './components/mobile-dock.css';
+@import './components/douyin-hot.css';
+@import './components/weather.css';
 
 /* --- 过渡动画 --- */
 @import './transitions/swup.css';

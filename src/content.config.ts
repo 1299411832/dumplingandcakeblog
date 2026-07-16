@@ -151,21 +151,6 @@ const notebooksCollection = defineCollection({
 	}),
 });
 
-const routinesCollection = defineCollection({
-	loader: glob({
-		pattern: "**/*.{md,mdx}",
-		base: "./src/content/life/routines",
-	}),
-	schema: z.object({
-		name: z.string(),
-		time: z.string().optional().default(""),
-		description: z.string().optional().default(""),
-		icon: z.string().optional().default("📌"),
-		color: z.string().optional().default(""),
-		updatedAt: z.union([z.string(), z.date()]).optional(),
-	}),
-});
-
 const albumCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx,json}", base: "./src/content/album" }),
 	schema: ({ image }) =>
@@ -294,7 +279,6 @@ export const collections = {
 	bangumi: bangumiCollection,
 	life: lifeCollection,
 	notebooks: notebooksCollection,
-	routines: routinesCollection,
 	album: albumCollection,
 	daohang: daohangCollection,
 	ziyuan: ziyuanCollection,

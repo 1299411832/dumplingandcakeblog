@@ -212,7 +212,7 @@ const albums = await getCollection("album");
     }
   }
 
-  document.addEventListener('click', function(e) {
+  function handleCommentClick(e) {
     var btn = e.target.closest('.comment-toggle-btn');
     if (!btn) return;
 
@@ -230,11 +230,11 @@ const albums = await getCollection("album");
       btn.classList.add('is-active');
       loadWalineComment(section, commentPath);
     }
-  });
+  }
 
-  // Swup 页面切换后重新初始化
-  document.addEventListener('swup:content:replaced', function() {
-    loadedComments = {};
+  // 使用 requestAnimationFrame 确保 DOM 渲染完成后再绑定
+  requestAnimationFrame(function() {
+    document.addEventListener('click', handleCommentClick);
   });
 })();
 </script>

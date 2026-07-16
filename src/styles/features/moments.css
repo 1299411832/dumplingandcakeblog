@@ -128,7 +128,7 @@
 #moments-feed .moment-card {
   position: relative;
   background: var(--card-bg);
-  border-radius: var(--radius-large);
+  border-radius: 0.75rem;
   padding: 1.25rem 1.25rem 1.25rem 2.25rem;
   border: 2px solid #000;
   overflow: hidden;
@@ -229,7 +229,7 @@
 #pinned-feed .moment-card {
   position: relative;
   background: var(--card-bg);
-  border-radius: var(--radius-large);
+  border-radius: 0.75rem;
   padding: 1.25rem 1.25rem 1.25rem 2.25rem;
   border: 2px solid #000;
   overflow: hidden;

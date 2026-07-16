@@ -319,11 +319,13 @@ $effect(() => {
 			<div class="article-list-vertical" aria-label="文章列表">
 				{#each paginatedPosts as post, index (post.id)}
 					{@const isPinned = post.pinned}
-					<article
+					<a
+						href={post.url}
 						class="article-list-row-card"
 						class:is-pinned={isPinned}
 						class:has-cover={post.hasRealCover}
 						data-post-id={post.id}
+						aria-label={`查看文章：${post.title}`}
 					>
 						{#if post.imageUrl}
 							<div class="article-list-row-card__bg-wrapper">
@@ -341,11 +343,7 @@ $effect(() => {
 							</div>
 						{/if}
 
-						<a
-							href={post.url}
-							class="article-list-row-card__content"
-							aria-label={`查看文章：${post.title}`}
-						>
+						<div class="article-list-row-card__content">
 							<div class="article-list-row-card__layer-1">
 								{#if isPinned}
 									<span class="article-list-row-card__pinned-badge" aria-label="置顶文章">
@@ -383,8 +381,8 @@ $effect(() => {
 									{post.description}
 								</p>
 							</div>
-						</a>
-					</article>
+						</div>
+					</a>
 				{/each}
 			</div>
 		</div>

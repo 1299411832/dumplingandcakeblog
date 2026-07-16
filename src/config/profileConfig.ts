@@ -39,7 +39,7 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "QQ",
 			icon: "simple-icons:tencentqq",
-			url: "https://re.tsh520.cn/zl/qq.webp",
+			url: "https://qm.qq.com/q/TfZxG7MykI",
 			showName: false,
 		},
 		{

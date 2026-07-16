@@ -20,10 +20,10 @@ const style = Astro.props.style;
 >
   <div class="flex flex-col items-center p-2">
     <!-- 顶部名称栏 -->
-    <div class="flex items-center justify-center gap-2 mb-4 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-      <span>{config.name1}</span>
-      <span class="text-red-500 animate-pulse text-base">♥</span>
-      <span>{config.name2}</span>
+    <div class="relationship-names flex items-center justify-center gap-2 mb-4 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+      <span class="relationship-name">{config.name1}</span>
+      <span class="text-red-500 animate-pulse text-base flex-shrink-0">♥</span>
+      <span class="relationship-name">{config.name2}</span>
     </div>
 
     <!-- 头像和爱心 -->
@@ -31,8 +31,8 @@ const style = Astro.props.style;
       <div class="w-14 h-14 rounded-full overflow-hidden border-[3px] border-neutral-900 dark:border-white shadow-md transition-transform hover:scale-110">
         <img src={config.avatar1} alt={config.name1} class="w-full h-full object-cover" />
       </div>
-      <div class="text-xl text-neutral-400 dark:text-neutral-500 transition-all hover:scale-125 cursor-default select-none">
-        ♥
+      <div class="flex-shrink-0 transition-all hover:scale-125 cursor-default select-none">
+        <img src="/assets/images/em/13428669541200711.gif" alt="love" class="w-8 h-8 object-contain" />
       </div>
       <div class="w-14 h-14 rounded-full overflow-hidden border-[3px] border-neutral-900 dark:border-white shadow-md transition-transform hover:scale-110">
         <img src={config.avatar2} alt={config.name2} class="w-full h-full object-cover" />
@@ -44,11 +44,11 @@ const style = Astro.props.style;
       <!-- 年份大数字 -->
       <div class="flex items-baseline gap-1 mb-1">
         <span class="timer-years" data-timer-years>0</span>
-        <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">年</span>
+        <span class="text-xs font-semibold" style="color: #3b82f6;">年</span>
         <span class="timer-months" data-timer-months>0</span>
-        <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">月</span>
+        <span class="text-xs font-semibold" style="color: #ef4444;">月</span>
         <span class="timer-days" data-timer-days>0</span>
-        <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">天</span>
+        <span class="text-xs font-semibold" style="color: #ec4899;">天</span>
       </div>
       <!-- 时分秒小字 -->
       <div class="flex items-center gap-0.5 text-neutral-400 dark:text-neutral-500">
@@ -75,6 +75,24 @@ const style = Astro.props.style;
     line-height: 1;
     min-width: 1.5rem;
     text-align: center;
+  }
+
+  .relationship-names {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .relationship-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    max-width: 45%;
+  }
+
+  /* 隐藏标题左侧竖杠 */
+  :global(.widget-title)::before {
+    display: none !important;
   }
 </style>
 

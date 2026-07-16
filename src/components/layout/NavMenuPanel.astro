@@ -84,38 +84,88 @@ if (isLocalSrcLogo) {
 	</div>
 
 	<nav class="nav-drawer-body">
-		{processedLinks.map((link, index) => (
-			<div class="nav-drawer-item" style={`--item-index: ${index}`}>
-				{link.children && link.children.length > 0 ? (
-					<div class="mobile-dropdown">
-						<div class="nav-drawer-link group nav-drawer-section-title">
-							<div class="flex items-center gap-3">
-								<span class="nav-drawer-link-text">{link.name}</span>
+		<!-- 宫格导航（移动端）：全部平铺，一眼看完 -->
+		<div class="nav-grid-all">
+			<!-- 独立项合并为一个卡片 -->
+			{(() => {
+				const standalones = processedLinks.filter(l => !l.children || l.children.length === 0);
+				const groups = processedLinks.filter(l => l.children && l.children.length > 0);
+				return (
+					<>
+						{standalones.length > 0 && (
+							<div class="nav-grid-group">
+								<div class="nav-grid-group-items nav-grid-group-items--standalone">
+									{standalones.map((link) => (
+										<a href={link.external ? link.url : url(link.url)} class="nav-grid-cell nav-grid-cell--standalone" target={link.external ? "_blank" : null}>
+											<span class="nav-grid-cell-icon">
+												{link.icon && <Icon name={link.icon} is:inline />}
+											</span>
+											<span class="nav-grid-cell-label">{link.name}</span>
+											{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="nav-grid-cell-external" />}
+										</a>
+									))}
+								</div>
+							</div>
+						)}
+						{groups.map((link) => (
+							<div class="nav-grid-group">
+								<div class="nav-grid-group-title">
+									{link.icon && <Icon name={link.icon} is:inline class="nav-grid-group-icon" />}
+									<span>{link.name}</span>
+								</div>
+								<div class="nav-grid-group-items">
+									{(link.children || []).map((child) => (
+										<a href={child.external ? child.url : url(child.url)} class="nav-grid-cell" target={child.external ? "_blank" : null}>
+											<span class="nav-grid-cell-icon">
+												{child.icon && <Icon name={child.icon} is:inline />}
+											</span>
+											<span class="nav-grid-cell-label">{child.name}</span>
+											{child.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="nav-grid-cell-external" />}
+										</a>
+									))}
+								</div>
+							</div>
+						))}
+					</>
+				);
+			})()}
+		</div>
+
+		<!-- 列表导航（桌面端，≥769px 由 CSS 控制显示） -->
+		<div class="nav-drawer-list">
+			{processedLinks.map((link, index) => (
+				<div class="nav-drawer-item" style={`--item-index: ${index}`}>
+					{link.children && link.children.length > 0 ? (
+						<div class="mobile-dropdown">
+							<div class="nav-drawer-link group nav-drawer-section-title">
+								<div class="flex items-center gap-3">
+									<span class="nav-drawer-link-text">{link.name}</span>
+								</div>
+							</div>
+							<div class="mobile-submenu mobile-submenu--flat">
+								{(link.children || []).map((child) => (
+									<a href={child.external ? child.url : url(child.url)} class="nav-drawer-sublink group" target={child.external ? "_blank" : null}>
+										<div class="flex items-center gap-3">
+											{child.icon && <Icon name={child.icon} is:inline class="text-[1.1rem]" />}
+											<span>{child.name}</span>
+										</div>
+										{child.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25" />}
+									</a>
+								))}
 							</div>
 						</div>
-						<div class="mobile-submenu mobile-submenu--flat">
-							{link.children.map((child) => (
-								<a href={child.external ? child.url : url(child.url)} class="nav-drawer-sublink group" target={child.external ? "_blank" : null}>
-									<div class="flex items-center gap-3">
-										{child.icon && <Icon name={child.icon} is:inline class="text-[1.1rem]" />}
-										<span>{child.name}</span>
-									</div>
-									{child.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25" />}
-								</a>
-							))}
-						</div>
-					</div>
-				) : (
-					<a href={link.external ? link.url : url(link.url)} class="nav-drawer-link group" target={link.external ? "_blank" : null}>
-						<div class="flex items-center gap-3">
-							{link.icon && <Icon name={link.icon} is:inline class="text-[1.25rem] nav-drawer-icon" />}
-							<span class="nav-drawer-link-text">{link.name}</span>
-						</div>
-						{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25" />}
-					</a>
-				)}
-			</div>
-		))}
+					) : (
+						<a href={link.external ? link.url : url(link.url)} class="nav-drawer-link group" target={link.external ? "_blank" : null}>
+							<div class="flex items-center gap-3">
+								{link.icon && <Icon name={link.icon} is:inline class="text-[1.25rem] nav-drawer-icon" />}
+								<span class="nav-drawer-link-text">{link.name}</span>
+							</div>
+							{link.external && <Icon name="fa7-solid:arrow-up-right-from-square" is:inline class="text-[0.7rem] text-black/25 dark:text-white/25" />}
+						</a>
+					)}
+				</div>
+			))}
+		</div>
 	</nav>
 </div>
 

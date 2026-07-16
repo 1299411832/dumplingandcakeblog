@@ -69,6 +69,8 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				url: "/life/notebooks/",
 				icon: "material-symbols:menu-book-outline",
 			},
+			// 朋友圈
+			LinkPreset.Circle,
 		],
 	});
 
@@ -86,16 +88,17 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	if (siteConfig.pages.changelog) {
 		recordChildren.push(LinkPreset.Changelog);
 	}
-	// 规划 & 足迹
-	recordChildren.push({
-		name: "规划",
-		url: "/life/routines/",
-		icon: "material-symbols:list-alt",
-	});
+	// 足迹
 	recordChildren.push({
 		name: "足迹",
 		url: "/life/places/",
 		icon: "material-symbols:location-on",
+	});
+	// 应用展示
+	recordChildren.push({
+		name: "应用展示",
+		url: "/apps/",
+		icon: "material-symbols:apps",
 	});
 
 	if (recordChildren.length > 0) {
@@ -125,15 +128,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			// 友链
 			LinkPreset.Friends,
 
-			// 应用展示
+			// QQ群
 			{
-				name: "应用展示",
-				url: "/apps/",
-				icon: "material-symbols:apps",
+				name: "QQ群",
+				url: "https://qm.qq.com/q/FjkXxV9Hmo",
+				icon: "material-symbols:group",
+				external: true,
 			},
-
-			// 朋友圈
-			LinkPreset.Circle,
 
 			// 赞助
 			...(siteConfig.pages.sponsor ? [LinkPreset.Sponsor] : []),

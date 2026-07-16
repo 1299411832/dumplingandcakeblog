@@ -67,8 +67,10 @@ export async function getStaticPaths() {
 	return paths;
 }
 
-const { entry, entries, sortedEntries, item, isNotebookIndex } = Astro.props;
-const notebookContent = !isNotebookIndex ? await render(item) : null;
+const { entry, entries, sortedEntries, item, isNotebookIndex } = Astro.props as {
+	entry: any; entries?: any[]; sortedEntries?: any[]; item?: any; isNotebookIndex: boolean;
+};
+const notebookContent = !isNotebookIndex && item ? await render(item) : null;
 const normalizedEntryId = entry.id.replace(/\\/g, "/");
 const isNotebookRootMatch =
 	normalizedEntryId.match(/^([^/]+)\/(_index|_index\.md|_index\.json)$/) ||
@@ -100,7 +102,7 @@ if (rawCover) {
 	}
 }
 
-const notebookCommentPath = !isNotebookIndex
+const notebookCommentPath = !isNotebookIndex && item
 	? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
 	: "";
 
@@ -142,77 +144,82 @@ const sortedEntriesWithImages = isNotebookIndex
 
 {isNotebookIndex ? (
 	<MainGridLayout title={entry.data.name || "笔记本"} description={entry.data.summary || "笔记本记录"}>
-		<div class="diary-entry-page">
-			<section class="notebook-hero" style={coverSrc ? `background-image: url(${coverSrc});` : ""}>
-				<div class="notebook-hero-overlay"></div>
-				<a href="/life/notebooks/" class="notebook-hero-back">
-					<Icon name="material-symbols:arrow-back-rounded" />
-					<span>日记本列表</span>
-				</a>
-				<div class="notebook-hero-content">
-					<span class="notebook-hero-tag">📔 日记本</span>
-					<h1 class="notebook-hero-title">{entry.data.name || "我的日记本"}</h1>
-					{entry.data.summary && <p class="notebook-hero-desc">{entry.data.summary}</p>}
-					<div class="notebook-hero-stats">
-						<div class="notebook-hero-stat"><Icon name="material-symbols:article-outline" /><span>{entries.length} 篇日记</span></div>
-						{sortedEntries[0]?.data.date instanceof Date && (
-							<div class="notebook-hero-stat"><Icon name="material-symbols:calendar-today" /><span>最近 {sortedEntries[0].data.date.toISOString().split("T")[0]}</span></div>
-						)}
-					</div>
-				</div>
-			</section>
-
-			<section class="diary-entries-section">
-				{/* 远程笔记容器 - 插入到本地笔记前面 */}
+		<div class="nb-page">
+			{/* 时间线笔记列表 */}
+			<div class="nb-timeline">
 				{externalNotebooksConfig.enable && (
 					<div id="remote-entries-container" style="display:none;">
-						<div class="diary-entries-list" id="remote-entries-list"></div>
+						<div id="remote-entries-list"></div>
 					</div>
 				)}
 
 				{sortedEntriesWithImages.length === 0 ? (
-					<div class="diary-empty-entries" id="local-empty"><div class="text-5xl mb-4">📝</div><p class="text-[var(--content-meta)]">还没有日记内容</p></div>
+					<div class="nb-empty" id="local-empty">
+						<span class="nb-empty-icon">📝</span>
+						<p>还没有日记内容</p>
+					</div>
 				) : (
-					<div class="diary-entries-list">
-						{sortedEntriesWithImages.map((noteItem) => {
-							const noteItemId = noteItem.id.replace(/\\/g, "/");
-							const fileName = noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
-							const itemSlug = fileName;
-							const contentBody = noteItem.body ? noteItem.body.split("\n").filter((line: string) => !line.trim().startsWith("---")).join("\n").trim() : "";
-							const htmlPreview = contentBody ? marked.parse(contentBody.slice(0, 300), { mangle: false, headerIds: false }) : "";
-							const previewHtml = htmlPreview
-									.replace(/<\/p>\s*<p>/g, '<br>')
+					<>
+						{(() => {
+							let lastMonth = "";
+							return sortedEntriesWithImages.map((noteItem) => {
+								const noteItemId = noteItem.id.replace(/\\/g, "/");
+								const fileName = noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
+								const itemSlug = fileName;
+								const dateStr = noteItem.data.date instanceof Date ? noteItem.data.date.toISOString().split("T")[0] : "";
+								const month = dateStr ? dateStr.slice(0, 7) : "";
+								const showMonth = month !== lastMonth;
+								lastMonth = month;
+
+								const contentBody = noteItem.body ? noteItem.body.split("\n").filter((line: string) => !line.trim().startsWith("---")).join("\n").trim() : "";
+								const htmlPreview = contentBody ? String(marked.parse(contentBody.slice(0, 200))) : "";
+								const previewHtml = htmlPreview
+									.replace(/<\/p>\s*<p>/g, ' ')
 									.replace(/<\/?p>/g, '')
-									.replace(/<h[1-6][^>]*>/g, '').replace(/<\/h[1-6]>/g, '<br>')
+									.replace(/<h[1-6][^>]*>/g, '').replace(/<\/h[1-6]>/g, ' ')
 									.replace(/<pre[\s\S]*?<\/pre>/g, '')
 									.replace(/<img[^>]*>/g, '')
 									.trim();
-							const preview = previewHtml.slice(0, 300) + (previewHtml.length > 300 ? "..." : "");
-							const noteImages = noteItem.images as string[];
+								const preview = previewHtml.slice(0, 120) + (previewHtml.length > 120 ? "..." : "");
+								const noteImages = noteItem.images as string[];
+								const day = dateStr ? dateStr.slice(8) : "";
+								const monthName = noteItem.data.date instanceof Date ? noteItem.data.date.toLocaleDateString("zh-CN", { month: "short" }) : "";
 
-							return (
-								<a href={`/life/notebooks/${folderName}/${itemSlug}/`} class="diary-entry-card group">
-									<div class="entry-card-inner">
-										<div class="entry-card-text">
-											<span class="entry-card-date">{noteItem.data.date instanceof Date ? noteItem.data.date.toISOString().split("T")[0] : "未填写日期"}</span>
-											{preview && <p class="entry-card-preview" set:html={preview} />}
-										</div>
-										{noteImages.length > 0 && (
-											<div class="entry-card-images">
-												{noteImages.map((imgSrc, idx) => (
-													<div class="entry-card-image"><img src={imgSrc} alt={`图${idx + 1}`} class="entry-card-img" loading="lazy" /></div>
-												))}
+								return (
+									<>
+										{showMonth && month && (
+											<div class="nb-month-divider">
+												<span class="nb-month-label">{monthName}</span>
 											</div>
 										)}
-									</div>
-								</a>
-							);
-						})}
-					</div>
+										<a href={`/life/notebooks/${folderName}/${itemSlug}/`} class="nb-entry group">
+											<div class="nb-entry-dot"></div>
+											<div class="nb-entry-date">
+												<span class="nb-entry-day">{day}</span>
+											</div>
+											<div class="nb-entry-content">
+												{preview && <p class="nb-entry-preview" set:html={preview} />}
+												{noteImages.length > 0 && (
+													<div class="nb-entry-images">
+														{noteImages.slice(0, 3).map((imgSrc) => (
+															<img src={imgSrc} alt="" class="nb-entry-thumb" loading="lazy" />
+														))}
+														{noteImages.length > 3 && (
+															<span class="nb-entry-more">+{noteImages.length - 3}</span>
+														)}
+													</div>
+												)}
+											</div>
+										</a>
+									</>
+								);
+							});
+						})()}
+					</>
 				)}
-			</section>
+			</div>
 
-			{/* 远程笔记注入脚本 */}
+			{/* 远程笔记脚本 */}
 			{externalNotebooksConfig.enable && (
 				<script is:inline
 					data-gists={JSON.stringify(externalNotebooksConfig.notebookGists || {})}
@@ -247,38 +254,22 @@ const sortedEntriesWithImages = isNotebookIndex
 
 								function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
-								function renderPreview(text) {
-									var html = esc(text)
-										.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-										.replace(/\*(.+?)\*/g, '<em>$1</em>')
-										.replace(/`([^`]+)`/g, '<code>$1</code>')
-										.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary);text-decoration:underline;">$1</a>')
-										.replace(/  \n/g, '<br>')
-										.replace(/\n\n+/g, '<br><br>')
-										.replace(/\n/g, '<br>');
-									return html;
-								}
-
 								filtered.forEach(function(entry) {
 									var date = entry.date || "";
 									var contentBody = (entry.content || "").replace(/^---[\s\S]*?---\n?/g, "").trim();
-									var preview = contentBody.slice(0, 200) + (contentBody.length > 200 ? "..." : "");
+									var preview = contentBody.slice(0, 120) + (contentBody.length > 120 ? "..." : "");
 
 									var card = document.createElement("a");
 									card.href = "/life/notebooks/remote-entry/?nb=" + encodeURIComponent(NOTEBOOK) + "&id=" + encodeURIComponent(entry.id);
-									card.className = "diary-entry-card group";
+									card.className = "nb-entry group";
 									card.innerHTML =
-										'<div class="entry-card-inner">' +
-										'<div class="entry-card-text">' +
-										'<span class="entry-card-date">' + esc(date) + '</span>' +
-										'<p class="entry-card-preview">' + renderPreview(preview) + '</p>' +
-										'</div>' +
-										'</div>';
+										'<div class="nb-entry-dot"></div>' +
+										'<div class="nb-entry-date"><span class="nb-entry-day">' + esc(date.slice(8)) + '</span></div>' +
+										'<div class="nb-entry-content"><p class="nb-entry-preview">' + esc(preview) + '</p></div>';
 									list.appendChild(card);
 								});
 
 								container.style.display = "";
-
 								var localEmpty = document.getElementById("local-empty");
 								if (localEmpty) localEmpty.style.display = "none";
 							})
@@ -289,7 +280,7 @@ const sortedEntriesWithImages = isNotebookIndex
 		</div>
 	</MainGridLayout>
 ) : (
-	<MainGridLayout title={item.data.name || item.data.title || "日记"}>
+	<MainGridLayout title={(item?.data?.name || "日记") + " - 笔记本"}>
 		<div class="diary-detail-page">
 			<article class="diary-paper">
 				<a href={`/life/notebooks/${folderName}/`} class="diary-paper-back">
@@ -298,25 +289,25 @@ const sortedEntriesWithImages = isNotebookIndex
 				</a>
 
 				<h1 class="diary-paper-title">
-					{item.data.name || item.data.title || item.id.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "无标题"}
+					{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "无标题"}
 				</h1>
 
 				<div class="diary-paper-content">
 					{notebookContent ? (
-						<Markdown><notebookContent.Content /></Markdown>
+						<Markdown class="diary-paper-content"><notebookContent.Content /></Markdown>
 					) : (
 						<p>（无内容）</p>
 					)}
 				</div>
 
 				<div class="diary-paper-footer">
-					{item.data.tags && item.data.tags.length > 0 && (
+					{item?.data?.tags && item.data.tags.length > 0 && (
 						<div class="diary-tags">
 							{item.data.tags.map((tag: string) => (<span class="diary-tag">#{tag}</span>))}
 						</div>
 					)}
 					<span class="diary-date-final">
-						{item.data.date instanceof Date ? item.data.date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" }) : "未填写日期"}
+						{item?.data?.date instanceof Date ? item.data.date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" }) : "未填写日期"}
 					</span>
 				</div>
 			</article>
@@ -327,73 +318,193 @@ const sortedEntriesWithImages = isNotebookIndex
 )}
 
 <style>
-	/* Hero 左上角返回链接 */
-	.notebook-hero-back {
-		position: absolute; top: 1rem; left: 1.25rem; z-index: 3;
-		display: inline-flex; align-items: center; gap: 0.35rem;
-		padding: 0.4rem 0.8rem;
+	/* ===== 页面整体 ===== */
+	.nb-page {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* ===== 面包屑 ===== */
+	.nb-breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.8125rem;
+		color: var(--content-meta);
+		padding: 0.125rem 0;
+	}
+
+	.nb-breadcrumb-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--content-meta);
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.nb-breadcrumb-link:hover {
+		color: var(--primary);
+	}
+
+	.nb-breadcrumb-sep {
+		opacity: 0.4;
+	}
+
+	.nb-breadcrumb-current {
+		font-weight: 600;
+		color: var(--deep-text);
+	}
+
+	/* ===== 时间线 ===== */
+	.nb-timeline {
+		position: relative;
+		padding-left: 1.5rem;
+	}
+
+	.nb-timeline::before {
+		content: "";
+		position: absolute;
+		left: 0.4375rem;
+		top: 0;
+		bottom: 0;
+		width: 1.5px;
+		background: var(--line-divider);
+	}
+
+	/* 月份分隔 */
+	.nb-month-divider {
+		position: relative;
+		padding: 0.5rem 0;
+		margin-left: -1.5rem;
+		padding-left: 1.5rem;
+	}
+
+	.nb-month-label {
+		display: inline-block;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--primary);
+		background: var(--card-bg);
+		padding: 0.125rem 0.5rem;
 		border-radius: 9999px;
-		font-size: 0.78rem; color: #fff; text-decoration: none;
-		background: rgba(0,0,0,0.25);
-		backdrop-filter: blur(6px);
-		transition: background 0.2s;
+		border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+		position: relative;
+		z-index: 1;
 	}
-	.notebook-hero-back:hover { background: rgba(0,0,0,0.45); }
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-back {
-		color: var(--content-meta); background: var(--card-bg);
+
+	/* 笔记条目 */
+	.nb-entry {
+		display: flex;
+		gap: 0.75rem;
+		padding: 0.625rem 0;
+		text-decoration: none;
+		color: inherit;
+		transition: opacity 0.15s ease;
+		position: relative;
+	}
+
+	.nb-entry:hover {
+		opacity: 0.75;
+	}
+
+	.nb-entry-dot {
+		position: absolute;
+		left: -1.5rem;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--line-divider);
+		border: 2px solid var(--card-bg);
+		z-index: 1;
+		transition: background 0.2s ease;
+	}
+
+	.nb-entry:hover .nb-entry-dot {
+		background: var(--primary);
+	}
+
+	.nb-entry-date {
+		flex-shrink: 0;
+		width: 2rem;
+		text-align: center;
+	}
+
+	.nb-entry-day {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.nb-entry-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.nb-entry-preview {
+		font-size: 0.8125rem;
+		color: var(--content-meta);
+		line-height: 1.6;
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.nb-entry-images {
+		display: flex;
+		gap: 0.375rem;
+		margin-top: 0.5rem;
+	}
+
+	.nb-entry-thumb {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.375rem;
+		object-fit: cover;
 		border: 1px solid var(--line-divider);
 	}
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-back:hover {
-		color: var(--primary); border-color: var(--primary);
+
+	.nb-entry-more {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.375rem;
+		background: var(--btn-plain-bg-hover);
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--content-meta);
 	}
 
-	/* ===== 封面 Hero ===== */
-	.notebook-hero {
-		position: relative; border-radius: var(--radius-2xl); overflow: hidden;
-		background-size: cover; background-position: center;
-		background-color: var(--card-bg); min-height: 280px;
-		display: flex; align-items: flex-end;
+	/* 空状态 */
+	.nb-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 3rem;
+		background: var(--card-bg);
+		border: 1.5px dashed var(--line-divider);
+		border-radius: 1rem;
+		text-align: center;
 	}
-	.notebook-hero-overlay {
-		position: absolute; inset: 0; z-index: 1;
-		background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.15) 100%);
+
+	.nb-empty-icon {
+		font-size: 2.5rem;
+		margin-bottom: 0.5rem;
 	}
-	.notebook-hero-content { position: relative; z-index: 2; padding: 3rem 2.5rem 2rem; width: 100%; }
-	.notebook-hero-tag {
-		display: inline-block; padding: 0.3rem 0.9rem; border-radius: 9999px;
-		font-size: 0.8rem; font-weight: 500; background: rgba(255,255,255,0.15);
-		backdrop-filter: blur(6px); color: #fff; margin-bottom: 1rem;
+
+	.nb-empty p {
+		font-size: 0.875rem;
+		color: var(--content-meta);
+		margin: 0;
 	}
-	.notebook-hero-title { font-size: 2.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-	.notebook-hero-desc { font-size: 1rem; color: rgba(255,255,255,0.8); margin: 0 0 1.25rem; max-width: 540px; line-height: 1.6; }
-	.notebook-hero-stats { display: flex; flex-wrap: wrap; gap: 1rem; }
-	.notebook-hero-stat { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: rgba(255,255,255,0.75); }
-
-	.notebook-hero:not([style*="background-image"]) {
-		background: linear-gradient(135deg,var(--card-bg) 0%,color-mix(in srgb,var(--primary) 20%,var(--card-bg)) 100%);
-		border: 1px solid var(--line-divider);
-	}
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-title { color: var(--deep-text); text-shadow: none; }
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-desc { color: var(--content-meta); }
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-stat { color: var(--content-meta); }
-	.notebook-hero:not([style*="background-image"]) .notebook-hero-tag { background: color-mix(in srgb,var(--primary) 15%,transparent); color: var(--primary); }
-
-	/* ===== 条目列表 ===== */
-	.diary-entries-section { margin-top: 2rem; }
-	.diary-empty-entries { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; background: var(--card-bg); border: 2px dashed var(--line-divider); border-radius: var(--radius-2xl); }
-	.diary-entries-list { display: flex; flex-direction: column; gap: 0.15rem; }
-
-	/* 卡片样式需要全局，因为远程笔记由 JS 动态创建，没有 Astro 作用域属性 */
-	:global(.diary-entry-card) { display: block; text-decoration: none; background: var(--card-bg); border: 1px solid var(--line-divider); overflow: hidden; transition: all 0.2s ease; }
-	:global(.diary-entry-card:hover) { border-color: var(--primary); background: color-mix(in srgb,var(--primary) 3%,var(--card-bg)); }
-	:global(.entry-card-inner) { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem; }
-	:global(.entry-card-text) { flex: 1; min-width: 0; }
-	:global(.entry-card-date) { display: block; font-size: 0.75rem; color: var(--content-meta); margin-bottom: 0.35rem; }
-	:global(.entry-card-preview) { font-size: 0.825rem; color: var(--content-meta); line-height: 1.5; margin: 0; }
-
-	.entry-card-images { display: grid; grid-template-columns: repeat(3, 90px); gap: 0.5rem; }
-	.entry-card-image { aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; }
-	.entry-card-img { width: 100%; height: 100%; object-fit: cover; }
 
 	/* ===== 日记详情页 ===== */
 	.diary-detail-page { max-width: 48rem; margin: 0 auto; }
@@ -405,7 +516,6 @@ const sortedEntriesWithImages = isNotebookIndex
 		.diary-paper { padding: 2rem 1.25rem; }
 	}
 
-	/* 返回按钮 — 融入卡片 */
 	.diary-paper-back {
 		display: inline-flex; align-items: center; gap: 0.4rem;
 		font-size: 0.85rem; color: var(--content-meta); text-decoration: none;
@@ -413,15 +523,12 @@ const sortedEntriesWithImages = isNotebookIndex
 	}
 	.diary-paper-back:hover { color: var(--primary); }
 
-	/* 标题 */
 	.diary-paper-title { font-size: 1.75rem; font-weight: 700; color: var(--deep-text); margin: 0 0 2rem; line-height: 1.4; }
 
-	/* 正文 */
 	.diary-paper-content { font-size: 1rem; line-height: 1.9; }
 	.diary-paper-content :global(p) { margin: 0 0 1.25rem; }
 	.diary-paper-content :global(blockquote) { border-left-color: var(--primary); }
 
-	/* 图片网格布局 — 参考说说页 */
 	.diary-paper-content :global(p:has(> img:only-child)) {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
@@ -446,7 +553,6 @@ const sortedEntriesWithImages = isNotebookIndex
 		height: 100%;
 	}
 
-	/* 底部：日期右下角 */
 	.diary-paper-footer {
 		display: flex; align-items: flex-end; justify-content: space-between;
 		margin-top: 3rem; padding-top: 2rem;
@@ -457,25 +563,10 @@ const sortedEntriesWithImages = isNotebookIndex
 		font-style: italic;
 	}
 
-	/* 标签 */
 	.diary-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 	.diary-tag {
 		padding: 0.25rem 0.75rem; background: var(--btn-regular-bg-hover);
 		border-radius: 9999px; font-size: 0.75rem; color: var(--content-meta);
-	}
-
-	/* 远程笔记样式 */
-	.remote-entry-card {
-		display: block; text-decoration: none; background: var(--card-bg);
-		border: 1px dashed var(--line-divider); overflow: hidden;
-		transition: all 0.2s ease;
-	}
-	.remote-entry-card:hover { border-color: var(--primary); border-style: solid; background: color-mix(in srgb,var(--primary) 3%,var(--card-bg)); }
-	.remote-entry-card .entry-card-inner { padding: 1.25rem; }
-	.remote-entry-badge {
-		display: inline-block; font-size: 0.625rem; padding: 0.125rem 0.5rem;
-		background: color-mix(in srgb,var(--primary) 15%,transparent);
-		color: var(--primary); border-radius: 9999px; margin-bottom: 0.5rem;
 	}
 </style>
 

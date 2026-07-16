@@ -326,30 +326,75 @@
     text-overflow: ellipsis;
   }
 
-  /* ── 浮动工具按钮（dock 隐藏时右下角显示） ── */
-  .mobile-dock__floating-tools {
+  /* ── 浮动按钮组（dock 隐藏时右下角显示） ── */
+  .mobile-dock__floating-group {
     position: fixed;
     bottom: 1rem;
-    right: 1rem;
+    right: 0.75rem;
     z-index: 69;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    border: 2px solid var(--deep-text);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .mobile-dock__floating-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    border: 1.5px solid var(--line-divider);
     background: var(--float-panel-bg);
     color: var(--deep-text);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+    backdrop-filter: blur(16px) saturate(1.8);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    text-decoration: none;
+    font-size: 1.125rem;
+    padding: 0;
+    flex-shrink: 0;
   }
 
-  .mobile-dock__floating-tools:active {
+  .mobile-dock__floating-btn:active {
     transform: scale(0.9);
+    background: var(--btn-plain-bg-active);
+  }
+
+  .mobile-dock__floating-btn.hide {
+    display: none;
+  }
+
+  /* 工具展开栈（向上展开） */
+  .floating-tools-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease;
+  }
+
+  .floating-tools-stack.is-expanded {
+    max-height: 600px;
+    opacity: 1;
+  }
+
+  .floating-tools-toggle .floating-tools-icon-expanded {
+    display: none;
+  }
+
+  .floating-tools-toggle.is-open .floating-tools-icon-collapsed {
+    display: none;
+  }
+
+  .floating-tools-toggle.is-open .floating-tools-icon-expanded {
+    display: flex;
   }
 }
 

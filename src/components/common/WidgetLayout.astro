@@ -36,6 +36,34 @@ const className = Astro.props.class;
 </widget-layout>
 
 <style define:vars={{ collapsedHeight }}>
+    widget-layout {
+        display: block;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        background: #fff;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-bottom: 0.75rem;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.06);
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    :root.dark widget-layout {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #181818;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    widget-layout:hover {
+        border-color: rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0 20px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    :root.dark widget-layout:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 20px 4px rgba(0, 0, 0, 0.4);
+    }
+
     .collapsed {
         height: var(--collapsedHeight);
     }

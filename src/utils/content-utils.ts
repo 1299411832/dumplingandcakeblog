@@ -82,8 +82,6 @@ export async function getArchiveList(): Promise<ArchiveItem[]> {
 	const bangumi = await getCollection("bangumi");
 	const lifeEntries = await getCollection("life");
 	const notebooksEntries = await getCollection("notebooks");
-	const routinesEntries = await getCollection("routines");
-
 	const postItems: ArchiveItem[] = posts.map((post) => ({
 		id: post.id,
 		type: "post",
@@ -181,21 +179,6 @@ export async function getArchiveList(): Promise<ArchiveItem[]> {
 				},
 			});
 		});
-
-	// 日常规划
-	routinesEntries.forEach((r) => {
-		lifeItems.push({
-			id: r.id,
-			type: "life",
-			data: {
-				title: `规划: ${r.data.name}`,
-				published:
-					r.data.updatedAt instanceof Date ? r.data.updatedAt : new Date(),
-				tags: ["规划"],
-				link: "/life/routines/",
-			},
-		});
-	});
 
 	return [...postItems, ...momentItems, ...bangumiItems, ...lifeItems].sort(
 		(a, b) => {

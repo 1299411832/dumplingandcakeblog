@@ -159,8 +159,26 @@ const totalCount = categories.reduce((sum, c) => sum + c.count, 0);
     });
   }
 
-  initCategoryRose();
-  document.addEventListener("astro:page-load", initCategoryRose);
-  document.addEventListener("swup:content:replaced", initCategoryRose);
+  // 懒加载：滚动到可见时才初始化图表
+  function lazyInit() {
+    var container = document.getElementById("category-rose-container");
+    if (!container) return;
+
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          observer.disconnect();
+          initCategoryRose();
+        }
+      }, { rootMargin: "200px" });
+      observer.observe(container);
+    } else {
+      initCategoryRose();
+    }
+  }
+
+  lazyInit();
+  document.addEventListener("astro:page-load", lazyInit);
+  document.addEventListener("swup:content:replaced", lazyInit);
 })();
 </script>

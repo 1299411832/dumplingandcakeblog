@@ -43,10 +43,36 @@ import { Icon } from "astro-icon/components";
 	</button>
 </div>
 
-<!-- 浮动工具按钮（dock 隐藏时右下角显示） -->
-<button class="mobile-dock__floating-tools" id="mobile-dock-floating-tools" aria-label="工具" type="button" style="display:none">
-	<Icon name="material-symbols:more-horiz" is:inline />
-</button>
+<!-- 浮动按钮组（dock 隐藏时右下角显示） -->
+<div class="mobile-dock__floating-group" id="mobile-dock-floating-group" style="display:none">
+	<!-- 文章页专属按钮（默认显示） -->
+	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-toc-btn" aria-label="目录" type="button">
+		<Icon name="material-symbols:format-list-bulleted" is:inline />
+	</button>
+	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-comment-btn" aria-label="评论" type="button">
+		<Icon name="material-symbols:chat-bubble-outline-rounded" is:inline />
+	</button>
+	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-posts-btn" aria-label="全部文章" type="button">
+		<Icon name="material-symbols:list-alt-outline" is:inline />
+	</button>
+	<!-- 工具展开区（向上展开） -->
+	<div class="floating-tools-stack" id="floating-tools-stack">
+		<button class="mobile-dock__floating-btn" id="floating-music-btn" aria-label="音乐" type="button">
+			<Icon name="material-symbols:music-note-rounded" is:inline />
+		</button>
+		<button class="mobile-dock__floating-btn" id="floating-announcement-btn" aria-label="公告" type="button">
+			<Icon name="material-symbols:notifications-outline-rounded" is:inline />
+		</button>
+	</div>
+	<!-- 底部常驻按钮 -->
+	<button class="mobile-dock__floating-btn" id="floating-top-btn" aria-label="返回顶部" type="button">
+		<Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline />
+	</button>
+	<button class="mobile-dock__floating-btn floating-tools-toggle" id="floating-tools-btn" aria-label="工具" type="button">
+		<Icon name="material-symbols:more-horiz" is:inline class="floating-tools-icon-collapsed" />
+		<Icon name="material-symbols:close-rounded" is:inline class="floating-tools-icon-expanded" />
+	</button>
+</div>
 
 <!-- 遮罩（工具栏 sheet 打开时） -->
 <div class="mobile-dock__overlay" id="mobile-dock-overlay" aria-hidden="true"></div>
@@ -230,8 +256,6 @@ import { Icon } from "astro-icon/components";
 	});
 
 	// 工具栏 sheet 开关
-	var floatingToolsBtn = document.getElementById("mobile-dock-floating-tools");
-
 	function openSheet() {
 		sheetEl.classList.add("is-open");
 		overlayEl.classList.add("is-open");
@@ -246,18 +270,91 @@ import { Icon } from "astro-icon/components";
 		isOverlayOpen = false;
 	}
 
-	// 浮动工具按钮（dock 隐藏时显示）
-	floatingToolsBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		openSheet();
-	});
+	// 浮动按钮组
+	var floatingGroup = document.getElementById("mobile-dock-floating-group");
+	var floatingToolsStack = document.getElementById("floating-tools-stack");
+	var floatingToolsBtn = document.getElementById("floating-tools-btn");
+	var floatingTopBtn = document.getElementById("floating-top-btn");
+	var floatingTocBtn = document.getElementById("floating-toc-btn");
+	var floatingCommentBtn = document.getElementById("floating-comment-btn");
+	var floatingPostsBtn = document.getElementById("floating-posts-btn");
+	var floatingToolsOpen = false;
 
-	// dock 显隐时同步浮动按钮
+	// dock 显隐时同步浮动按钮组（仅移动端）
 	var floatingToolsObserver = new MutationObserver(function() {
+		var isMobile = window.innerWidth <= 768;
 		var isHidden = dockEl.classList.contains("is-hidden");
-		if (floatingToolsBtn) floatingToolsBtn.style.display = isHidden ? "" : "none";
+		if (floatingGroup) floatingGroup.style.display = (isHidden && isMobile) ? "" : "none";
+		if (!isHidden && floatingToolsOpen) {
+			floatingToolsOpen = false;
+			floatingToolsStack?.classList.remove("is-expanded");
+			floatingToolsBtn?.classList.remove("is-open");
+		}
 	});
 	floatingToolsObserver.observe(dockEl, { attributes: true, attributeFilter: ["class"] });
+
+	// 窗口大小变化时同步
+	window.addEventListener("resize", function() {
+		if (window.innerWidth > 768 && floatingGroup) {
+			floatingGroup.style.display = "none";
+		}
+	});
+
+	// 工具栈展开/收起
+	floatingToolsBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		floatingToolsOpen = !floatingToolsOpen;
+		floatingToolsStack?.classList.toggle("is-expanded", floatingToolsOpen);
+		floatingToolsBtn.classList.toggle("is-open", floatingToolsOpen);
+	});
+
+	// 浮动音乐
+	document.getElementById("floating-music-btn")?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		document.getElementById("dock-music-btn")?.click();
+	});
+
+	// 浮动公告
+	document.getElementById("floating-announcement-btn")?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		document.getElementById("dock-announcement-btn")?.click();
+	});
+
+	// 浮动 TOC
+	floatingTocBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		document.getElementById("dock-toc-btn")?.click();
+	});
+
+	// 浮动评论
+	floatingCommentBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		var target = document.getElementById("scissor-divider") || document.getElementById("post-comments");
+		if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+	});
+
+	// 浮动全部文章
+	floatingPostsBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		document.getElementById("dock-posts-btn")?.click();
+	});
+
+	// 浮动返回顶部
+	floatingTopBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		window.scroll({ top: 0, behavior: "smooth" });
+	});
+
+	// 文章详情页显示 TOC 和评论按钮，文章列表页也显示全部文章按钮
+	function updateFloatingPageButtons() {
+		var isPostList = /\/posts\/?$/.test(window.location.pathname) || window.location.pathname === "/posts";
+		var isPostDetail = /\/posts\/.+\//.test(window.location.pathname);
+		if (floatingTocBtn) floatingTocBtn.classList.toggle("hide", !isPostDetail);
+		if (floatingCommentBtn) floatingCommentBtn.classList.toggle("hide", !isPostDetail);
+		if (floatingPostsBtn) floatingPostsBtn.classList.toggle("hide", !(isPostDetail || isPostList));
+	}
+	updateFloatingPageButtons();
+	document.addEventListener("astro:page-load", updateFloatingPageButtons);
 
 	overlayEl.addEventListener("click", function() { closeSheet(); });
 
@@ -312,10 +409,6 @@ import { Icon } from "astro-icon/components";
 	function updatePathDependent() {
 		var isHome = window.location.pathname === "/" || window.location.pathname === "";
 		var isPost = /\/posts?\//.test(window.location.pathname);
-		var isPostDetail = /\/posts\/.+\//.test(window.location.pathname);
-		var isMoments = /\/moments/.test(window.location.pathname);
-		var isAlbum = /\/album\//.test(window.location.pathname) && !/\/album\/?$/.test(window.location.pathname);
-		var hasComment = isPostDetail || isMoments || isAlbum;
 
 		document.getElementById("mobile-dock-home-btn")?.classList.toggle("is-active", !isHome);
 		document.getElementById("md-toc-btn")?.classList.toggle("hide", !isPost);

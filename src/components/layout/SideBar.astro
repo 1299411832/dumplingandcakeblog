@@ -4,6 +4,7 @@ import Advertisement from "@/components/widget/Advertisement.astro";
 import Announcement from "@/components/widget/Announcement.astro";
 import Calendar from "@/components/widget/Calendar.astro";
 import Categories from "@/components/widget/Categories.astro";
+import DouyinHot from "@/components/widget/DouyinHot.astro";
 import LifeStats from "@/components/widget/LifeStats.astro";
 import Music from "@/components/widget/Music.astro";
 import PostDirectory from "@/components/widget/PostDirectory.astro";
@@ -14,7 +15,7 @@ import RelationshipTimer from "@/components/widget/RelationshipTimer.astro";
 import SidebarTOC from "@/components/widget/SidebarTOC.astro";
 import SiteHeatmap from "@/components/widget/SiteHeatmap.astro";
 import SiteStats from "@/components/widget/SiteStats.astro";
-import SiteVisitCounter from "@/components/widget/SiteVisitCounter.astro";
+import Weather from "@/components/widget/Weather.astro";
 import Tags from "@/components/widget/Tags.astro";
 import { sidebarLayoutConfig } from "@/config";
 import type {
@@ -62,7 +63,8 @@ const componentMap = {
 	lifeStats: LifeStats,
 	siteHeatmap: SiteHeatmap,
 	quoteOfTheDay: QuoteOfTheDay,
-	siteVisitCounter: SiteVisitCounter as any,
+	douyinHot: DouyinHot as any,
+	weather: Weather as any,
 } satisfies Record<WidgetComponentType, any>;
 
 // 获取侧边栏位置
@@ -173,7 +175,7 @@ const bottomComponents = isMobileBottom ? filteredComponents : [];
 
 {
 	(topComponents.length > 0 || stickyComponents.length > 0 || bottomComponents.length > 0) && (
-		<div id={`${side}-sidebar`} class:list={[className, "flex flex-col w-full pt-0"]}>
+		<div id={`${side}-sidebar`} class:list={[className, "sidebar-sticky-bottom flex flex-col w-full pt-0"]}>
 			{/* Mobile bottom components - 直接渲染所有组件，不分组 */}
 			{isMobileBottom ? (
 				<div class="flex flex-col w-full gap-4">
@@ -204,7 +206,6 @@ const bottomComponents = isMobileBottom ? filteredComponents : [];
 							id={`${side}-sidebar-sticky`}
 							class:list={[
 								"transition-all duration-700 flex flex-col w-full mt-0",
-								"sticky",
 								topComponents.length > 0 ? "top-4 gap-4" : "top-0",
 							]}
 						>
@@ -224,3 +225,29 @@ const bottomComponents = isMobileBottom ? filteredComponents : [];
 		</div>
 	)
 }
+
+<script is:inline>
+(function() {
+  function checkSidebarMode() {
+    var sidebars = document.querySelectorAll('[id$="-sidebar"]');
+    var mainContent = document.getElementById("swup-container");
+    if (!sidebars.length) return;
+
+    var path = window.location.pathname;
+    var isPostsPage = /\/posts(\/|$)/.test(path);
+    var isLongPage = mainContent ? mainContent.scrollHeight > window.innerHeight : false;
+
+    sidebars.forEach(function(sidebar) {
+      sidebar.classList.toggle("is-posts-page", isPostsPage);
+      sidebar.classList.toggle("is-long-page", isLongPage);
+    });
+  }
+
+  checkSidebarMode();
+  window.addEventListener("resize", checkSidebarMode);
+  document.addEventListener("astro:page-load", checkSidebarMode);
+  document.addEventListener("swup:content:replaced", function() {
+    setTimeout(checkSidebarMode, 100);
+  });
+})();
+</script>

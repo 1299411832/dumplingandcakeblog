@@ -166,10 +166,28 @@
 }
 
 .sidebar-sticky-section {
-  /* 粘性组件区域 */
+  /* 粘性组件区域（已禁用 sticky，所有组件正常滚动） */
+  position: relative;
+  z-index: 10;
+}
+
+/* 侧边栏粘性定位 */
+.sidebar-sticky-bottom {
+  z-index: 10;
+}
+
+/* 文章页面：固定在顶部 */
+.sidebar-sticky-bottom.is-posts-page {
   position: sticky;
   top: 1rem;
-  z-index: 10;
+  align-self: start;
+}
+
+/* 其他长页面：滚动到底部时固定在视口底部 */
+.sidebar-sticky-bottom.is-long-page:not(.is-posts-page) {
+  position: sticky;
+  bottom: 0;
+  align-self: flex-end;
 }
 
 /* 组件类型特定的响应式样式 */
@@ -485,4 +503,31 @@
   font-size: 10px;
   padding: 2px 4px;
   z-index: 1000;
+}
+
+/* ============================================
+ * 个人资料卡片边框（不使用 WidgetLayout）
+ * ============================================ */
+.profile-widget-card {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.06) !important;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+:root.dark .profile-widget-card {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: #181818 !important;
+  box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.profile-widget-card:hover {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 0 20px 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+:root.dark .profile-widget-card:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 0 20px 4px rgba(0, 0, 0, 0.4) !important;
 }
