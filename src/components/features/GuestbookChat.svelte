@@ -17,7 +17,7 @@ import {
 	Users,
 	WifiOff,
 	X,
-} from "@lucide/svelte";
+} from "lucide-svelte";
 import { onMount, tick } from "svelte";
 import { commentConfig } from "@/config/commentConfig";
 import { guestbookConfig } from "@/config/guestbookConfig";

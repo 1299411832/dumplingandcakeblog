@@ -22,7 +22,20 @@ const momentAssets = import.meta.glob<{ default: ImageMetadata }>(
 	{ eager: true },
 );
 
-// 解析图片路径
+// 视频文件扩展名
+const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov", "ogg", "avi", "mkv"]);
+
+const isVideoUrl = (url: string): boolean => {
+	try {
+		const pathname = new URL(url, "http://localhost").pathname;
+		const ext = pathname.split(".").pop()?.toLowerCase() ?? "";
+		return VIDEO_EXTENSIONS.has(ext);
+	} catch {
+		return false;
+	}
+};
+
+// 解析图片路径，同时分离视频
 const parseImages = (imagesData: any): (string | ImageMetadata)[] => {
 	let rawPaths: string[] = [];
 	if (Array.isArray(imagesData)) {
@@ -68,7 +81,9 @@ const getGridCols = (count: number) => {
 };
 
 const momentId = moment.id;
-const imagesArray = parseImages(images);
+const allMedia = parseImages(images);
+const videosArray = allMedia.filter((item): item is string => typeof item === "string" && isVideoUrl(item));
+const imagesArray = allMedia.filter((item) => !(typeof item === "string" && isVideoUrl(item)));
 const gridMax = 9;
 
 const getImgSrc = (img: string | ImageMetadata): string => {
@@ -157,6 +172,34 @@ const formatTimeAgo = (date: Date): string => {
 			</Markdown>
 		</div>
 	</div>
+
+	<!-- 视频 -->
+	{videosArray && videosArray.length > 0 && (
+		<div class="card-images image-cols-1">
+			{videosArray.map((videoUrl) => (
+				<a
+					class="image-item video-thumb"
+					href={videoUrl}
+					target="_blank"
+					rel="noopener"
+					aria-label="播放视频"
+				>
+					<video
+						class="image-img"
+						src={videoUrl}
+						preload="metadata"
+						playsinline
+						muted
+					></video>
+					<div class="video-play-overlay">
+						<svg width="28" height="28" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+							<path d="M8 5v14l11-7z"/>
+						</svg>
+					</div>
+				</a>
+			))}
+		</div>
+	)}
 
 	<!-- 图片 -->
 	{imagesArray && imagesArray.length > 0 && (
@@ -400,6 +443,29 @@ const formatTimeAgo = (date: Date): string => {
 		border-radius: var(--radius);
 		margin: 0.5rem 0;
 		max-width: 100%;
+	}
+
+	/* ============================================
+	 * 视频缩略图
+	 * ============================================ */
+	.video-thumb {
+		position: relative;
+		aspect-ratio: 16 / 9;
+	}
+
+	.video-play-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.25);
+		opacity: 0.9;
+		transition: opacity 0.2s ease;
+	}
+
+	.video-thumb:hover .video-play-overlay {
+		opacity: 1;
 	}
 
 	/* ============================================

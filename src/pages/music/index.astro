@@ -154,23 +154,5 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 	})();
 	</script>
 
-	<!-- 主题切换（FloatingDock 不在此页面，需要单独处理） -->
-	<script is:inline>
-	document.addEventListener("click", function(e) {
-		var themeBtn = e.target && e.target.closest && e.target.closest("#sun-moon-theme-btn");
-		if (!themeBtn) return;
-		var isDark = document.documentElement.classList.contains("dark");
-		var next = isDark ? "light" : "dark";
-		localStorage.setItem("theme", next);
-		if (next === "dark") {
-			document.documentElement.classList.add("dark");
-			document.documentElement.setAttribute("data-theme", "one-dark-pro");
-		} else {
-			document.documentElement.classList.remove("dark");
-			document.documentElement.setAttribute("data-theme", "one-light");
-		}
-	});
-	</script>
-
 
 </Layout>

@@ -6,7 +6,6 @@ import FancyboxManager from "@components/features/FancyboxManager.astro";
 import FontManager from "@components/features/FontManager.astro";
 import MusicManager from "@components/features/MusicManager.astro";
 import SearchModal from "@components/controls/SearchModal.svelte";
-import PageLoader from "@components/features/PageLoader.astro";
 import SakuraEffect from "@components/features/SakuraEffect.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 
@@ -462,7 +461,6 @@ const siteLang = lang.replace("_", "-");
     ]}
   >
 
-    <PageLoader />
     <div id="progress-bar"></div>
 
     <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->

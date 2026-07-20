@@ -27,13 +27,10 @@ import { Icon } from "astro-icon/components";
 		</span>
 	</button>
 
-	<!-- 右2: 主题切换 -->
-	<button class="mobile-dock__btn" id="mobile-dock-theme-btn" aria-label="主题切换" type="button">
-		<span class="mobile-dock__icon">
-			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="mobile-dock-theme-icon-light" />
-			<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="mobile-dock-theme-icon-dark" style="display:none" />
-		</span>
-		<span class="mobile-dock__label">主题</span>
+	<!-- 右2: 后台管理 -->
+	<button class="mobile-dock__btn" id="mobile-dock-admin-btn" aria-label="后台管理" type="button">
+		<span class="mobile-dock__icon"><Icon name="material-symbols:admin-panel-settings-outline-rounded" is:inline /></span>
+		<span class="mobile-dock__label">后台</span>
 	</button>
 
 	<!-- 右1: 返回 -->
@@ -57,6 +54,10 @@ import { Icon } from "astro-icon/components";
 	</button>
 	<!-- 工具展开区（向上展开） -->
 	<div class="floating-tools-stack" id="floating-tools-stack">
+		<button class="mobile-dock__floating-btn" id="floating-theme-btn" aria-label="主题切换" type="button">
+			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="floating-theme-icon-light" />
+			<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="floating-theme-icon-dark" style="display:none" />
+		</button>
 		<button class="mobile-dock__floating-btn" id="floating-music-btn" aria-label="音乐" type="button">
 			<Icon name="material-symbols:music-note-rounded" is:inline />
 		</button>
@@ -115,10 +116,6 @@ import { Icon } from "astro-icon/components";
 		<button class="mobile-dock__sheet-item hide" id="md-top-btn" aria-label="回到顶部" type="button">
 			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline /></span>
 			<span class="mobile-dock__sheet-item-label">顶部</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-admin-btn" aria-label="后台管理" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:admin-panel-settings-outline-rounded" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">后台</span>
 		</button>
 	</div>
 </div>
@@ -224,35 +221,10 @@ import { Icon } from "astro-icon/components";
 		window.history.back();
 	});
 
-	// 主题切换按钮（dock 上）
-	var dockThemeBtn = document.getElementById("mobile-dock-theme-btn");
-	var dockThemeLight = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-light");
-	var dockThemeDark = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-dark");
-
-	function updateDockThemeIcon() {
-		var isDark = document.documentElement.classList.contains("dark");
-		if (dockThemeLight) dockThemeLight.style.display = isDark ? "none" : "";
-		if (dockThemeDark) dockThemeDark.style.display = isDark ? "" : "none";
-	}
-
-	dockThemeBtn?.addEventListener("click", function(e) {
+	// 后台管理按钮（dock 上）
+	document.getElementById("mobile-dock-admin-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
-		var isDark = document.documentElement.classList.contains("dark");
-		var next = isDark ? "light" : "dark";
-		localStorage.setItem("theme", next);
-		if (next === "dark") {
-			document.documentElement.classList.add("dark");
-		} else {
-			document.documentElement.classList.remove("dark");
-		}
-		updateDockThemeIcon();
-		updateThemeIcon();
-	});
-
-	updateDockThemeIcon();
-	window.addEventListener("theme-change", function() {
-		updateDockThemeIcon();
-		updateThemeIcon();
+		window.location.href = "/admin/";
 	});
 
 	// 工具栏 sheet 开关
@@ -318,6 +290,37 @@ import { Icon } from "astro-icon/components";
 	document.getElementById("floating-announcement-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
 		document.getElementById("dock-announcement-btn")?.click();
+	});
+
+	// 浮动主题切换
+	var floatingThemeBtn = document.getElementById("floating-theme-btn");
+	var floatingThemeLight = floatingThemeBtn?.querySelector(".floating-theme-icon-light");
+	var floatingThemeDark = floatingThemeBtn?.querySelector(".floating-theme-icon-dark");
+
+	function updateFloatingThemeIcon() {
+		var isDark = document.documentElement.classList.contains("dark");
+		if (floatingThemeLight) floatingThemeLight.style.display = isDark ? "none" : "";
+		if (floatingThemeDark) floatingThemeDark.style.display = isDark ? "" : "none";
+	}
+
+	floatingThemeBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		var isDark = document.documentElement.classList.contains("dark");
+		var next = isDark ? "light" : "dark";
+		localStorage.setItem("theme", next);
+		if (next === "dark") {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
+		updateFloatingThemeIcon();
+		updateThemeIcon();
+	});
+
+	updateFloatingThemeIcon();
+	window.addEventListener("theme-change", function() {
+		updateFloatingThemeIcon();
+		updateThemeIcon();
 	});
 
 	// 浮动 TOC
@@ -396,13 +399,6 @@ import { Icon } from "astro-icon/components";
 		e.stopPropagation();
 		closeSheet();
 		window.location.href = "/life/notebooks/";
-	});
-
-	// 后台管理
-	document.getElementById("md-admin-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		closeSheet();
-		window.location.href = "/admin/";
 	});
 
 	// 路径相关显隐

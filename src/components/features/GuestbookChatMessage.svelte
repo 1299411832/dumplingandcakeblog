@@ -12,7 +12,7 @@ import {
 	RotateCcw,
 	Trash2,
 	X,
-} from "@lucide/svelte";
+} from "lucide-svelte";
 import type { GuestbookChatMessage } from "@/types/guestbook-chat";
 import { getGuestbookInitials } from "@/utils/guestbook-chat";
 import { renderGuestbookMessage } from "@/utils/guestbook-chat-markup";

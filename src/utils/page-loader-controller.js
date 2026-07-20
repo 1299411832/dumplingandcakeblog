@@ -213,19 +213,16 @@ export function initPageLoader({
 	const loader = documentRef.getElementById("page-loader");
 	if (!loader) return null;
 
-	// Mobile: skip page loader entirely
-	if (isMobile(windowRef)) {
-		loader.hidden = true;
-		loader.classList.add("page-loader--hidden");
-		loader.classList.remove("page-loader--visible");
-		documentRef.documentElement.classList.remove("is-page-loading");
-		documentRef.body?.removeAttribute("aria-busy");
-		// Dispatch hidden event so any waiting code can proceed
-		dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, {
-			timestamp: Date.now(),
-		});
-		return null;
-	}
+	// Skip page loader entirely on all devices
+	loader.hidden = true;
+	loader.classList.add("page-loader--hidden");
+	loader.classList.remove("page-loader--visible");
+	documentRef.documentElement.classList.remove("is-page-loading");
+	documentRef.body?.removeAttribute("aria-busy");
+	dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, {
+		timestamp: Date.now(),
+	});
+	return null;
 
 	const controller = createPageLoaderController({
 		onStateChange: (state) =>

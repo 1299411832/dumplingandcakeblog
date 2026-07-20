@@ -15,7 +15,7 @@ let backgroundColor = $state(
 function syncPageBackground() {
 	backgroundColor = document.documentElement.classList.contains("dark")
 		? (musicPlayerConfig.visualizer?.background?.dark ?? "#0a0a15")
-		: (musicPlayerConfig.visualizer?.background?.light ?? "#ffffff");
+		: (musicPlayerConfig.visualizer?.background?.light ?? "#2D2D2D");
 }
 
 function connectAudio() {

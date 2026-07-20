@@ -6,7 +6,7 @@ import {
 	Smile,
 	TriangleAlert,
 	X,
-} from "@lucide/svelte";
+} from "lucide-svelte";
 import { tick } from "svelte";
 import { commentConfig } from "@/config/commentConfig";
 import type {

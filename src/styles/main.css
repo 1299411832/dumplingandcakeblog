@@ -69,6 +69,7 @@
 @import './pages/categories.css';
 @import './components/guestbook-chat.css';
 @import './components/privacy-modal.css';
+@import './components/page-title.css';
 
 /* --- 布局样式 --- */
 @import './layout/layout-styles.css';
