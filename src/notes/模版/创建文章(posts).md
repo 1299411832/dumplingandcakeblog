@@ -1,5 +1,5 @@
 ---
-title: 我的第一篇文章
+title: "{{title}}"
 published:
 tags:
   - 标签1
