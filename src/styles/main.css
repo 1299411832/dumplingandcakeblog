@@ -67,6 +67,8 @@
 @import './pages/apps.css';
 @import './pages/notebooks.css';
 @import './pages/categories.css';
+@import './components/guestbook-chat.css';
+@import './components/privacy-modal.css';
 
 /* --- 布局样式 --- */
 @import './layout/layout-styles.css';

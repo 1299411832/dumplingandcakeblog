@@ -276,6 +276,8 @@ export type CommentConfig = {
 	waline?: {
 		serverURL: string;
 		lang?: string;
+		emoji?: string[];
+		imageUploadURL?: string;
 		login?: "enable" | "force" | "disable";
 		visitorCount?: boolean; // 是否统计访问量，true 启用访问量，false 关闭
 	};
@@ -835,3 +837,16 @@ export type ResponsiveImageLayout = "constrained" | "full-width" | "none";
 
 // 图像格式类型
 export type ImageFormat = "avif" | "webp" | "png" | "jpg" | "jpeg" | "gif";
+
+export type GuestbookAnnouncementItem = {
+	id: string;
+	title: string;
+	summary: string;
+	lead?: string;
+	rules: string[];
+};
+
+export type GuestbookConfig = {
+	announcements: GuestbookAnnouncementItem[];
+	adminNicknames?: string[];
+};

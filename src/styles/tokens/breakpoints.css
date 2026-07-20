@@ -38,6 +38,8 @@
 
   /* 边框半径 */
   --radius-large: 0;
+  --radius-medium: 0.5rem;
+  --radius-small: 0.25rem;
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
@@ -45,6 +47,18 @@
   --radius-2xl: 0;
   --radius-3xl: 0;
   --radius-full: 9999px;
+
+  /* 间距（guestbook 等组件使用） */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* 控件尺寸 */
+  --control-size: 2.75rem;
 
   /* 阴影（极简模式下全部置零） */
   --shadow-sm: none;
