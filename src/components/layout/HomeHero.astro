@@ -97,9 +97,8 @@ try {
 	});
 }
 
-// 使用秒数轮转，确保连续刷新不会重复
-const schemeIndex = Math.floor(Date.now() / 1000) % homeSchemes.length;
-const randomScheme = homeSchemes[schemeIndex];
+// 服务端默认显示第一个方案，客户端 JavaScript 会随机切换
+const randomScheme = homeSchemes[0];
 
 // 移动端背景图随机选择
 const mobileBgDir = join(process.cwd(), "public/assets/images/mobile-bg");
@@ -125,7 +124,7 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 	data-avatar-off={avatarOffUrl}
 	data-work-hours={JSON.stringify(workHours)}
 >
-	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" />
+	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" id="desktop-bg" data-desktop-schemes={JSON.stringify(homeSchemes)} />
 	<img class="home-hero__video block md:hidden" src={mobileBgs.length > 0 ? mobileBgs[0] : "/assets/images/home/18188682411036032.webp"} alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" style="opacity:0;transition:opacity 0.3s" />
 
 	<div class="home-hero__canvas-container" id="main-canvas">
@@ -184,7 +183,7 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 						<img
 							src={randomScheme.decoration}
 							alt="character"
-							class="home-hero__character-img"
+							class="home-hero__character-img" id="desktop-decoration"
 							loading="eager"
 						/>
 					</div>
@@ -224,6 +223,26 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 </section>
 
 <script>
+	// 桌面端背景图随机化（确保不重复）
+	function randomizeDesktopBg() {
+		var desktopBg = document.getElementById('desktop-bg');
+		if (!desktopBg) return;
+		var schemes = JSON.parse(desktopBg.getAttribute('data-desktop-schemes') || '[]');
+		if (schemes.length <= 1) return;
+		var lastIdx = parseInt(localStorage.getItem('lastDesktopBgIdx') || '-1');
+		var newIdx;
+		do {
+			newIdx = Math.floor(Math.random() * schemes.length);
+		} while (newIdx === lastIdx && schemes.length > 1);
+		desktopBg.src = schemes[newIdx].bg;
+		// 同步更新装饰图
+		var decorationImg = document.getElementById('desktop-decoration');
+		if (decorationImg && schemes[newIdx].decoration) {
+			decorationImg.src = schemes[newIdx].decoration;
+		}
+		localStorage.setItem('lastDesktopBgIdx', String(newIdx));
+	}
+
 	// 移动端背景图随机化（确保不重复）
 	function randomizeMobileBg() {
 		var mobileBg = document.getElementById('mobile-bg');
@@ -242,10 +261,15 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 		mobileBg.onload = function() { mobileBg.style.opacity = '1'; };
 		localStorage.setItem('lastMobileBgIdx', String(newIdx));
 	}
+
+	randomizeDesktopBg();
 	randomizeMobileBg();
 	// Swup 导航返回首页时重新随机化
 	document.addEventListener('swup:page:view', function() {
-		setTimeout(randomizeMobileBg, 100);
+		setTimeout(function() {
+			randomizeDesktopBg();
+			randomizeMobileBg();
+		}, 100);
 	});
 
 	import { gsap } from "gsap";
