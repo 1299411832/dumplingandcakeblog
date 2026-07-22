@@ -65,8 +65,6 @@ const pinnedData = pinnedMoments.map((m) => ({
 	body: m.body || "",
 	date: m.data.published,
 }));
-
-const albums = await getCollection("album");
 ---
 
 <MainGridLayout title="动态" description="记录生活中的点点滴滴">
@@ -102,8 +100,12 @@ const albums = await getCollection("album");
   <!-- 说说列表（本地 + 外部合并，按时间排序） -->
   <div class="wx-feed" id="moments-feed">
     {sortedMoments.length > 0 ? (
-      sortedMoments.map((moment) => (
-        <div class="wx-feed-item" data-published={moment.data.published.toISOString()}>
+      sortedMoments.map((moment, index) => (
+        <div
+          class={`wx-feed-item ${index >= 5 ? 'wx-feed-hidden' : ''}`}
+          data-published={moment.data.published.toISOString()}
+          data-index={index}
+        >
           <MomentCard moment={moment} />
         </div>
       ))
@@ -118,11 +120,12 @@ const albums = await getCollection("album");
     )}
   </div>
 
-  <!-- 访客统计 -->
-  <div class="wx-visitor">
-    <Icon name="material-symbols:visibility-outline" class="wx-visitor-icon" />
-    <span class="waline-count" data-path="/moments/">-</span>
-    <span>次浏览</span>
+  <!-- 加载更多指示器 -->
+  <div id="load-more-sentinel" class="load-more-sentinel">
+    <div class="load-more-spinner">
+      <div class="spinner"></div>
+      <span>加载中...</span>
+    </div>
   </div>
 </MainGridLayout>
 
@@ -142,15 +145,139 @@ const albums = await getCollection("album");
   }
 </script>
 
+<!-- 无限滚动加载 -->
+<script is:inline>
+(function() {
+  var BATCH_SIZE = 5;
+  var currentCount = BATCH_SIZE;
+  var isLoading = false;
+  var allLoaded = false;
+  var observer = null;
+
+  function getItems() {
+    var feed = document.getElementById('moments-feed');
+    return feed ? Array.from(feed.querySelectorAll('.wx-feed-item')) : [];
+  }
+
+  function updateVisibility() {
+    var items = getItems();
+    var total = items.length;
+    for (var i = 0; i < total; i++) {
+      if (i < currentCount) {
+        items[i].classList.remove('wx-feed-hidden');
+      } else {
+        items[i].classList.add('wx-feed-hidden');
+      }
+    }
+    return total;
+  }
+
+  function checkAllLoaded() {
+    var sentinel = document.getElementById('load-more-sentinel');
+    if (!sentinel) return;
+    var total = getItems().length;
+    if (currentCount >= total) {
+      allLoaded = true;
+      sentinel.classList.add('hidden');
+    } else {
+      allLoaded = false;
+      sentinel.classList.remove('hidden');
+    }
+  }
+
+  function loadMore() {
+    if (isLoading || allLoaded) return;
+    isLoading = true;
+
+    var items = getItems();
+    var total = items.length;
+
+    setTimeout(function() {
+      var nextBatch = Math.min(currentCount + BATCH_SIZE, total);
+      for (var i = currentCount; i < nextBatch; i++) {
+        if (items[i]) {
+          items[i].classList.remove('wx-feed-hidden');
+        }
+      }
+      currentCount = nextBatch;
+      isLoading = false;
+      checkAllLoaded();
+
+      if (!allLoaded && isSentinelInViewport()) {
+        loadMore();
+      }
+    }, 300);
+  }
+
+  function isSentinelInViewport() {
+    var sentinel = document.getElementById('load-more-sentinel');
+    if (!sentinel) return false;
+    var rect = sentinel.getBoundingClientRect();
+    return rect.top < window.innerHeight + 200;
+  }
+
+  function setupObserver() {
+    var sentinel = document.getElementById('load-more-sentinel');
+    if (!sentinel) return;
+
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            loadMore();
+          }
+        });
+      }, { root: null, rootMargin: '200px', threshold: 0.1 });
+      observer.observe(sentinel);
+    }
+  }
+
+  function init() {
+    var feed = document.getElementById('moments-feed');
+    var sentinel = document.getElementById('load-more-sentinel');
+    if (!feed || !sentinel) return false;
+
+    currentCount = BATCH_SIZE;
+    isLoading = false;
+    allLoaded = false;
+
+    updateVisibility();
+    checkAllLoaded();
+    setupObserver();
+    return true;
+  }
+
+  // 首次加载
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { init(); });
+  } else {
+    init();
+  }
+})();
+</script>
+
 <!-- 说说评论展开/收起 -->
 <script is:inline>
 (function() {
-  var loadedComments = {};
-  var walineInit = null;
+  // 全局存储，跨 Swup导航持久化
+  if (!window.__momentsCommentState) {
+    window.__momentsCommentState = {
+      loadedComments: {},
+      walineInit: null,
+      handlerAttached: false
+    };
+  }
+
+  var state = window.__momentsCommentState;
 
   function loadWalineComment(section, commentPath) {
-    if (loadedComments[commentPath]) return;
-    loadedComments[commentPath] = true;
+    if (state.loadedComments[commentPath]) return;
+    state.loadedComments[commentPath] = true;
 
     var inner = section.querySelector('.comment-section-inner');
     if (!inner) return;
@@ -196,12 +323,12 @@ const albums = await getCollection("album");
       document.head.appendChild(link);
     }
 
-    if (walineInit) {
-      initWaline(walineInit);
+    if (state.walineInit) {
+      initWaline(state.walineInit);
     } else {
       import('https://unpkg.com/@waline/client@v3/dist/waline.js').then(function(mod) {
-        walineInit = mod.init;
-        initWaline(walineInit);
+        state.walineInit = mod.init;
+        initWaline(state.walineInit);
       }).catch(function(err) {
         console.error('[Waline] 加载失败:', err);
         var skeleton = inner.querySelector('.comment-loading');
@@ -232,10 +359,11 @@ const albums = await getCollection("album");
     }
   }
 
-  // 使用 requestAnimationFrame 确保 DOM 渲染完成后再绑定
-  requestAnimationFrame(function() {
+  // 只绑定一次事件监听器
+  if (!state.handlerAttached) {
     document.addEventListener('click', handleCommentClick);
-  });
+    state.handlerAttached = true;
+  }
 })();
 </script>
 
@@ -318,6 +446,46 @@ const albums = await getCollection("album");
 
   .wx-visitor-icon {
     font-size: 1rem;
+  }
+
+  /* 隐藏的说说项（分页加载） */
+  .wx-feed-hidden {
+    display: none;
+  }
+
+  /* 加载更多指示器 */
+  .load-more-sentinel {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+    min-height: 60px;
+  }
+
+  .load-more-sentinel.hidden {
+    display: none;
+  }
+
+  .load-more-spinner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--content-meta);
+    font-size: 0.875rem;
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--line-divider);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* 响应式 */

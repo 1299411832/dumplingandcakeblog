@@ -260,19 +260,8 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 </style>
 
 <script>
-	// 基于种子生成哈希值的函数
-	function getSeedHash(seed) {
-		return seed
-			? Math.abs(
-					seed.split('').reduce((acc, char) => {
-						return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-					}, 0),
-			)
-			: 0;
-	}
-
 	function initCoverImages() {
-		const containers = document.querySelectorAll('.cover-image-container');
+		const containers = document.querySelectorAll('.cover-image-container') as NodeListOf<HTMLElement>;
 		containers.forEach((container) => {
 			if (container.hasAttribute('data-initialized')) return;
 			container.setAttribute('data-initialized', 'true');
@@ -288,10 +277,10 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 			}
 
 			// 匹配服务端预选的图片在API列表中的位置
-			// 服务端 processCoverImageSync 已基于文章seed确定了图片，客户端不再重新随机选择
 			const currentSrc = img.getAttribute('src') || '';
 			const serverIndex = apiUrls.findIndex(url => url === currentSrc);
-			let currentApiIndex = serverIndex >= 0 ? serverIndex + 1 : 0;
+			console.log('[CoverImage] 初始化:', { currentSrc, serverIndex, apiUrlsCount: apiUrls.length, firstUrl: apiUrls[0] });
+			let currentApiIndex = -1;
 
 			const hideLoading = () => {
 				container.setAttribute('data-loading', 'false');
@@ -305,6 +294,7 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 			// 尝试加载下一个API（仅用于当前图片加载失败时的回退）
 			const tryNextApi = () => {
 				if (currentApiIndex < apiUrls.length) {
+					console.log('[CoverImage] 设置新图片:', apiUrls[currentApiIndex]);
 					img.addEventListener('load', hideLoading, { once: true });
 					img.addEventListener('error', onError, { once: true });
 					img.src = apiUrls[currentApiIndex];
@@ -320,27 +310,23 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 				tryNextApi();
 			};
 
-			// 服务端已预选图片：保持该选择，不重新挑选
-			if (serverIndex >= 0) {
-				if (img.complete) {
-					if (img.naturalWidth > 0) {
-						hideLoading();
-					} else {
-						onError();
-					}
+			// 每次刷新页面都随机选择图片
+			if (apiUrls.length > 0) {
+				// 随机选择一个不同于当前图片的索引
+				let newIndex;
+				if (serverIndex >= 0 && apiUrls.length > 1) {
+					do {
+						newIndex = Math.floor(Math.random() * apiUrls.length);
+					} while (newIndex === serverIndex);
 				} else {
-					img.addEventListener('load', hideLoading, { once: true });
-					img.addEventListener('error', onError, { once: true });
+					newIndex = Math.floor(Math.random() * apiUrls.length);
 				}
-			} else if (apiUrls.length > 0) {
-				// 服务端未预选时，基于日期种子选择（同一天内刷新不换图）
-				const now = new Date();
-				const dateSeed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-				const containerId = container.getAttribute('id') || container.dataset.index || '0';
-				const uniqueSeed = `${dateSeed}-${containerId}`;
-				const hash = getSeedHash(uniqueSeed);
-				currentApiIndex = hash % apiUrls.length;
-				tryNextApi();
+				// 去掉原有的 ?v=hash 参数，加上时间戳防止缓存
+				let newUrl = apiUrls[newIndex].split('?')[0] + '?t=' + Date.now();
+				console.log('[CoverImage] 随机选择:', serverIndex, '->', newIndex, newUrl);
+				img.src = newUrl;
+				img.addEventListener('load', hideLoading, { once: true });
+				img.addEventListener('error', onError, { once: true });
 			} else if (img.complete) {
 				if (img.naturalWidth > 0) {
 					hideLoading();
@@ -354,6 +340,8 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 		});
 	}
 
+	// 暴露到全局供 Layout.astro 调用
+	(window as any).__initCoverImages = initCoverImages;
 	initCoverImages();
 	document.addEventListener('astro:page-load', initCoverImages);
 </script>

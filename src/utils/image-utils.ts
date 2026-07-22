@@ -52,11 +52,9 @@ export function processCoverImageSync(
 		return "";
 	}
 
-	// 基于文章ID生成固定的哈希值
-	// 确保同一篇文章在不同地方显示相同的封面图片
-	const hash = getSeedHash(seed);
-	const apiIndex = hash % randomCoverImage.apis.length;
-	return appendSeedParam(randomCoverImage.apis[apiIndex], hash);
+	// 每次渲染随机选择一张图片（开发模式下刷新页面会变化）
+	const apiIndex = Math.floor(Math.random() * randomCoverImage.apis.length);
+	return randomCoverImage.apis[apiIndex];
 }
 
 /**

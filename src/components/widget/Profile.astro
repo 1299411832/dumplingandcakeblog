@@ -12,22 +12,12 @@ const bioText = Array.isArray(profileConfig.bio)
 <div class="profile-card">
 	<!-- 顶部背景区域 -->
 	<div class="profile-card__bg">
-		<video
-			class="profile-card__bg-video profile-card__bg-video--light"
-			src="/assets/images/mp4/liangse.mp4"
-			autoplay
-			loop
-			muted
-			playsinline
-		></video>
-		<video
-			class="profile-card__bg-video profile-card__bg-video--dark"
-			src="/assets/images/mp4/anse.mp4"
-			autoplay
-			loop
-			muted
-			playsinline
-		></video>
+		<img
+			class="profile-card__bg-img"
+			src="/assets/images/zujian/gerenziliao.png"
+			alt=""
+			loading="eager"
+		/>
 		<div class="profile-card__bg-fade"></div>
 	</div>
 
@@ -109,27 +99,12 @@ const bioText = Array.isArray(profileConfig.bio)
 		background: #1a1a1a;
 	}
 
-	.profile-card__bg-video {
+	.profile-card__bg-img {
 		position: absolute;
 		inset: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		opacity: 0.7;
-	}
-
-	/* 亮色模式：显示亮色视频，隐藏暗色视频 */
-	.profile-card__bg-video--dark {
-		display: none;
-	}
-
-	/* 暗色模式：显示暗色视频，隐藏亮色视频 */
-	:root.dark .profile-card__bg-video--light {
-		display: none;
-	}
-
-	:root.dark .profile-card__bg-video--dark {
-		display: block;
 	}
 
 	/* 渐变过渡：背景 → 白色内容区 */

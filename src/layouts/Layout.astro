@@ -8,6 +8,7 @@ import MusicManager from "@components/features/MusicManager.astro";
 import SearchModal from "@components/controls/SearchModal.svelte";
 import SakuraEffect from "@components/features/SakuraEffect.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
+import PageLoader from "@components/features/PageLoader.astro";
 
 import {
 	backgroundWallpaper,
@@ -421,6 +422,75 @@ const siteLang = lang.replace("_", "-");
         }
       })();
     </script>
+    <script is:inline>
+      // ===== 说说页面评论系统（在 Swup 容器外部，保证执行） =====
+      (function() {
+        if (window.__momentsCommentHandler) return;
+        window.__momentsCommentHandler = true;
+        window.__momentsCommentState = { loadedComments: {}, walineInit: null };
+
+        function loadWalineComment(section, commentPath) {
+          var state = window.__momentsCommentState;
+          if (state.loadedComments[commentPath]) return;
+          state.loadedComments[commentPath] = true;
+          var inner = section.querySelector('.comment-section-inner');
+          if (!inner) return;
+          var serverURL = "https://co.tsh520.cn";
+          var containerId = 'waline-' + commentPath.replace(/[^a-zA-Z0-9]/g, '-');
+          var walineContainer = document.createElement('div');
+          walineContainer.id = containerId;
+          walineContainer.style.opacity = '0';
+          walineContainer.style.transition = 'opacity 0.3s ease';
+          inner.appendChild(walineContainer);
+
+          function initWaline(init) {
+            init({ el: '#' + containerId, serverURL: serverURL, path: commentPath, lang: 'zh-CN', dark: 'html.dark', wordLimit: [2, 300], pageview: false, comment: true });
+            setTimeout(function() {
+              var skeleton = inner.querySelector('.comment-loading');
+              if (skeleton) { skeleton.style.transition = 'opacity 0.3s ease'; skeleton.style.opacity = '0'; setTimeout(function() { skeleton.remove(); }, 300); }
+              walineContainer.style.opacity = '1';
+            }, 100);
+          }
+
+          if (!document.querySelector('link[href*="waline"]')) {
+            var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://unpkg.com/@waline/client@v3/dist/waline.css'; document.head.appendChild(link);
+          }
+
+          if (state.walineInit) {
+            initWaline(state.walineInit);
+          } else {
+            import('https://unpkg.com/@waline/client@v3/dist/waline.js').then(function(mod) {
+              state.walineInit = mod.init;
+              initWaline(state.walineInit);
+            }).catch(function(err) {
+              console.error('[Waline] 加载失败:', err);
+              var skeleton = inner.querySelector('.comment-loading');
+              if (skeleton) skeleton.remove();
+              walineContainer.style.opacity = '1';
+              walineContainer.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--content-meta);font-size:0.8125rem;">评论加载失败</div>';
+            });
+          }
+        }
+
+        document.addEventListener('click', function(e) {
+          var btn = e.target.closest('.comment-toggle-btn');
+          if (!btn) return;
+          var momentId = btn.dataset.momentId;
+          var commentPath = btn.dataset.commentPath;
+          var section = document.getElementById('comment-section-' + momentId);
+          if (!section) return;
+          var isExpanded = section.classList.contains('is-expanded');
+          if (isExpanded) {
+            section.classList.remove('is-expanded');
+            btn.classList.remove('is-active');
+          } else {
+            section.classList.add('is-expanded');
+            btn.classList.add('is-active');
+            loadWalineComment(section, commentPath);
+          }
+        });
+      })();
+    </script>
     <style
       define:vars={{
         configHue,
@@ -461,6 +531,19 @@ const siteLang = lang.replace("_", "-");
     ]}
   >
 
+    <PageLoader />
+    <script is:inline>
+      // 确保 Swup 导航时 PageLoader 被隐藏，防止阻挡点击
+      document.addEventListener('swup:visit:start', function() {
+        var loader = document.getElementById('page-loader');
+        if (loader) {
+          loader.classList.add('page-loader--hidden');
+          loader.classList.remove('page-loader--visible');
+          loader.hidden = true;
+          loader.style.pointerEvents = 'none';
+        }
+      });
+    </script>
     <div id="progress-bar"></div>
 
     <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
@@ -1049,6 +1132,67 @@ function disableAnimation() {
             window.location.pathname
           );
         }
+
+        // ===== 说说页面无限滚动 =====
+        (function() {
+          var feed = document.getElementById('moments-feed');
+          var sentinel = document.getElementById('load-more-sentinel');
+          if (!feed || !sentinel) return;
+
+          var BATCH = 5;
+          var gKey = '__momentsScrollState';
+          if (!window[gKey]) {
+            window[gKey] = { observer: null };
+          }
+          var gs = window[gKey];
+          var count = BATCH;
+          var loading = false;
+          var done = false;
+
+          function items() { return Array.from(feed.querySelectorAll('.wx-feed-item')); }
+          function show() {
+            var all = items();
+            for (var i = 0; i < all.length; i++) {
+              all[i].classList[i < count ? 'remove' : 'add']('wx-feed-hidden');
+            }
+          }
+          function check() {
+            var total = items().length;
+            done = count >= total;
+            sentinel.classList[done ? 'add' : 'remove']('hidden');
+          }
+          function more() {
+            if (loading || done) return;
+            loading = true;
+            setTimeout(function() {
+              var all = items();
+              var end = Math.min(count + BATCH, all.length);
+              for (var i = count; i < end; i++) { all[i].classList.remove('wx-feed-hidden'); }
+              count = end; loading = false; check();
+              if (!done && vis()) more();
+            }, 300);
+          }
+          function vis() {
+            var r = sentinel.getBoundingClientRect();
+            return r.top < window.innerHeight + 200;
+          }
+          function obs() {
+            if (gs.observer) { gs.observer.disconnect(); gs.observer = null; }
+            gs.observer = new IntersectionObserver(function(e) {
+              if (e[0].isIntersecting) more();
+            }, { rootMargin: '200px' });
+            gs.observer.observe(sentinel);
+          }
+
+          count = BATCH; loading = false; done = false;
+          show(); check(); obs();
+        })();
+
+        // ===== 更新日志页面无限滚动 =====
+        if (typeof window.__resetChangelogScroll === 'function') {
+          window.__resetChangelogScroll();
+        }
+
       }, 300);
     });
     window.swup.hooks.on("visit:end", (_visit: { to: { url: string } }) => {

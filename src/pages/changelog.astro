@@ -86,11 +86,11 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
       <!-- 时间线 -->
       <div class="cl-timeline" id="cl-timeline">
         {renderedEntries.length > 0 ? (
-          renderedEntries.map(({ entry, Content }) => {
+          renderedEntries.map(({ entry, Content }, index) => {
             const t = typeConfig[entry.data.type];
             const dateStr = entry.data.date.toISOString().slice(0, 10);
             return (
-              <article class={`cl-entry ${t.cls}`} data-type={entry.data.type}>
+              <article class={`cl-entry ${t.cls} ${index >= 5 ? 'cl-hidden' : ''}`} data-type={entry.data.type} data-index={index}>
                 <div class="cl-entry-dot"></div>
                 <div class="cl-entry-body">
                   <div class="cl-entry-meta">
@@ -117,6 +117,14 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
             <p class="text-neutral-500 dark:text-neutral-400">{i18n(I18nKey.changelogNoData)}</p>
           </div>
         )}
+      </div>
+
+      <!-- 加载更多指示器 -->
+      <div id="changelog-load-more" class="load-more-sentinel">
+        <div class="load-more-spinner">
+          <div class="spinner"></div>
+          <span>加载中...</span>
+        </div>
       </div>
 
     </div>
@@ -173,6 +181,11 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
               entry.classList.add('hidden');
             }
           });
+
+          // 重置无限滚动状态
+          if (typeof window.__resetChangelogScroll === 'function') {
+            window.__resetChangelogScroll();
+          }
         }
 
         tabButtons.forEach(function(button) {
@@ -215,6 +228,134 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
       expand.classList.toggle('is-expanded');
       card.classList.toggle('is-expanded');
     });
+  </script>
+
+  <!-- 无限滚动加载 -->
+  <script is:inline data-swup-reload-script>
+  (function() {
+    // 全局状态，跨脚本重新执行保持
+    if (!window.__changelogInfiniteScroll) {
+      window.__changelogInfiniteScroll = {
+        observer: null
+      };
+    }
+    var globalState = window.__changelogInfiniteScroll;
+
+    var BATCH_SIZE = 5;
+    var isLoading = false;
+    var allLoaded = false;
+
+    function getVisibleItems() {
+      var timeline = document.getElementById('cl-timeline');
+      if (!timeline) return [];
+      return Array.from(timeline.querySelectorAll('.cl-entry:not(.hidden)'));
+    }
+
+    function updateVisibility() {
+      var items = getVisibleItems();
+      var total = items.length;
+      for (var i = 0; i < total; i++) {
+        if (i < BATCH_SIZE) {
+          items[i].classList.remove('cl-hidden');
+        } else {
+          items[i].classList.add('cl-hidden');
+        }
+      }
+      return total;
+    }
+
+    function checkAllLoaded() {
+      var sentinel = document.getElementById('changelog-load-more');
+      if (!sentinel) return;
+      var visibleCount = getVisibleItems().filter(function(item) {
+        return !item.classList.contains('cl-hidden');
+      }).length;
+      var total = getVisibleItems().length;
+      if (visibleCount >= total) {
+        allLoaded = true;
+        sentinel.classList.add('hidden');
+      } else {
+        allLoaded = false;
+        sentinel.classList.remove('hidden');
+      }
+    }
+
+    function loadMore() {
+      if (isLoading || allLoaded) return;
+      isLoading = true;
+
+      var items = getVisibleItems();
+      var total = items.length;
+      var currentVisible = items.filter(function(item) {
+        return !item.classList.contains('cl-hidden');
+      }).length;
+
+      setTimeout(function() {
+        var nextBatch = Math.min(currentVisible + BATCH_SIZE, total);
+        for (var i = currentVisible; i < nextBatch; i++) {
+          if (items[i]) {
+            items[i].classList.remove('cl-hidden');
+          }
+        }
+        isLoading = false;
+        checkAllLoaded();
+
+        if (!allLoaded && isSentinelInViewport()) {
+          loadMore();
+        }
+      }, 300);
+    }
+
+    function isSentinelInViewport() {
+      var sentinel = document.getElementById('changelog-load-more');
+      if (!sentinel) return false;
+      var rect = sentinel.getBoundingClientRect();
+      return rect.top < window.innerHeight + 200;
+    }
+
+    function setupObserver() {
+      var sentinel = document.getElementById('changelog-load-more');
+      if (!sentinel) return;
+
+      if (globalState.observer) {
+        globalState.observer.disconnect();
+        globalState.observer = null;
+      }
+
+      if ('IntersectionObserver' in window) {
+        globalState.observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              loadMore();
+            }
+          });
+        }, { root: null, rootMargin: '200px', threshold: 0.1 });
+        globalState.observer.observe(sentinel);
+      }
+    }
+
+    function init() {
+      var sentinel = document.getElementById('changelog-load-more');
+      if (!sentinel) return;
+
+      isLoading = false;
+      allLoaded = false;
+
+      updateVisibility();
+      checkAllLoaded();
+      setupObserver();
+    }
+
+    // 分类切换时重置
+    window.__resetChangelogScroll = function() {
+      isLoading = false;
+      allLoaded = false;
+      init();
+    };
+
+    // 立即初始化
+    init();
+  })();
   </script>
 </MainGridLayout>
 
@@ -351,7 +492,8 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
   .cl-entry:nth-child(9) { animation-delay: 0.45s; }
   .cl-entry:nth-child(10) { animation-delay: 0.50s; }
 
-  .cl-entry.hidden {
+  .cl-entry.hidden,
+  .cl-entry.cl-hidden {
     display: none;
   }
 
@@ -450,6 +592,41 @@ const displaySubtitle = i18n(I18nKey.changelogSubtitle);
     }
     .cl-entry-card {
       padding: 0.625rem 0.875rem;
+    }
+  }
+
+  /* 加载更多指示器 */
+  .load-more-sentinel {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+    min-height: 60px;
+  }
+
+  .load-more-sentinel.hidden {
+    display: none;
+  }
+
+  .load-more-spinner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--content-meta);
+    font-size: 0.875rem;
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--line-divider);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
     }
   }
 

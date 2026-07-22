@@ -213,17 +213,6 @@ export function initPageLoader({
 	const loader = documentRef.getElementById("page-loader");
 	if (!loader) return null;
 
-	// Skip page loader entirely on all devices
-	loader.hidden = true;
-	loader.classList.add("page-loader--hidden");
-	loader.classList.remove("page-loader--visible");
-	documentRef.documentElement.classList.remove("is-page-loading");
-	documentRef.body?.removeAttribute("aria-busy");
-	dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, {
-		timestamp: Date.now(),
-	});
-	return null;
-
 	const controller = createPageLoaderController({
 		onStateChange: (state) =>
 			applyDomState({ document: documentRef, loader }, state),
@@ -242,12 +231,13 @@ export function initPageLoader({
 	if (documentRef.readyState === "complete") hideInitialLoader();
 	else windowRef.addEventListener("load", hideInitialLoader, { once: true });
 
-	// 硬超时：2秒后无论如何隐藏加载动画
+	// 硬超时：移动端800ms，桌面端1.5秒后隐藏加载动画
+	const hideTimeout = isMobile(windowRef) ? 800 : 1500;
 	setTimeout(() => {
 		if (controller.isVisible()) {
 			controller.hideNow();
 		}
-	}, 2000);
+	}, hideTimeout);
 
 	documentRef.addEventListener("astro:page-load", () => {
 		documentRef.dispatchEvent(new CustomEvent(LOADER_READY_EVENT));

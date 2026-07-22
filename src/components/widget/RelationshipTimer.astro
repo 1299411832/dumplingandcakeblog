@@ -4,6 +4,11 @@ import { relationshipConfig } from "@/config/relationshipConfig";
 
 const config = relationshipConfig;
 
+// 计算从起始日期到现在的总天数
+const startDate = new Date(config.startDate);
+const now = new Date();
+const totalDays = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
 interface Props {
 	class?: string;
 	style?: string;
@@ -13,9 +18,9 @@ const style = Astro.props.style;
 ---
 
 <WidgetLayout
-  name={config.title || "恋爱时光"}
+  name={`${config.title || "恋爱时光"} ${totalDays} 天`}
   id="relationship"
-  class={className}
+  class={`${className || ""} relationship-widget`}
   style={style}
 >
   <div class="flex flex-col items-center p-2">
@@ -90,9 +95,24 @@ const style = Astro.props.style;
     max-width: 45%;
   }
 
-  /* 隐藏标题左侧竖杠 */
-  :global(.widget-title)::before {
+  /* 标题样式调整 - 强制覆盖 WidgetLayout 默认样式 */
+  :global(.relationship-widget .widget-title) {
+    text-align: center !important;
+    justify-content: center !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    position: relative !important;
+  }
+
+  :global(.relationship-widget .widget-title)::before {
     display: none !important;
+    content: none !important;
+  }
+
+  :global(.relationship-widget .widget-name) {
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
   }
 </style>
 
@@ -103,6 +123,9 @@ const style = Astro.props.style;
 
     let diff = now.getTime() - startDate.getTime();
     if (diff < 0) return;
+
+    // 计算总天数
+    const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     let years = now.getFullYear() - startDate.getFullYear();
     let months = now.getMonth() - startDate.getMonth();
@@ -127,6 +150,7 @@ const style = Astro.props.style;
       });
     };
 
+    set('total-days', totalDays);
     set('years', years);
     set('months', months);
     set('days', days);

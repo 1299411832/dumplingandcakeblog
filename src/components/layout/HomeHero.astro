@@ -2,6 +2,8 @@
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import { profileConfig, siteConfig } from "@/config";
+import { readdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const workHours = siteConfig.workHours ?? {
 	start: 9,
@@ -67,6 +69,54 @@ const heroBioText = Array.isArray(profileConfig.bio)
 	: profileConfig.bio || "";
 
 const nameLetters = Array.from(profileConfig.displayName || "");
+
+// 主页桌面端背景图片随机方案（自动扫描 home 文件夹）
+// 只需在 public/assets/images/home/ 下添加 home1、home2、home3... 文件夹即可
+const homeDir = join(process.cwd(), "public/assets/images/home");
+const homeSchemes: { bg: string; decoration: string }[] = [];
+
+try {
+	const entries = readdirSync(homeDir, { withFileTypes: true });
+	for (const entry of entries) {
+		if (entry.isDirectory() && /^home\d+$/.test(entry.name)) {
+			const bgPath = `/assets/images/home/${entry.name}/home.webp`;
+			const decorationPath = `/assets/images/home/${entry.name}/home2.webp`;
+			if (existsSync(join(homeDir, entry.name, "home.webp"))) {
+				homeSchemes.push({
+					bg: bgPath,
+					decoration: decorationPath,
+				});
+			}
+		}
+	}
+} catch (e) {
+	// fallback
+	homeSchemes.push({
+		bg: "/assets/images/home/home1/home.webp",
+		decoration: "/assets/images/home/home1/home2.webp",
+	});
+}
+
+// 使用秒数轮转，确保连续刷新不会重复
+const schemeIndex = Math.floor(Date.now() / 1000) % homeSchemes.length;
+const randomScheme = homeSchemes[schemeIndex];
+
+// 移动端背景图随机选择
+const mobileBgDir = join(process.cwd(), "public/assets/images/mobile-bg");
+const mobileBgs: string[] = [];
+try {
+	const mobileEntries = readdirSync(mobileBgDir);
+	for (const file of mobileEntries) {
+		if (/\.(webp|png|jpg|jpeg|avif)$/i.test(file)) {
+			mobileBgs.push(`/assets/images/mobile-bg/${file}`);
+		}
+	}
+} catch (e) {
+	// ignore
+}
+// 使用随机数，通过客户端脚本确保不重复
+const mobileBgIndex = Math.floor(Math.random() * mobileBgs.length);
+const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/assets/images/home/18188682411036032.webp";
 ---
 
 <section class="home-hero home-hero--motion-pending" id="home-hero"
@@ -75,8 +125,8 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 	data-avatar-off={avatarOffUrl}
 	data-work-hours={JSON.stringify(workHours)}
 >
-	<img class="home-hero__video hidden md:block" src="/assets/images/home/home.webp" alt="" />
-	<img class="home-hero__video block md:hidden" src="/assets/images/home/18188682411036032.webp" alt="" />
+	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" />
+	<img class="home-hero__video block md:hidden" src={mobileBgs.length > 0 ? mobileBgs[0] : "/assets/images/home/18188682411036032.webp"} alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" style="opacity:0;transition:opacity 0.3s" />
 
 	<div class="home-hero__canvas-container" id="main-canvas">
 		<div class="home-hero__bracket home-hero__bracket--tl"></div>
@@ -132,7 +182,7 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 				<div class="home-hero__character-reveal">
 					<div class="home-hero__character-motion">
 						<img
-							src="/assets/images/home/home2.webp"
+							src={randomScheme.decoration}
 							alt="character"
 							class="home-hero__character-img"
 							loading="eager"
@@ -174,6 +224,30 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 </section>
 
 <script>
+	// 移动端背景图随机化（确保不重复）
+	function randomizeMobileBg() {
+		var mobileBg = document.getElementById('mobile-bg');
+		if (!mobileBg) return;
+		var bgs = JSON.parse(mobileBg.getAttribute('data-mobile-bgs') || '[]');
+		if (bgs.length <= 1) {
+			mobileBg.style.opacity = '1';
+			return;
+		}
+		var lastIdx = parseInt(localStorage.getItem('lastMobileBgIdx') || '-1');
+		var newIdx;
+		do {
+			newIdx = Math.floor(Math.random() * bgs.length);
+		} while (newIdx === lastIdx && bgs.length > 1);
+		mobileBg.src = bgs[newIdx];
+		mobileBg.onload = function() { mobileBg.style.opacity = '1'; };
+		localStorage.setItem('lastMobileBgIdx', String(newIdx));
+	}
+	randomizeMobileBg();
+	// Swup 导航返回首页时重新随机化
+	document.addEventListener('swup:page:view', function() {
+		setTimeout(randomizeMobileBg, 100);
+	});
+
 	import { gsap } from "gsap";
 	import { ScrollTrigger } from "gsap/ScrollTrigger";
 	import { VFX } from "@vfx-js/core";
@@ -880,7 +954,7 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 		initHeroOpening();
 		initParallax();
 		initWorkStatus();
-		initHeroRain();
+		// initHeroRain(); // 已关闭雨滴特效
 		void initHeroHatch();
 
 		requestAnimationFrame(() => {
@@ -892,7 +966,7 @@ const nameLetters = Array.from(profileConfig.displayName || "");
 		killHomeMotion();
 		destroyParallax();
 		destroyWorkStatus();
-		destroyHeroRain();
+		// destroyHeroRain(); // 已关闭雨滴特效
 		destroyHeroHatch();
 	}
 
