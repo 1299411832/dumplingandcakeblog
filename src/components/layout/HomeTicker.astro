@@ -81,10 +81,10 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 	tickerContent && (
 		<section class="home-ticker" aria-label="公告跑马灯" id="home-ticker" data-bangumi-gist={bangumiGistId}>
 			<div class="home-ticker__inner">
-				<div class="home-ticker__track" id="home-ticker-track">
-				{Array.from({ length: 4 }).map(() => (
+				<div class="home-ticker__track">
 					<span class="home-ticker__text">{tickerContent}</span>
-				))}
+					<span class="home-ticker__text" aria-hidden="true">{tickerContent}</span>
+					<span class="home-ticker__text" aria-hidden="true">{tickerContent}</span>
 				</div>
 			</div>
 		</section>
@@ -92,17 +92,6 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 }
 
 <script>
-	function initHomeTicker() {
-		const track = document.getElementById("home-ticker-track") as HTMLElement | null;
-		if (!track) return;
-
-		const SPEED = 100;
-		const trackWidth = track.scrollWidth;
-		const distance = trackWidth / 2;
-		const duration = distance / SPEED;
-		track.style.animationDuration = `${Math.max(duration, 4)}s`;
-	}
-
 	function updateTickerLocation() {
 		if (!navigator.onLine) return;
 		fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=zh")
@@ -118,7 +107,6 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 			.catch(() => {});
 	}
 
-	// 从 Gist 加载影视数据并更新跑马灯
 	function updateTickerBangumi() {
 		var gistId = document.getElementById("home-ticker")?.getAttribute("data-bangumi-gist");
 		if (!gistId) return;
@@ -142,17 +130,11 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 
 				if (count <= 0) return;
 
-				// 更新跑马灯文字，在 [更新] 部分追加影视数据
 				document.querySelectorAll(".home-ticker__text").forEach(function(el) {
 					var text = el.textContent || "";
-					if (text.indexOf("部影视") !== -1) return; // 已有影视数据
+					if (text.indexOf("部影视") !== -1) return;
 					if (text.indexOf("[更新]") !== -1) {
-						// 在 "最近三天更新了" 后面追加
-						text = text.replace(
-							/(\[更新\] 最近三天更新了 )/,
-							"$1" + count + " 部影视、"
-						);
-						// 清理末尾多余的顿号
+						text = text.replace(/(\[更新\] 最近三天更新了 )/, "$1" + count + " 部影视、");
 						text = text.replace(/、\s*×/g, " ×");
 						el.textContent = text;
 					}
@@ -161,11 +143,9 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 			.catch(function() {});
 	}
 
-	initHomeTicker();
 	updateTickerLocation();
 	updateTickerBangumi();
 	document.addEventListener("astro:page-load", () => {
-		initHomeTicker();
 		updateTickerLocation();
 		updateTickerBangumi();
 	});

@@ -125,7 +125,7 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 	data-work-hours={JSON.stringify(workHours)}
 >
 	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" id="desktop-bg" data-desktop-schemes={JSON.stringify(homeSchemes)} />
-	<img class="home-hero__video block md:hidden" src={mobileBgs.length > 0 ? mobileBgs[0] : "/assets/images/home/18188682411036032.webp"} alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" style="opacity:0;transition:opacity 0.3s" />
+	<img class="home-hero__video block md:hidden" src="" alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" data-fallback="/assets/images/home/18188682411036032.webp" />
 
 	<div class="home-hero__canvas-container" id="main-canvas">
 		<div class="home-hero__bracket home-hero__bracket--tl"></div>
@@ -243,22 +243,37 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 		localStorage.setItem('lastDesktopBgIdx', String(newIdx));
 	}
 
-	// 移动端背景图随机化（确保不重复）
+	// 移动端背景图随机化（确保不重复，预加载后无缝切换）
 	function randomizeMobileBg() {
 		var mobileBg = document.getElementById('mobile-bg');
 		if (!mobileBg) return;
 		var bgs = JSON.parse(mobileBg.getAttribute('data-mobile-bgs') || '[]');
-		if (bgs.length <= 1) {
-			mobileBg.style.opacity = '1';
+		var fallback = mobileBg.getAttribute('data-fallback') || '';
+
+		if (bgs.length === 0) {
+			if (fallback) mobileBg.src = fallback;
 			return;
 		}
+		if (bgs.length === 1) {
+			mobileBg.src = bgs[0];
+			return;
+		}
+
 		var lastIdx = parseInt(localStorage.getItem('lastMobileBgIdx') || '-1');
 		var newIdx;
 		do {
 			newIdx = Math.floor(Math.random() * bgs.length);
 		} while (newIdx === lastIdx && bgs.length > 1);
-		mobileBg.src = bgs[newIdx];
-		mobileBg.onload = function() { mobileBg.style.opacity = '1'; };
+
+		// 预加载新图片，加载完成后再设置 src（无闪烁）
+		var newImg = new Image();
+		newImg.onload = function() {
+			mobileBg.src = bgs[newIdx];
+		};
+		newImg.onerror = function() {
+			if (fallback) mobileBg.src = fallback;
+		};
+		newImg.src = bgs[newIdx];
 		localStorage.setItem('lastMobileBgIdx', String(newIdx));
 	}
 
