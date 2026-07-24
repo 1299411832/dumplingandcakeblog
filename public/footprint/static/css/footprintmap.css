@@ -90,7 +90,7 @@
 }
 
 /* ==========================================================================
-   3. UI Components: Filters
+   3. UI Components: Filters (横向可收起)
    ========================================================================== */
 .footprint-map__filters {
     position: absolute;
@@ -98,20 +98,57 @@
     left: 6px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px;
+    gap: 6px;
+    padding: 6px;
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
     z-index: 3;
     max-width: calc(100% - 24px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.footprint-map__filters.is-collapsed {
+    max-width: 40px;
+}
+.footprint-map__filters.is-collapsed .footprint-map__filter-btn {
+    display: none;
+}
+.footprint-map__filters.is-collapsed .footprint-map__filter-toggle svg {
+    transform: rotate(180deg);
+}
+
+.footprint-map__filters .footprint-map__filter-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+.footprint-map__filters .footprint-map__filter-toggle:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+.footprint-map__filters .footprint-map__filter-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    transition: transform 0.3s;
 }
 
 .footprint-map__filter-btn {
     border: none;
     background: transparent;
     color: #333;
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
     padding: 6px 12px;
     border-radius: 18px;
     cursor: pointer;
@@ -120,7 +157,7 @@
 }
 
 .footprint-map__filter-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .footprint-map__filter-btn.is-active {
@@ -132,9 +169,9 @@
     .footprint-map__filters {
         max-height: 120px;
         overflow-y: auto;
-        gap: 6px;
+        gap: 4px;
         border-radius: 12px;
-        padding: 6px;
+        padding: 4px;
     }
 }
 
@@ -599,7 +636,9 @@
 .dark .footprint-map.is-fullscreen { background: #1a1a1a; }
 .dark .footprint-map__loading,
 .dark .footprint-map__error { background: rgba(0, 0, 0, 0.6); color: #999; }
-.dark .footprint-map__filters { background: rgba(33, 35, 40, 0.85); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); }
+.dark .footprint-map__filters { background: rgba(33, 35, 40, 0.9); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); }
+.dark .footprint-map__filters .footprint-map__filter-toggle { color: #aaa; }
+.dark .footprint-map__filters .footprint-map__filter-toggle:hover { background: rgba(255, 255, 255, 0.1); }
 .dark .footprint-map__filter-btn { color: #999; }
 .dark .footprint-map__filter-btn.is-active { background: #f7f7f7; color: #111; }
 .dark .footprint-map__cluster-toggle { background: rgba(40, 40, 40, 0.95); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); color: #e0e0e0; }

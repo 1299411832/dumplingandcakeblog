@@ -371,7 +371,16 @@
     function renderUI(container, allData, controls) {
         const cats = [...new Set(allData.flatMap(d => d.categories))].sort();
         if (cats.length > 1) {
-            const wrap = document.createElement('div'); wrap.className = 'footprint-map__filters';
+            const wrap = document.createElement('div'); wrap.className = 'footprint-map__filters is-collapsed';
+
+            // 收起按钮
+            const toggle = document.createElement('button');
+            toggle.className = 'footprint-map__filter-toggle';
+            toggle.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>';
+            toggle.title = '收起筛选';
+            toggle.onclick = () => { wrap.classList.toggle('is-collapsed'); };
+            wrap.appendChild(toggle);
+
             const mkBtn = (txt, val) => {
                 const b = document.createElement('button'); b.className = `footprint-map__filter-btn${val === 'all' ? ' is-active' : ''}`; b.textContent = txt;
                 b.onclick = () => { wrap.querySelectorAll('.is-active').forEach(e => e.classList.remove('is-active')); b.classList.add('is-active'); controls.updateData(val === 'all' ? allData : allData.filter(d => d.categories.includes(val))); };
