@@ -124,7 +124,7 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 	data-avatar-off={avatarOffUrl}
 	data-work-hours={JSON.stringify(workHours)}
 >
-	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" id="desktop-bg" data-desktop-schemes={JSON.stringify(homeSchemes)} />
+	<img class="home-hero__video hidden md:block" src="" alt="" id="desktop-bg" data-desktop-schemes={JSON.stringify(homeSchemes)} data-fallback={randomScheme.bg} />
 	<img class="home-hero__video block md:hidden" src="" alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" data-fallback="/assets/images/home/18188682411036032.webp" />
 
 	<div class="home-hero__canvas-container" id="main-canvas">
@@ -223,23 +223,56 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 </section>
 
 <script>
-	// 桌面端背景图随机化（确保不重复）
+	// 桌面端背景图随机化（确保不重复，预加载后无缝切换）
 	function randomizeDesktopBg() {
 		var desktopBg = document.getElementById('desktop-bg');
 		if (!desktopBg) return;
 		var schemes = JSON.parse(desktopBg.getAttribute('data-desktop-schemes') || '[]');
-		if (schemes.length <= 1) return;
+		var fallback = desktopBg.getAttribute('data-fallback') || '';
+
+		if (schemes.length === 0) {
+			if (fallback) desktopBg.src = fallback;
+			return;
+		}
+		if (schemes.length === 1) {
+			desktopBg.src = schemes[0].bg;
+			var deco = document.getElementById('desktop-decoration');
+			if (deco && schemes[0].decoration) deco.src = schemes[0].decoration;
+			return;
+		}
+
 		var lastIdx = parseInt(localStorage.getItem('lastDesktopBgIdx') || '-1');
 		var newIdx;
 		do {
 			newIdx = Math.floor(Math.random() * schemes.length);
-		} while (newIdx === lastIdx && schemes.length > 1);
-		desktopBg.src = schemes[newIdx].bg;
-		// 同步更新装饰图
-		var decorationImg = document.getElementById('desktop-decoration');
-		if (decorationImg && schemes[newIdx].decoration) {
-			decorationImg.src = schemes[newIdx].decoration;
+		} while (newIdx === lastIdx);
+
+		// 预加载背景图和装饰图，加载完成后再切换
+		var bgImg = new Image();
+		var decoSrc = schemes[newIdx].decoration;
+		var loaded = 0;
+		var total = decoSrc ? 2 : 1;
+
+		function onLoad() {
+			loaded++;
+			if (loaded >= total) {
+				desktopBg.src = schemes[newIdx].bg;
+				var deco = document.getElementById('desktop-decoration');
+				if (deco && decoSrc) deco.src = decoSrc;
+			}
 		}
+
+		bgImg.onload = onLoad;
+		bgImg.onerror = onLoad;
+		bgImg.src = schemes[newIdx].bg;
+
+		if (decoSrc) {
+			var decoImg = new Image();
+			decoImg.onload = onLoad;
+			decoImg.onerror = onLoad;
+			decoImg.src = decoSrc;
+		}
+
 		localStorage.setItem('lastDesktopBgIdx', String(newIdx));
 	}
 
