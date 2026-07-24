@@ -16,7 +16,7 @@ export const commentConfig: CommentConfig = {
 	//waline评论系统配置
 	waline: {
 		// waline 后端服务地址
-		serverURL: "https://co.tsh520.cn",
+		serverURL: import.meta.env.PUBLIC_WALINE_SERVER || "",
 		// 设置 Waline 评论系统语言
 		lang: "zh-CN",
 		// 表情包

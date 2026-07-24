@@ -187,13 +187,15 @@ const skillItems = normalizeSkillItems({ items: skillsConfig.items });
 		const detail = layer.querySelector(".data-card[data-stat-kind='visits'] .data-card__detail");
 		const valueNodes = layer.querySelectorAll<HTMLElement>("[data-stat-value]");
 
-		const UMAMI_BASE = "https://umami.tsh520.cn";
-		const WEBSITE_ID = "cea54104-ebb9-4237-911d-67043d2dae74";
+		const UMAMI_BASE = import.meta.env.PUBLIC_UMAMI_BASE;
+		const WEBSITE_ID = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
+		const UMAMI_USER = import.meta.env.PUBLIC_UMAMI_USERNAME;
+		const UMAMI_PASS = import.meta.env.PUBLIC_UMAMI_PASSWORD;
 
 		fetch(`${UMAMI_BASE}/api/auth/login`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ username: "tianshihao2003", password: "Tsh3109581507" }),
+			body: JSON.stringify({ username: UMAMI_USER, password: UMAMI_PASS }),
 		})
 			.then((res) => {
 				if (!res.ok) throw new Error(`Login ${res.status}`);

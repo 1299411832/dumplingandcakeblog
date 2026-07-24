@@ -5,6 +5,9 @@ import { Icon } from "astro-icon/components";
 import MomentCard from "@/components/moments/MomentCard.astro";
 import MomentsCover from "@/components/moments/MomentsCover.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { commentConfig } from "@/config";
+
+const walineServerURL = commentConfig.waline?.serverURL || "";
 
 const moments = await getCollection("moments");
 const sortedMoments = moments
@@ -129,11 +132,10 @@ const pinnedData = pinnedMoments.map((m) => ({
   </div>
 </MainGridLayout>
 
-<script is:inline>
+<script is:inline define:vars={{ walineServerURL }}>
   var countElements = document.querySelectorAll('.waline-count[data-path="/moments/"]');
   if (countElements.length > 0) {
-    var serverURL = "https://co.tsh520.cn";
-    fetch(serverURL + "/api/uv?path=/moments/")
+    fetch(walineServerURL + "/api/uv?path=/moments/")
       .then(function(res) { return res.json(); })
       .then(function(data) {
         var count = data.data ? data.data.unique_visitor || data.uv || 0 : (data.uv || 0);
@@ -262,7 +264,7 @@ const pinnedData = pinnedMoments.map((m) => ({
 </script>
 
 <!-- 说说评论展开/收起 -->
-<script is:inline>
+<script is:inline define:vars={{ walineServerURL }}>
 (function() {
   // 全局存储，跨 Swup导航持久化
   if (!window.__momentsCommentState) {
@@ -282,7 +284,6 @@ const pinnedData = pinnedMoments.map((m) => ({
     var inner = section.querySelector('.comment-section-inner');
     if (!inner) return;
 
-    var serverURL = "https://co.tsh520.cn";
     var containerId = 'waline-' + commentPath.replace(/[^a-zA-Z0-9]/g, '-');
 
     // 创建 Waline 容器（骨架屏保持显示）
@@ -295,7 +296,7 @@ const pinnedData = pinnedMoments.map((m) => ({
     function initWaline(init) {
       init({
         el: '#' + containerId,
-        serverURL: serverURL,
+        serverURL: walineServerURL,
         path: commentPath,
         lang: 'zh-CN',
         dark: 'html.dark',

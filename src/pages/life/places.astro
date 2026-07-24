@@ -158,7 +158,7 @@ if (document.readyState === 'loading') {
       <div class="mb-6">
         <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-3">足迹地图</h2>
         {footprintLocations.length > 0 ? (
-          <div id='footprintMap' class='footprint-map' data-amap-key='ffc18bba47161a9b5f20dd2bdb80b6fc' style='height: 500px;'></div>
+          <div id='footprintMap' class='footprint-map' data-amap-key={import.meta.env.PUBLIC_AMAP_KEY_PLACES} style='height: 500px;'></div>
         ) : (
           <div class='h-[500px] w-full rounded-xl border-2 border-black dark:border-[#3f3f46] flex flex-col items-center justify-center gap-2'>
             <Icon name="material-symbols:location-off" class="text-4xl text-neutral-300 dark:text-neutral-600" />

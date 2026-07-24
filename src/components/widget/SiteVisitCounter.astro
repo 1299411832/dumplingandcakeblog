@@ -1,13 +1,16 @@
 ---
 import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { commentConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+
+const walineServerURL = commentConfig.waline?.serverURL || "";
 ---
 
 <WidgetLayout name={i18n(I18nKey.pageViews) || "访问统计"} id="site-visit-counter">
   <div class="flex flex-col items-center py-3">
     <div class="flex items-baseline gap-1">
-      <span class="visit-count" id="site-visit-total" data-server="https://co.tsh520.cn">--</span>
+      <span class="visit-count" id="site-visit-total" data-server={walineServerURL}>--</span>
       <span class="visit-label">次</span>
     </div>
     <p class="visit-desc">站点总访问量</p>
@@ -41,7 +44,7 @@ import { i18n } from "@/i18n/translation";
     var countEl = document.getElementById('site-visit-total');
     if (!countEl) return;
 
-    var server = countEl.dataset.server || 'https://co.tsh520.cn';
+    var server = countEl.dataset.server;
 
     // 主要路径列表
     var paths = ['/', '/posts/', '/guestbook/', '/moments/', '/album/', '/books/', '/projects/', '/friends/', '/changelog/'];

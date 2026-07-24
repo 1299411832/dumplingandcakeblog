@@ -215,8 +215,8 @@ export const siteConfig: SiteConfig = {
 		microsoftClarityId: "",
 		// Umami Analytics
 		umamiAnalytics: {
-			websiteId: "cea54104-ebb9-4237-911d-67043d2dae74",
-			scriptUrl: "https://umami.tsh520.cn/script.js",
+			websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || "",
+			scriptUrl: import.meta.env.PUBLIC_UMAMI_BASE ? `${import.meta.env.PUBLIC_UMAMI_BASE}/script.js` : "",
 		},
 	},
 
@@ -239,7 +239,7 @@ export const siteConfig: SiteConfig = {
 	mapConfig: {
 		// 高德地图 Web端 JS API Key
 		// 申请地址: https://console.amap.com/dev/key/app
-		amapKey: "e569398fc0c6a32b8d24763e57d2dc87",
+		amapKey: import.meta.env.PUBLIC_AMAP_KEY || "",
 		// 地图初始中心点 [经度, 纬度]
 		center: [104.195, 35.861],
 		// 初始缩放级别

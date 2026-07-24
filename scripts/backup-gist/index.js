@@ -82,6 +82,9 @@ const CONTENT_DIR = path.join(ROOT, "src/content");
 const IMG_DIR = path.join(ROOT, "scripts/fetch-media/img-anime");
 const IMG_URL_PREFIX = "https://ph.0824.uk/file/anime/";
 
+// 说说图片下载目录
+const MOMENTS_IMG_DIR = "F:/电脑备份文件夹/CloudFlare-ImgBed/telegram/手机uu";
+
 // ═══════════════════════════════════════════════════
 // 工具函数
 // ═══════════════════════════════════════════════════
@@ -370,7 +373,14 @@ async function migrateMoments() {
 	const existingDates = readExistingFrontmatter(momentsDir, "published");
 	let migrated = 0;
 	let skipped = 0;
+	let imgDownloaded = 0;
+	let imgSkipped = 0;
 	const remaining = [];
+
+	// 确保图片目录存在
+	if (!DRY_RUN) {
+		fs.mkdirSync(MOMENTS_IMG_DIR, { recursive: true });
+	}
 
 	for (const entry of data) {
 		if (!entry.published) {
@@ -384,6 +394,38 @@ async function migrateMoments() {
 			skipped++;
 			// 本地已存在，仍然从 Gist 删除（已迁移过）
 			continue;
+		}
+
+		// 下载图片
+		if (entry.images?.length) {
+			for (const imgUrl of entry.images) {
+				if (!imgUrl || typeof imgUrl !== "string") continue;
+				// 跳过非 http 图片
+				if (!imgUrl.startsWith("http")) continue;
+
+				try {
+					const ext = getImageExt(imgUrl);
+					// 用 URL 中的文件名，如果没有则用日期+序号
+					const urlFilename = path.basename(new URL(imgUrl).pathname);
+					const filename = urlFilename && urlFilename.includes(".")
+						? safeFilename(urlFilename)
+						: `${dateKey}-${imgDownloaded + imgSkipped}${ext}`;
+					const destPath = path.join(MOMENTS_IMG_DIR, filename);
+
+					if (fs.existsSync(destPath)) {
+						imgSkipped++;
+						continue;
+					}
+
+					const ok = await downloadImage(imgUrl, destPath);
+					if (ok) {
+						imgDownloaded++;
+						console.log(`  📷 ${filename}`);
+					}
+				} catch (e) {
+					console.log(`  ⚠ 图片处理异常: ${e.message}`);
+				}
+			}
 		}
 
 		const fm = {
@@ -411,7 +453,7 @@ async function migrateMoments() {
 		await updateGist(config.gistId, config.fileName, remaining);
 	}
 
-	console.log(`  结果: 迁移 ${migrated}, 跳过 ${skipped}, Gist 剩余 ${remaining.length}`);
+	console.log(`  结果: 迁移 ${migrated}, 跳过 ${skipped}, 图片 ${imgDownloaded}↓/${imgSkipped}跳过, Gist 剩余 ${remaining.length}`);
 	return migrated;
 }
 

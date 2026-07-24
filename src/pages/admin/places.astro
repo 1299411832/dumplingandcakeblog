@@ -83,10 +83,11 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
 
   <script is:inline
     data-gist-id={externalPlacesConfig.gistId || ""}
-    data-file-name={externalPlacesConfig.fileName || "places"}>
+    data-file-name={externalPlacesConfig.fileName || "places"}
+    data-amap-key={import.meta.env.PUBLIC_AMAP_KEY_PLACES || ""}>
     (function() {
       var _script = document.currentScript;
-      var AMAP_KEY = "ffc18bba47161a9b5f20dd2bdb80b6fc";
+      var AMAP_KEY = _script.getAttribute("data-amap-key") || "";
       var GIST_ID = _script.getAttribute("data-gist-id") || "";
       var FILE_NAME = _script.getAttribute("data-file-name") || "places";
       var TOKEN = localStorage.getItem("gh_moments_token") || "";
