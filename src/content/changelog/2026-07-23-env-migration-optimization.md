@@ -48,11 +48,11 @@ description: 敏感信息迁移到环境变量、跑马灯优化、首页背景�
 - 压缩率约 78%（64MB → 14MB）
 - 支持 `--dry-run` 预览、`--quality` 自定义质量、`--dir` 指定目录
 
-## 说说页面图片下载
+## Gist 数据图片备份
 
-- 同步 Gist 说说数据时自动下载图片到本地
-- 下载目录：`F:\电脑备份文件夹\CloudFlare-ImgBed\telegram\手机uu`
-- 已存在的图片自动跳过
+- 同步说说数据时自动下载图片到 `F:\电脑备份文件夹\CloudFlare-ImgBed\telegram\手机uu`
+- 同步影视数据时自动下载封面图到 `F:\电脑备份文件夹\CloudFlare-ImgBed\telegram\anime`
+- 已存在的图片自动跳过，不影响主流程
 
 ## 其他改进
 

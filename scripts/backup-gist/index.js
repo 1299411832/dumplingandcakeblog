@@ -84,6 +84,8 @@ const IMG_URL_PREFIX = "https://ph.0824.uk/file/anime/";
 
 // 说说图片下载目录
 const MOMENTS_IMG_DIR = "F:/电脑备份文件夹/CloudFlare-ImgBed/telegram/手机uu";
+// 影视封面图下载目录
+const BANGUMI_IMG_DIR = "F:/电脑备份文件夹/CloudFlare-ImgBed/telegram/anime";
 
 // ═══════════════════════════════════════════════════
 // 工具函数
@@ -303,6 +305,28 @@ function getImageExt(url) {
 		if ([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"].includes(ext)) return ext;
 	} catch {}
 	return ".jpg";
+}
+
+// 下载影视封面图到备份目录
+async function downloadBangumiImage(imageUrl, title) {
+	if (!imageUrl || !title) return;
+	if (!imageUrl.startsWith("http")) return;
+	if (DRY_RUN) return;
+
+	try {
+		const ext = getImageExt(imageUrl);
+		const filename = safeFilename(title) + ext;
+		const destPath = path.join(BANGUMI_IMG_DIR, filename);
+
+		if (fs.existsSync(destPath)) return;
+
+		const ok = await downloadImage(imageUrl, destPath);
+		if (ok) {
+			console.log(`  📷 ${filename} → anime/`);
+		}
+	} catch (e) {
+		// 静默失败，不影响主流程
+	}
 }
 
 // Gist 读取（Raw URL，无需认证）
@@ -568,9 +592,12 @@ async function migrateBangumi() {
 
 	let migrated = 0;
 	let skipped = 0;
-	let imgDownloaded = 0;
-	let imgFailed = 0;
 	const remaining = [];
+
+	// 确保封面图备份目录存在
+	if (!DRY_RUN) {
+		fs.mkdirSync(BANGUMI_IMG_DIR, { recursive: true });
+	}
 
 	for (const entry of data) {
 		const title = entry.title || entry.name_cn;
@@ -582,29 +609,20 @@ async function migrateBangumi() {
 
 		if (existingTitles.has(title)) {
 			skipped++;
+			// 已存在的条目也下载封面图到备份目录
+			if (entry.image) {
+				await downloadBangumiImage(entry.image, title);
+			}
 			continue;
 		}
 
-		// 下载封面图并重写 URL（所有类别都处理）
+		// 下载封面图到备份目录
 		let imageUrl = entry.image || "";
 		const category = entry.category || "anime";
 
 		if (imageUrl) {
-			const ext = getImageExt(imageUrl);
-			const imgFilename = safeFilename(title) + ext;
-			const imgDest = path.join(IMG_DIR, imgFilename);
-
-			if (!fs.existsSync(imgDest)) {
-				const ok = await downloadImage(imageUrl, imgDest);
-				if (ok) {
-					imgDownloaded++;
-					console.log(`  📷 ${imgFilename}`);
-				} else {
-					imgFailed++;
-				}
-			}
-			// 重写 URL 为自定义图床地址（中文文件名不 encode，与现有本地格式一致）
-			imageUrl = `${IMG_URL_PREFIX}${imgFilename}`;
+			await downloadBangumiImage(imageUrl, title);
+			// 保持原始 URL 不变
 		}
 
 		// category 映射：movie/tv/documentary 不是有效 category，转为 anime + subcategory
@@ -648,7 +666,7 @@ async function migrateBangumi() {
 		await updateGist(config.gistId, config.fileName, remaining);
 	}
 
-	console.log(`  结果: 迁移 ${migrated}, 跳过 ${skipped}, 图片 ${imgDownloaded}↓/${imgFailed}✗, Gist 剩余 ${remaining.length}`);
+	console.log(`  结果: 迁移 ${migrated}, 跳过 ${skipped}, Gist 剩余 ${remaining.length}`);
 	return migrated;
 }
 
