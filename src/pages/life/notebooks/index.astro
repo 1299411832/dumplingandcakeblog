@@ -127,15 +127,18 @@ const randomNotebook = sortedNotebooks.find((b) => b?.folderName === randomNoteF
 ---
 
 <MainGridLayout title="笔记本" description="成长日记、学习复盘、灵感随笔">
-	<div class="diary-page flex w-full flex-col gap-4">
-		<!-- 顶部：图标 + 标题 + 统计 -->
-		<div class="diary-header">
-			<div class="diary-header-top">
-				<div class="diary-header-icon">
-					<img src="/assets/images/em/13428656584250450.gif" alt="" class="diary-header-img" />
+	<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+		<div class="diary-page flex w-full flex-col gap-4">
+			<!-- 顶部：图标 + 标题 + 统计 -->
+			<div class="diary-header">
+				<div class="mb-6">
+					<div class="flex items-center gap-3 mb-3">
+						<Icon name="material-symbols:menu-book-outline" class="text-[1.875rem] text-neutral-900 dark:text-neutral-100" />
+						<div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">笔记本</div>
+					</div>
+					<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">成长日记、学习复盘、灵感随笔</p>
 				</div>
-				<h1 class="diary-header-title">笔记本</h1>
-			</div>
 
 			<!-- 随机笔记（一行） -->
 			{randomNoteData && (
@@ -230,6 +233,8 @@ const randomNotebook = sortedNotebooks.find((b) => b?.folderName === randomNoteF
 				✨ 每一页都是成长的足迹
 			</p>
 		</section>
+	</div>
+	</div>
 	</div>
 </MainGridLayout>
 

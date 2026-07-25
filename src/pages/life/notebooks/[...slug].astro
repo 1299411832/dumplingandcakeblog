@@ -144,7 +144,9 @@ const sortedEntriesWithImages = isNotebookIndex
 
 {isNotebookIndex ? (
 	<MainGridLayout title={entry.data.name || "笔记本"} description={entry.data.summary || "笔记本记录"}>
-		<div class="nb-page">
+		<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<div class="nb-page">
 			{/* 时间线笔记列表 */}
 			<div class="nb-timeline">
 				{externalNotebooksConfig.enable && (
@@ -278,10 +280,14 @@ const sortedEntriesWithImages = isNotebookIndex
 				</script>
 			)}
 		</div>
+		</div>
+		</div>
 	</MainGridLayout>
 ) : (
 	<MainGridLayout title={(item?.data?.name || "日记") + " - 笔记本"}>
-		<div class="diary-detail-page">
+		<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+			<div class="diary-detail-page">
 			<article class="diary-paper">
 				<a href={`/life/notebooks/${folderName}/`} class="diary-paper-back">
 					<Icon name="material-symbols:arrow-back-rounded" />
@@ -313,6 +319,8 @@ const sortedEntriesWithImages = isNotebookIndex
 			</article>
 
 			<Comment customPath={notebookCommentPath} />
+		</div>
+		</div>
 		</div>
 	</MainGridLayout>
 )}

@@ -178,6 +178,8 @@ const albumCollection = defineCollection({
 				.default([]),
 			tags: z.array(z.string()).optional().default([]),
 			draft: z.boolean().optional().default(false),
+			// 图床文件夹路径，设置后从 CloudFlare ImgBed 动态加载图片
+			imgbedFolder: z.string().optional().default(""),
 		}),
 });
 
