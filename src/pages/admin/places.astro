@@ -22,6 +22,7 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
               <div style="flex:1;min-width:100px;"><label class="form-label">经度</label><input type="text" class="form-input" id="field-lng" placeholder="115.0718" /></div>
               <div style="align-self:flex-end;margin-bottom:1px;"><button class="btn btn-primary" onclick="fetchCoordinates()">获取坐标</button></div>
             </div>
+            <p class="form-hint" style="margin-top:4px;">手动拾取坐标：<a href="https://lbs.amap.com/tools/picker" target="_blank" rel="noopener">高德地图坐标拾取器</a></p>
           </div>
           <div class="form-grid">
             <div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="field-date" /></div>
@@ -47,6 +48,11 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
             <div class="input-group">
               <input type="text" class="form-input" id="photo-input" placeholder="输入照片 URL..." />
               <button class="btn" onclick="addPhoto()" style="flex-shrink:0;">添加</button>
+            </div>
+            <div class="mt-1 d-flex gap-1 align-items-center">
+              <button class="btn btn-ghost btn-sm" onclick="triggerPlaceUpload()" id="place-upload-btn">📤 上传图片</button>
+              <input type="file" id="place-file-input" accept="image/png,image/jpeg,image/gif,image/webp" multiple style="display:none;" />
+              <span class="text-tertiary" id="place-upload-status" style="font-size:12px;"></span>
             </div>
           </div>
           <div class="card d-none" id="preview-card" style="margin-bottom:0;">
@@ -84,7 +90,11 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
   <script is:inline
     data-gist-id={externalPlacesConfig.gistId || ""}
     data-file-name={externalPlacesConfig.fileName || "places"}
-    data-amap-key={import.meta.env.PUBLIC_AMAP_KEY_PLACES || ""}>
+    data-amap-key={import.meta.env.PUBLIC_AMAP_KEY_PLACES || ""}
+    data-imgbed-url={externalPlacesConfig.imageBedUrl || ""}
+    data-imgbed-code={externalPlacesConfig.imageBedAuthCode || ""}
+    data-imgbed-folder={externalPlacesConfig.imageBedFolder || ""}
+    data-imgbed-token={externalPlacesConfig.imageBedApiToken || ""}>
     (function() {
       var _script = document.currentScript;
       var AMAP_KEY = _script.getAttribute("data-amap-key") || "";
@@ -115,7 +125,111 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
       function removePhoto(index) { photos.splice(index, 1); renderPhotos(); }
       $("photo-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); addPhoto(); } });
 
-      async function fetchCoordinates() { var province = $("field-province").value.trim(), city = $("field-city").value.trim(), addr = $("field-address").value.trim(); if (!province && !city && !addr) { toast("请先填写地址", "err"); return; } var fullAddress = [province, city, addr].filter(Boolean).join(" "); var btn = document.querySelector('[onclick="fetchCoordinates()"]'); var origHtml = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>'; try { var resp = await fetch("https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY); var data = await resp.json(); var lng = "", lat = "", rp = "", rc = ""; if (data.status === "1" && data.geocodes && data.geocodes.length > 0) { var loc = data.geocodes[0].location.split(","); lng = loc[0]; lat = loc[1]; rp = data.geocodes[0].province || ""; rc = data.geocodes[0].city || ""; } else { var poiResp = await fetch("https://restapi.amap.com/v3/place/text?keywords=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY + "&offset=1"); var poiData = await poiResp.json(); if (poiData.status === "1" && poiData.pois && poiData.pois.length > 0) { var pl = poiData.pois[0].location.split(","); lng = pl[0]; lat = pl[1]; } } if (lng && lat) { $("field-lng").value = lng; $("field-lat").value = lat; if (!province && rp) $("field-province").value = rp; if (!city && rc) $("field-city").value = rc; toast("坐标获取成功 ✓", "ok"); updatePreview(); } else { toast("未找到该地点", "err"); } } catch (e) { toast("获取失败: " + e.message, "err"); } finally { btn.disabled = false; btn.innerHTML = origHtml; } }
+      // ---- 图床上传（带查重） ----
+      var IMGBED_URL = _script.getAttribute("data-imgbed-url") || "";
+      var IMGBED_CODE = _script.getAttribute("data-imgbed-code") || "";
+      var IMGBED_FOLDER = _script.getAttribute("data-imgbed-folder") || "";
+      var IMGBED_TOKEN = _script.getAttribute("data-imgbed-token") || "";
+
+      function triggerPlaceUpload() {
+        if (!IMGBED_URL) { toast("未配置图床地址（PUBLIC_IMAGEBED_URL）", "err"); return; }
+        $("place-file-input").click();
+      }
+
+      $("place-file-input").addEventListener("change", function(e) {
+        var files = e.target.files;
+        if (!files || !files.length) return;
+        uploadPlaceFiles(Array.prototype.slice.call(files));
+        e.target.value = "";
+      });
+
+      async function checkFileExists(filename) {
+        if (!IMGBED_TOKEN) return null;
+        try {
+          // search 参数必须配合 dir 才能搜到文件
+          var params = ["search=" + encodeURIComponent(filename), "count=10"];
+          if (IMGBED_FOLDER) params.push("dir=" + encodeURIComponent(IMGBED_FOLDER));
+          var url = IMGBED_URL + "/api/manage/list?" + params.join("&");
+          var resp = await fetch(url, { headers: { "Authorization": "Bearer " + IMGBED_TOKEN } });
+          if (!resp.ok) return null;
+          var data = await resp.json();
+          if (data.files && data.files.length > 0) {
+            for (var i = 0; i < data.files.length; i++) {
+              var file = data.files[i];
+              // 优先用 metadata.FileName（原始文件名），因为 name 字段可能带时间戳前缀
+              var serverName = (file.metadata && file.metadata.FileName) || (file.name || "").split("/").pop();
+              if (serverName === filename) {
+                return IMGBED_URL + "/file/" + file.name;
+              }
+            }
+          }
+        } catch (e) { /* 静默失败，走上传流程 */ }
+        return null;
+      }
+
+      async function uploadPlaceFiles(files) {
+        var btn = $("place-upload-btn"), status = $("place-upload-status");
+        btn.disabled = true;
+        status.textContent = "处理中 0/" + files.length;
+        status.style.color = "var(--text-3)";
+        var done = 0, ok = 0, reused = 0;
+
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          try {
+            // 查重：检查图床是否已有同名文件
+            var existingUrl = await checkFileExists(file.name);
+            if (existingUrl) {
+              photos.push(existingUrl);
+              reused++;
+            } else {
+              var url = await uploadSinglePlaceImage(file);
+              photos.push(url);
+              ok++;
+            }
+            renderPhotos();
+          } catch (err) {
+            toast(file.name + ": " + err.message, "err");
+          }
+          done++;
+          status.textContent = "处理中 " + done + "/" + files.length;
+        }
+
+        btn.disabled = false;
+        var msg = [];
+        if (ok > 0) msg.push(ok + " 张上传");
+        if (reused > 0) msg.push(reused + " 张复用");
+        if (msg.length > 0) {
+          status.textContent = "✓ " + msg.join("，");
+          status.style.color = "var(--success)";
+          toast(msg.join("，") + " 成功", "ok");
+        } else {
+          status.textContent = "上传失败";
+          status.style.color = "var(--danger)";
+        }
+        setTimeout(function() { status.textContent = ""; }, 4000);
+      }
+
+      function uploadSinglePlaceImage(file) {
+        var formData = new FormData();
+        formData.append("file", file);
+        var params = ["returnFormat=full", "uploadNameType=origin"];
+        if (IMGBED_CODE) params.push("authCode=" + encodeURIComponent(IMGBED_CODE));
+        if (IMGBED_FOLDER) params.push("uploadFolder=" + encodeURIComponent(IMGBED_FOLDER));
+        var url = IMGBED_URL + "/upload?" + params.join("&");
+        return fetch(url, { method: "POST", body: formData }).then(function(r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        }).then(function(data) {
+          if (Array.isArray(data) && data.length > 0 && data[0].publicUrl) return data[0].publicUrl;
+          if (Array.isArray(data) && data.length > 0 && data[0].src) return data[0].src;
+          if (data && data.publicUrl) return data.publicUrl;
+          if (data && data.src) return data.src;
+          throw new Error("响应格式异常");
+        });
+      }
+
+      async function fetchCoordinates() { var province = $("field-province").value.trim(), city = $("field-city").value.trim(), addr = $("field-address").value.trim(); if (!province && !city && !addr) { toast("请先填写地址", "err"); return; } var fullAddress = [province, city, addr].filter(Boolean).join(" "); var btn = document.querySelector('[onclick="fetchCoordinates()"]'); var origHtml = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>'; try { var resp = await fetch("https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY); var data = await resp.json(); var lng = "", lat = "", rp = "", rc = ""; if (data.status === "1" && data.geocodes && data.geocodes.length > 0) { var loc = data.geocodes[0].location.split(","); lng = loc[0]; lat = loc[1]; rp = data.geocodes[0].province || ""; rc = data.geocodes[0].city || ""; } else { var poiResp = await fetch("https://restapi.amap.com/v3/place/text?keywords=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY + "&offset=1"); var poiData = await poiResp.json(); if (poiData.status === "1" && poiData.pois && poiData.pois.length > 0) { var pl = poiData.pois[0].location.split(","); lng = pl[0]; lat = pl[1]; } } if (lng && lat) { $("field-lng").value = lng; $("field-lat").value = lat; if (!province && rp) $("field-province").value = rp; if (addr) $("field-city").value = addr; else if (!city && rc) $("field-city").value = rc; toast("坐标获取成功 ✓", "ok"); updatePreview(); } else { toast("未找到该地点", "err"); } } catch (e) { toast("获取失败: " + e.message, "err"); } finally { btn.disabled = false; btn.innerHTML = origHtml; } }
 
       function updatePreview() { var name = [$("field-province").value.trim(), $("field-city").value.trim()].filter(Boolean).join(" · "); var card = $("preview-card"); if (name) { card.classList.remove("d-none"); $("preview-name").textContent = name; var m = []; if ($("field-date").value) m.push($("field-date").value); if ($("field-count").value) m.push("到访 " + $("field-count").value + " 次"); if ($("field-lat").value && $("field-lng").value) m.push("已获取坐标"); $("preview-meta").textContent = m.join(" · "); } else { card.classList.add("d-none"); } }
       ["field-province", "field-city", "field-date", "field-count", "field-lat", "field-lng"].forEach(function(id) { $(id).addEventListener("input", updatePreview); });
@@ -128,7 +242,7 @@ import { externalPlacesConfig } from "@/config/externalPlacesConfig";
       async function deletePlace(entryId) { if (!confirm("确定删除这个足迹？")) return; var success = await deleteFromGist(entryId); if (success) { if (editingId === entryId) clearForm(); toast("已删除", "ok"); loadPlacesList(); } else { toast("删除失败", "err"); } }
       function clearForm() { editingId = null; $("field-province").value = ""; $("field-city").value = ""; $("field-address").value = ""; $("field-lat").value = ""; $("field-lng").value = ""; $("field-date").value = new Date().toISOString().split("T")[0]; $("field-count").value = "1"; $("field-experience").value = ""; $("field-url").value = ""; $("field-url-label").value = ""; $("photo-input").value = ""; tags = []; photos = []; renderTags(); renderPhotos(); $("preview-card").classList.add("d-none"); $("submit-btn").textContent = "保存"; }
 
-      window.fetchCoordinates = fetchCoordinates; window.submitPlace = submitPlace; window.addTag = addTag; window.removeTag = removeTag; window.addPhoto = addPhoto; window.removePhoto = removePhoto; window.editPlace = editPlace; window.deletePlace = deletePlace; window.clearForm = clearForm;
+      window.fetchCoordinates = fetchCoordinates; window.submitPlace = submitPlace; window.addTag = addTag; window.removeTag = removeTag; window.addPhoto = addPhoto; window.removePhoto = removePhoto; window.triggerPlaceUpload = triggerPlaceUpload; window.editPlace = editPlace; window.deletePlace = deletePlace; window.clearForm = clearForm;
 
       (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } $("field-date").value = new Date().toISOString().split("T")[0]; checkAndLoad(); })();
     })();

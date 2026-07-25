@@ -20,8 +20,12 @@ import { externalMomentsConfig } from "@/config/externalMomentsConfig";
               <input type="text" class="form-input" id="image-input" placeholder="粘贴图片链接，回车添加" />
               <button class="btn" onclick="addImage()" style="flex-shrink:0;">添加</button>
             </div>
-            <div class="mt-1">
+            <div class="mt-1 d-flex gap-1 align-items-center">
               <button class="btn btn-ghost btn-sm" onclick="toggleBatchImages()" id="batch-toggle-btn">批量添加</button>
+              <span class="text-tertiary" style="font-size:12px;">|</span>
+              <button class="btn btn-ghost btn-sm" onclick="triggerUpload()" id="upload-btn">📤 上传图片</button>
+              <input type="file" id="file-upload-input" accept="image/png,image/jpeg,image/gif,image/webp" multiple style="display:none;" />
+              <span class="text-tertiary" id="upload-status" style="font-size:12px;"></span>
             </div>
             <div class="d-none mt-2" id="batch-panel">
               <textarea class="form-input" id="batch-images-input" rows="3" placeholder="每行一个图片链接" style="font-size:13px;"></textarea>
@@ -84,7 +88,11 @@ import { externalMomentsConfig } from "@/config/externalMomentsConfig";
 
   <script is:inline
     data-gist={externalMomentsConfig.gistId || ""}
-    data-file={externalMomentsConfig.fileName || "moments.json"}>
+    data-file={externalMomentsConfig.fileName || "moments.json"}
+    data-imgbed-url={externalMomentsConfig.imageBedUrl || ""}
+    data-imgbed-code={externalMomentsConfig.imageBedAuthCode || ""}
+    data-imgbed-folder={externalMomentsConfig.imageBedFolder || ""}
+    data-imgbed-token={externalMomentsConfig.imageBedApiToken || ""}>
     (function() {
       var _script = document.currentScript;
       var TOKEN = localStorage.getItem("gh_moments_token") || "";
@@ -106,13 +114,114 @@ import { externalMomentsConfig } from "@/config/externalMomentsConfig";
       function toggleBatchImages() { var panel = $("batch-panel"), btn = $("batch-toggle-btn"); if (panel.classList.contains("d-none")) { panel.classList.remove("d-none"); btn.textContent = "收起"; } else { panel.classList.add("d-none"); btn.textContent = "批量添加"; } }
       function applyBatchImages() { var text = $("batch-images-input").value.trim(); if (!text) { toast("请输入图片链接", "err"); return; } var urls = text.split(/[\n\r]+/).map(function(s) { return s.trim(); }).filter(Boolean); if (!urls.length) { toast("未识别到链接", "err"); return; } var imgs = getImages(); urls.forEach(function(u) { imgs.push(u); }); setImages(imgs); renderImgs(); $("batch-images-input").value = ""; $("batch-panel").classList.add("d-none"); $("batch-toggle-btn").textContent = "批量添加"; toast("已添加 " + urls.length + " 张图片", "ok"); }
 
+      // ---- 图床上传（带查重） ----
+      var IMGBED_URL = _script.getAttribute("data-imgbed-url") || "";
+      var IMGBED_CODE = _script.getAttribute("data-imgbed-code") || "";
+      var IMGBED_FOLDER = _script.getAttribute("data-imgbed-folder") || "";
+      var IMGBED_TOKEN = _script.getAttribute("data-imgbed-token") || "";
+
+      async function checkFileExists(filename) {
+        if (!IMGBED_TOKEN) return null;
+        try {
+          var params = ["search=" + encodeURIComponent(filename), "count=10"];
+          if (IMGBED_FOLDER) params.push("dir=" + encodeURIComponent(IMGBED_FOLDER));
+          var url = IMGBED_URL + "/api/manage/list?" + params.join("&");
+          var resp = await fetch(url, { headers: { "Authorization": "Bearer " + IMGBED_TOKEN } });
+          if (!resp.ok) return null;
+          var data = await resp.json();
+          if (data.files && data.files.length > 0) {
+            for (var i = 0; i < data.files.length; i++) {
+              var file = data.files[i];
+              var serverName = (file.metadata && file.metadata.FileName) || (file.name || "").split("/").pop();
+              if (serverName === filename) {
+                return IMGBED_URL + "/file/" + file.name;
+              }
+            }
+          }
+        } catch (e) { /* 静默失败 */ }
+        return null;
+      }
+
+      function triggerUpload() {
+        if (!IMGBED_URL) { toast("未配置图床地址（PUBLIC_IMAGEBED_URL）", "err"); return; }
+        $("file-upload-input").click();
+      }
+
+      $("file-upload-input").addEventListener("change", function(e) {
+        var files = e.target.files;
+        if (!files || !files.length) return;
+        var fileArray = Array.prototype.slice.call(files);
+        uploadFiles(fileArray);
+        e.target.value = "";
+      });
+
+      async function uploadFiles(files) {
+        var btn = $("upload-btn"), status = $("upload-status");
+        btn.disabled = true;
+        status.textContent = "处理中 0/" + files.length;
+        status.style.color = "var(--text-3)";
+        var done = 0, ok = 0, reused = 0;
+
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          try {
+            var existingUrl = await checkFileExists(file.name);
+            if (existingUrl) {
+              var imgs = getImages(); imgs.push(existingUrl); setImages(imgs); renderImgs();
+              reused++;
+            } else {
+              var url = await uploadSingleImage(file);
+              var imgs2 = getImages(); imgs2.push(url); setImages(imgs2); renderImgs();
+              ok++;
+            }
+          } catch (err) {
+            toast(file.name + ": " + err.message, "err");
+          }
+          done++;
+          status.textContent = "处理中 " + done + "/" + files.length;
+        }
+
+        btn.disabled = false;
+        var msg = [];
+        if (ok > 0) msg.push(ok + " 张上传");
+        if (reused > 0) msg.push(reused + " 张复用");
+        if (msg.length > 0) {
+          status.textContent = "✓ " + msg.join("，");
+          status.style.color = "var(--success)";
+          toast(msg.join("，") + " 成功", "ok");
+        } else {
+          status.textContent = "上传失败";
+          status.style.color = "var(--danger)";
+        }
+        setTimeout(function() { status.textContent = ""; }, 4000);
+      }
+
+      function uploadSingleImage(file) {
+        var formData = new FormData();
+        formData.append("file", file);
+        var params = ["returnFormat=full", "uploadNameType=origin"];
+        if (IMGBED_CODE) params.push("authCode=" + encodeURIComponent(IMGBED_CODE));
+        if (IMGBED_FOLDER) params.push("uploadFolder=" + encodeURIComponent(IMGBED_FOLDER));
+        var url = IMGBED_URL + "/upload?" + params.join("&");
+        return fetch(url, { method: "POST", body: formData }).then(function(r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        }).then(function(data) {
+          if (Array.isArray(data) && data.length > 0 && data[0].publicUrl) return data[0].publicUrl;
+          if (Array.isArray(data) && data.length > 0 && data[0].src) return data[0].src;
+          if (data && data.publicUrl) return data.publicUrl;
+          if (data && data.src) return data.src;
+          throw new Error("响应格式异常");
+        });
+      }
+
       function fetchLocation() { var statusEl = $("geo-status"), btn = $("geo-btn"); if (!navigator.geolocation) { statusEl.textContent = "浏览器不支持定位"; statusEl.classList.remove("d-none"); return; } statusEl.textContent = "正在定位..."; statusEl.classList.remove("d-none"); statusEl.style.color = "var(--text-3)"; btn.disabled = true; navigator.geolocation.getCurrentPosition(function(pos) { var lat = pos.coords.latitude, lng = pos.coords.longitude; statusEl.textContent = "正在解析地址..."; fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + lat + "&longitude=" + lng + "&localityLanguage=zh").then(function(r) { return r.json(); }).then(function(data) { var parts = []; if (data.city) parts.push(data.city); else if (data.locality) parts.push(data.locality); if (data.principalSubdivision) parts.push(data.principalSubdivision); var loc = parts.join("-") || data.locality || data.countryName || (lat.toFixed(4) + ", " + lng.toFixed(4)); $("location-input").value = loc; statusEl.textContent = "✓ " + loc; statusEl.style.color = "var(--success)"; btn.disabled = false; }).catch(function() { fetch("https://ipapi.co/json/").then(function(r) { return r.json(); }).then(function(ip) { var loc = [ip.city, ip.region].filter(Boolean).join("-") || (lat.toFixed(4) + ", " + lng.toFixed(4)); $("location-input").value = loc; statusEl.textContent = "✓ " + loc; statusEl.style.color = "var(--success)"; btn.disabled = false; }).catch(function() { $("location-input").value = lat.toFixed(4) + ", " + lng.toFixed(4); statusEl.textContent = "已获取坐标"; statusEl.style.color = "var(--text-3)"; btn.disabled = false; }); }); }, function(err) { var msg = { 1: "定位权限被拒绝", 2: "无法获取位置", 3: "定位超时" }[err.code] || "定位失败"; statusEl.textContent = msg; statusEl.style.color = "var(--danger)"; btn.disabled = false; }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }); }
 
       function loadMoments() { var list = $("moments-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>'; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; if (!file) { showEmpty(); return; } var moments = JSON.parse(file.content || "[]"); if (!moments.length) { showEmpty(); return; } moments.sort(function(a, b) { return new Date(b.published) - new Date(a.published); }); $("list-count").textContent = moments.length + " 条"; list.innerHTML = ""; moments.forEach(function(m) { var d = document.createElement("div"); d.className = "list-row"; var date = new Date(m.published); var ds = date.toLocaleDateString("zh-CN") + " " + date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }); var text = (m.content || "").slice(0, 100) + ((m.content || "").length > 100 ? "..." : ""); var imgs = (m.images || []); var imgHtml = imgs.length ? '<div class="d-flex gap-1 mt-1">' + imgs.slice(0, 3).map(function(u) { return '<img src="' + u + '" alt="" style="width:32px;height:32px;object-fit:cover;border:1px solid var(--border);border-radius:2px;">'; }).join("") + (imgs.length > 3 ? '<span class="text-tertiary" style="font-size:11px;align-self:center;">+' + (imgs.length - 3) + '</span>' : "") + '</div>' : ""; var tags = (m.tags || []); var tagHtml = tags.length ? '<span class="text-tertiary" style="font-size:11px;">· #' + tags.join(" #") + '</span>' : ""; d.innerHTML = '<div class="flex-1 min-w-0"><div style="font-size:13px;line-height:1.5;word-break:break-word;">' + esc(text) + '</div>' + imgHtml + '<div class="d-flex align-items-center gap-1 mt-1" style="font-size:11px;color:var(--text-3);"><span>' + ds + '</span>' + tagHtml + '</div></div>' + '<div class="d-flex gap-1" style="flex-shrink:0;"><button class="btn btn-ghost btn-sm" onclick="editMoment(\'' + m.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteMoment(\'' + m.id + '\')">删除</button></div>'; list.appendChild(d); }); }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; }); }
       function showEmpty() { $("moments-list").innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有说说</div>'; $("list-count").textContent = ""; }
 
       function toggleCustomTime() { var panel = $("custom-time-panel"); if ($("custom-time-toggle").checked) { panel.classList.remove("d-none"); } else { panel.classList.add("d-none"); $("time-input").value = ""; } }
-      function getPublishedTime() { if ($("custom-time-toggle").checked) { var custom = $("time-input").value; if (custom) { var d = new Date(custom); if (!isNaN(d.getTime())) return d.toISOString(); } } return new Date().toISOString(); }
+      function getPublishedTime() { if ($("custom-time-toggle").checked) { var custom = $("time-input").value; if (custom) { var str = custom.replace("T", " "); if (str.length === 16) str += ":00"; return str; } } var now = new Date(); var pad = function(n) { return String(n).padStart(2, "0"); }; return now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()); }
 
       var editingId = null;
       function editMoment(id) { fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; try { moments = JSON.parse(file.content || "[]"); } catch(e) {} var m = moments.find(function(x) { return x.id === id; }); if (!m) { toast("未找到", "err"); return; } editingId = id; $("content-input").value = m.content || ""; $("tags-input").value = (m.tags || []).join(", "); $("location-input").value = m.location || ""; $("pinned-input").checked = !!m.pinned; setImages(m.images || []); renderImgs(); if (m.published) { $("custom-time-toggle").checked = true; $("custom-time-panel").classList.remove("d-none"); var d = new Date(m.published); var pad = function(n) { return String(n).padStart(2, "0"); }; $("time-input").value = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); } $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none"); $("content-input").focus(); $("content-input").scrollIntoView({ behavior: "smooth", block: "center" }); toast("正在编辑", "ok"); }).catch(function() { toast("加载失败", "err"); }); }
@@ -120,7 +229,7 @@ import { externalMomentsConfig } from "@/config/externalMomentsConfig";
       function submitMoment() { var content = $("content-input").value.trim(); if (!content) { toast("请输入内容", "err"); return; } var images = getImages(), tags = $("tags-input").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean); var location = $("location-input").value.trim(), pinned = $("pinned-input").checked; var published = getPublishedTime(), btn = $("submit-btn"), isEdit = !!editingId; btn.disabled = true; btn.textContent = "保存中..."; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; if (file) { try { moments = JSON.parse(file.content || "[]"); } catch(e) {} } if (isEdit) { var idx = moments.findIndex(function(x) { return x.id === editingId; }); if (idx === -1) throw new Error("未找到"); moments[idx] = { id: editingId, content: content, published: published, images: images, tags: tags, location: location, pinned: pinned, author: moments[idx].author, avatar: moments[idx].avatar }; } else { moments.push({ id: "ext-" + Date.now(), content: content, published: published, images: images, tags: tags, location: location, pinned: pinned }); } return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(moments, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast(isEdit ? "已保存 ✓" : "发布成功 ✓", "ok"); cancelEdit(); loadMoments(); } else if (r) { toast("保存失败", "err"); } }).catch(function() { toast("网络错误", "err"); }).finally(function() { btn.disabled = false; if (!editingId) btn.textContent = "发布"; }); }
       function deleteMoment(id) { if (!confirm("确定删除？")) return; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; try { moments = JSON.parse(file.content || "[]"); } catch(e) {} moments = moments.filter(function(m) { return m.id !== id; }); return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(moments, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast("已删除", "ok"); loadMoments(); } else { toast("删除失败", "err"); } }).catch(function() { toast("网络错误", "err"); }); }
 
-      window.addImage = addImage; window.removeImage = removeImage; window.toggleBatchImages = toggleBatchImages; window.applyBatchImages = applyBatchImages; window.fetchLocation = fetchLocation; window.toggleCustomTime = toggleCustomTime; window.submitMoment = submitMoment; window.editMoment = editMoment; window.cancelEdit = cancelEdit; window.deleteMoment = deleteMoment;
+      window.addImage = addImage; window.removeImage = removeImage; window.toggleBatchImages = toggleBatchImages; window.applyBatchImages = applyBatchImages; window.triggerUpload = triggerUpload; window.fetchLocation = fetchLocation; window.toggleCustomTime = toggleCustomTime; window.submitMoment = submitMoment; window.editMoment = editMoment; window.cancelEdit = cancelEdit; window.deleteMoment = deleteMoment;
 
       (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } renderImgs(); checkAndLoad(); })();
     })();

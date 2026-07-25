@@ -123,8 +123,8 @@ function slugify(str) {
 }
 
 function momentFilepath(published) {
-	const d = new Date(published);
-	const dateStr = d.toISOString().slice(0, 10);
+	// 直接从字符串截取日期，不做 UTC 转换，避免时区偏移导致日期错误
+	const dateStr = published.slice(0, 10);
 	const dir = path.join(CONTENT_DIR, "moments");
 	let filename = `${dateStr}.md`;
 	let filepath = path.join(dir, filename);
@@ -393,8 +393,8 @@ async function migrateMoments() {
 	}
 	console.log(`  Gist 中有 ${data.length} 条`);
 
-	// 去重：用 published 日期
-	const existingDates = readExistingFrontmatter(momentsDir, "published");
+	// 去重：用 id 字段（每条说说的唯一标识），避免同一天多条说说被误跳过
+	const existingIds = readExistingIds(momentsDir);
 	let migrated = 0;
 	let skipped = 0;
 	let imgDownloaded = 0;
@@ -413,8 +413,8 @@ async function migrateMoments() {
 			continue;
 		}
 
-		const dateKey = new Date(entry.published).toISOString().slice(0, 10);
-		if (existingDates.has(dateKey)) {
+		const dateKey = entry.published.slice(0, 10);
+		if (entry.id && existingIds.has(entry.id)) {
 			skipped++;
 			// 本地已存在，仍然从 Gist 删除（已迁移过）
 			continue;
@@ -457,6 +457,7 @@ async function migrateMoments() {
 			author: entry.author || "团子和蛋糕",
 			avatar: entry.avatar || "https://re.tsh520.cn/zl/tx.webp",
 		};
+		if (entry.id) fm.id = entry.id;
 		if (entry.pinned) fm.pinned = true;
 		if (entry.tags?.length) fm.tags = entry.tags;
 		if (entry.location) fm.location = entry.location;
@@ -773,8 +774,8 @@ async function migratePlaces() {
 	}
 	console.log(`  Gist 中有 ${data.length} 条`);
 
-	// 去重：用 date + city 组合
-	const existingKeys = readExistingPlaceKeys(placesDir);
+	// 去重：用 id 字段（每条足迹的唯一标识），避免同一天同城多条被误跳过
+	const existingIds = readExistingIds(placesDir);
 
 	let migrated = 0;
 	let skipped = 0;
@@ -782,9 +783,8 @@ async function migratePlaces() {
 
 	for (const entry of data) {
 		const dateStr = entry.date || new Date().toISOString().split("T")[0];
-		const dedupKey = `${dateStr}|${(entry.city || "").trim()}`;
 
-		if (existingKeys.has(dedupKey)) {
+		if (entry.id && existingIds.has(entry.id)) {
 			skipped++;
 			continue;
 		}
@@ -796,6 +796,7 @@ async function migratePlaces() {
 			experience: entry.experience || "",
 			visitCount: entry.visitCount || 1,
 		};
+		if (entry.id) fm.id = entry.id;
 		if (entry.lat) fm.lat = parseFloat(entry.lat) || entry.lat;
 		if (entry.lng) fm.lng = parseFloat(entry.lng) || entry.lng;
 		if (entry.url) fm.url = entry.url;
@@ -815,7 +816,7 @@ async function migratePlaces() {
 
 		if (writeMarkdownFile(filepath, fm, "")) {
 			migrated++;
-			existingKeys.add(dedupKey);
+			if (entry.id) existingIds.add(entry.id);
 			console.log(`  ✓ ${filename}`);
 		} else {
 			remaining.push(entry);

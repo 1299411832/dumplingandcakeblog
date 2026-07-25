@@ -39,6 +39,7 @@ const momentsCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/moments" }),
 	schema: ({ image }) =>
 		z.object({
+			id: z.string().optional().default(""),
 			author: z.string().optional().default(""),
 			avatar: z.string().optional().default(""),
 			pinned: z.boolean().optional().default(false),
@@ -112,6 +113,7 @@ const lifeCollection = defineCollection({
 		checkins: z.array(z.coerce.date()).optional().default([]),
 
 		// Place
+		id: z.string().optional().default(""),
 		province: z.string().optional().default(""),
 		city: z.string().optional().default(""),
 		experience: z.string().optional().default(""),
