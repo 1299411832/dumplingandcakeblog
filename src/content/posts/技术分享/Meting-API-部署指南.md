@@ -1,6 +1,7 @@
 ---
 title: "Meting-API 部署指南：宝塔面板 Docker 部署"
-published: 2026-07-25
+published: 2026-07-26
+order: 2
 tags:
   - 宝塔面板
   - 音乐
