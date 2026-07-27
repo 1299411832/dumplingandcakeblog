@@ -2,10 +2,9 @@
 	position: relative;
 	display: flex;
 	justify-content: center;
-	width: 100vw;
+	width: 100%;
 	height: calc(100dvh - var(--guestbook-viewport-offset));
-	margin-right: calc(50% - 50vw);
-	margin-left: calc(50% - 50vw);
+	overflow-x: hidden;
 }
 
 html:has(.guestbook-page) #category-bar-wrapper {
@@ -418,6 +417,7 @@ html:has(.guestbook-page) #main-grid > .footer {
 .guestbook-chat__loading {
 	position: relative;
 	min-height: 0;
+	overflow-x: hidden;
 	overflow-y: auto;
 	padding: var(--space-3) clamp(var(--space-3), 3vw, 1.75rem) var(--space-6);
 	scrollbar-gutter: stable;
@@ -532,6 +532,7 @@ html:has(.guestbook-page) #main-grid > .footer {
 
 .guestbook-chat__composer-area {
 	position: relative;
+	min-width: 0;
 	border-top: 0;
 	background: var(--guestbook-panel);
 	z-index: 3;
@@ -902,6 +903,7 @@ html:has(.guestbook-page) #main-grid > .footer {
 	display: flex;
 	align-items: flex-end;
 	gap: var(--space-1);
+	min-width: 0;
 	max-width: 100%;
 }
 
@@ -912,7 +914,7 @@ html:has(.guestbook-page) #main-grid > .footer {
 
 .guestbook-message__bubble {
 	position: relative;
-	min-width: 3rem;
+	min-width: 0;
 	max-width: 100%;
 	padding: var(--space-3) var(--space-4);
 	border-radius: var(--radius-medium);
@@ -1131,6 +1133,8 @@ html:has(.guestbook-page) #main-grid > .footer {
 
 .guestbook-composer {
 	position: relative;
+	overflow: hidden;
+	min-width: 0;
 	padding: var(--space-3) var(--space-4) var(--space-2);
 }
 
@@ -1138,9 +1142,11 @@ html:has(.guestbook-page) #main-grid > .footer {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
+	min-width: 0;
 	min-height: var(--control-size);
 	margin-bottom: var(--space-2);
 	padding: var(--space-2);
+	overflow: hidden;
 	border-left: 3px solid var(--primary);
 	background: var(--guestbook-editor-bg);
 	color: var(--guestbook-editor-text);
@@ -1184,6 +1190,7 @@ html:has(.guestbook-page) #main-grid > .footer {
 .guestbook-composer__editor {
 	position: relative;
 	overflow: visible;
+	min-width: 0;
 	border: 2px solid var(--guestbook-editor-line);
 	border-radius: var(--radius-medium);
 	background: transparent;
@@ -1319,13 +1326,16 @@ html:has(.guestbook-page) #main-grid > .footer {
 
 .guestbook-composer__footer {
 	justify-content: space-between;
+	flex-wrap: wrap;
 	min-height: 3.5rem;
+	min-width: 0;
 	padding: var(--space-1) var(--space-2);
 	border-top: 0;
 }
 
 .guestbook-composer__actions {
 	min-width: 0;
+	flex-shrink: 1;
 }
 
 .guestbook-composer__tools {
