@@ -476,16 +476,11 @@ const siteLang = lang.replace("_", "-");
             if (!btn) return;
             var momentId = btn.dataset.momentId;
             var commentPath = btn.dataset.commentPath;
-            var section = document.getElementById('comment-section-' + momentId);
-            if (!section) return;
-            var isExpanded = section.classList.contains('is-expanded');
-            if (isExpanded) {
-              section.classList.remove('is-expanded');
-              btn.classList.remove('is-active');
-            } else {
-              section.classList.add('is-expanded');
-              btn.classList.add('is-active');
-              loadWalineComment(section, commentPath);
+            if (!momentId || !commentPath) return;
+
+            // 调用评论弹窗
+            if (window.__commentModal && window.__commentModal.open) {
+              window.__commentModal.open(momentId, commentPath);
             }
           });
         })();

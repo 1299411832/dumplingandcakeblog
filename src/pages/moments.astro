@@ -4,6 +4,7 @@ import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import MomentCard from "@/components/moments/MomentCard.astro";
 import MomentsCover from "@/components/moments/MomentsCover.astro";
+import CommentModal from "@/components/comment/CommentModal.svelte";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { commentConfig } from "@/config";
 
@@ -130,6 +131,9 @@ const pinnedData = pinnedMoments.map((m) => ({
       <span>加载中...</span>
     </div>
   </div>
+
+  <!-- 评论弹窗 -->
+  <CommentModal client:load serverURL={walineServerURL} />
 </MainGridLayout>
 
 <script is:inline define:vars={{ walineServerURL }}>
