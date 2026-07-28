@@ -171,6 +171,25 @@ function isInternalPageVisit(targetUrl) {
 	}
 }
 
+function isHomePath(pathname) {
+	return pathname === "/" || pathname === "";
+}
+
+function isHomeUrl(targetUrl, windowRef) {
+	if (!targetUrl) return false;
+	try {
+		const u = new URL(targetUrl, windowRef.location.href);
+		return isHomePath(u.pathname);
+	} catch {
+		return false;
+	}
+}
+
+function getVisitUrl(visit) {
+	const toUrl = visit?.to?.url;
+	return Array.isArray(toUrl) ? toUrl[0] : toUrl;
+}
+
 function bindSwup({ controller, document: documentRef, window: windowRef }) {
 	let isBound = false;
 
@@ -180,14 +199,17 @@ function bindSwup({ controller, document: documentRef, window: windowRef }) {
 
 		windowRef.swup.hooks.on("link:click", (_visit, { el } = {}) => {
 			const href = el?.getAttribute?.("href");
-			if (isInternalPageVisit(href)) controller.show("swup-link-click");
+			if (isInternalPageVisit(href) && isHomeUrl(href, windowRef))
+				controller.show("swup-link-click");
 		});
-		windowRef.swup.hooks.on("visit:start", () =>
-			controller.show("swup-visit-start"),
-		);
-		windowRef.swup.hooks.on("content:replace", () =>
-			controller.show("swup-content-replace"),
-		);
+		windowRef.swup.hooks.on("visit:start", (visit) => {
+			if (isHomeUrl(getVisitUrl(visit), windowRef))
+				controller.show("swup-visit-start");
+		});
+		windowRef.swup.hooks.on("content:replace", (visit) => {
+			if (isHomeUrl(getVisitUrl(visit), windowRef))
+				controller.show("swup-content-replace");
+		});
 		windowRef.swup.hooks.on("page:view", () => {
 			void controller.hideWhenReady("swup-page-view");
 		});
@@ -220,6 +242,16 @@ export function initPageLoader({
 	});
 	windowRef.__fireflyPageLoader = controller;
 
+	// 移动端或非首页：立即隐藏加载页
+	if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
+		loader.hidden = true;
+		loader.classList.add("page-loader--hidden");
+		loader.classList.remove("page-loader--visible");
+		documentRef.documentElement.classList.remove("is-page-loading");
+		documentRef.body?.removeAttribute("aria-busy");
+		return controller;
+	}
+
 	controller.show("initial");
 
 	const hideInitialLoader = () => {
@@ -231,13 +263,12 @@ export function initPageLoader({
 	if (documentRef.readyState === "complete") hideInitialLoader();
 	else windowRef.addEventListener("load", hideInitialLoader, { once: true });
 
-	// 硬超时：移动端800ms，桌面端1.5秒后隐藏加载动画
-	const hideTimeout = isMobile(windowRef) ? 800 : 1500;
+	// 硬超时：1.5秒后隐藏加载动画
 	setTimeout(() => {
 		if (controller.isVisible()) {
 			controller.hideNow();
 		}
-	}, hideTimeout);
+	}, 1500);
 
 	documentRef.addEventListener("astro:page-load", () => {
 		documentRef.dispatchEvent(new CustomEvent(LOADER_READY_EVENT));

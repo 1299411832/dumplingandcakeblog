@@ -240,12 +240,6 @@ export const ru: Translation = {
 	// Закреплено
 	[Key.pinned]: "Закреплено",
 
-	// Режим обоев
-	[Key.wallpaperMode]: "Режим обоев",
-	[Key.wallpaperBannerMode]: "Баннер обои",
-	[Key.wallpaperOverlayMode]: "Прозрачный",
-	[Key.wallpaperNoneMode]: "Однотонный фон",
-
 	// Настройки баннера
 	[Key.bannerSettings]: "Настройки баннера",
 	[Key.bannerTitle]: "Заголовок главного баннера",

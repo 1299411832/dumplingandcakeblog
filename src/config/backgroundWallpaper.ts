@@ -1,10 +1,6 @@
 import type { BackgroundWallpaperConfig } from "@/types/config";
 
 export const backgroundWallpaper: BackgroundWallpaperConfig = {
-	// 壁纸模式："banner" 横幅壁纸，"overlay" 全屏透明，"none" 纯色背景无壁纸
-	mode: "none",
-	// 是否允许用户通过导航栏切换壁纸模式，设为false可提升性能（只渲染当前模式）
-	switchable: false,
 	/**
 	 * 背景图片配置
 	 * 图片路径支持三种格式：
@@ -118,14 +114,5 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			// 是否允许用户通过控制面板切换水波纹动画
 			switchable: true,
 		},
-	},
-	// 全屏透明覆盖模式特有配置
-	overlay: {
-		// 层级，确保壁纸在背景层
-		zIndex: -1,
-		// 壁纸透明度
-		opacity: 0.8,
-		// 背景模糊程度
-		blur: 1,
 	},
 };

@@ -233,12 +233,6 @@ export const zh_TW: Translation = {
 	// 置頂
 	[Key.pinned]: "置頂",
 
-	// 壁紙模式
-	[Key.wallpaperMode]: "壁紙模式",
-	[Key.wallpaperBannerMode]: "橫幅壁紙",
-	[Key.wallpaperOverlayMode]: "全屏透明",
-	[Key.wallpaperNoneMode]: "純色背景",
-
 	// 橫幅設置
 	[Key.bannerSettings]: "橫幅設置",
 	[Key.bannerTitle]: "首頁橫幅標題",

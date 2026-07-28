@@ -99,15 +99,15 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay {
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
-        padding: 1rem !important;
-        text-align: center !important; /* 文字居中对齐 */
+        padding: 1rem;
+        text-align: center; /* 文字居中对齐 */
     }
     
     /* 文本容器优化 */
     .banner-home-text-overlay > div {
         margin-bottom: 0 !important; /* 移除底部边距，保持居中 */
         width: 95% !important; /* 增加文本宽度利用率 */
-        text-align: center !important; /* 确保文字居中 */
+        text-align: center; /* 确保文字居中 */
     }
     
     /* 标题字体优化 */
@@ -127,9 +127,9 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 水波纹效果高度调整 - 与文章列表提升同步 */
     .waves {
-        height: 13vh !important;
-        min-height: 100px !important;
-        max-height: 176px !important;
+        height: 13vh;
+        min-height: 100px;
+        max-height: 176px;
     }
 }
 
@@ -154,7 +154,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay {
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
-        padding: 1.5rem !important;
+        padding: 1.5rem;
         text-align: center !important; /* 文字居中对齐 */
     }
     
@@ -162,7 +162,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay > div {
         margin-bottom: 0 !important; /* 移除底部边距，保持居中 */
         width: 90% !important;
-        text-align: center !important; /* 确保文字居中 */
+        text-align: center; /* 确保文字居中 */
     }
     
     /* 标题字体优化 */
@@ -182,9 +182,9 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 水波纹效果高度调整 - 与文章列表提升同步 */
     .waves {
-        height: 15vh !important;
-        min-height: 110px !important;
-        max-height: 166px !important;
+        height: 15vh;
+        min-height: 110px;
+        max-height: 166px;
     }
 }
 
@@ -209,7 +209,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay {
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
-        padding: 1.75rem !important;
+        padding: 1.75rem;
         text-align: center !important; /* 文字居中对齐 */
     }
     
@@ -217,7 +217,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay > div {
         margin-bottom: 0 !important; /* 移除底部边距，保持居中 */
         width: 88% !important;
-        text-align: center !important; /* 确保文字居中 */
+        text-align: center; /* 确保文字居中 */
     }
     
     /* 标题字体优化 */
@@ -237,9 +237,9 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 水波纹效果高度调整 - 与文章列表提升同步 */
     .waves {
-        height: 16vh !important;
-        min-height: 115px !important;
-        max-height: 190px !important;
+        height: 16vh;
+        min-height: 115px;
+        max-height: 190px;
     }
 }
 
@@ -263,7 +263,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay {
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
-        padding: 2rem !important;
+        padding: 2rem;
         text-align: center !important; /* 文字居中对齐 */
     }
     
@@ -271,7 +271,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay > div {
         margin-bottom: 0 !important; /* 移除底部边距，保持居中 */
         width: 85% !important;
-        text-align: center !important; /* 确保文字居中 */
+        text-align: center; /* 确保文字居中 */
     }
     
     /* 标题字体优化 */
@@ -291,9 +291,9 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 水波纹效果高度调整 - 与文章列表提升同步 */
     .waves {
-        height: 17vh !important;
-        min-height: 120px !important;
-        max-height: 216px !important;
+        height: 17vh;
+        min-height: 120px;
+        max-height: 216px;
     }
 }
 
@@ -302,14 +302,14 @@ html.is-page-transitioning .banner-home-text-overlay {
     .banner-home-text-overlay {
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
-        padding: 2rem !important;
+        padding: 2rem;
         text-align: center !important; /* 文字居中对齐 */
     }
     
     .banner-home-text-overlay > div {
         margin-bottom: 0 !important;
         width: 75% !important;
-        text-align: center !important; /* 确保文字居中 */
+        text-align: center; /* 确保文字居中 */
     }
     
     /* 背景图片优化 */
@@ -319,9 +319,9 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 水波纹效果恢复默认 */
     .waves {
-        height: 15vh !important;
-        min-height: 80px !important;
-        max-height: 150px !important;
+        height: 15vh;
+        min-height: 80px;
+        max-height: 150px;
     }
 }
 
@@ -437,38 +437,6 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
 }
 
-/* 当banner被禁用时的布局样式 */
-.no-banner-layout {
-    top: 5.5rem !important;
-    min-height: calc(100vh - 5.5rem) !important;
-}
-
-/* 移动端当banner被禁用时的布局样式 */
-@media (max-width: 1023px) {
-    .absolute.w-full.z-30.no-banner-layout {
-        top: 5.5rem !important;
-        min-height: calc(100vh - 5.5rem) !important;
-        transition: none !important; /* 移除过渡动画，立即应用位置 */
-    }
-}
-
-/* 小屏手机当banner被禁用时的布局样式 */
-@media (max-width: 480px) {
-    .absolute.w-full.z-30.no-banner-layout {
-        top: 5.5rem !important;
-        min-height: calc(100vh - 5.5rem) !important;
-        transition: none !important;
-    }
-}
-
-/* 平板设备当banner被禁用时的布局样式 */
-@media (min-width: 768px) and (max-width: 1023px) {
-    .absolute.w-full.z-30.no-banner-layout {
-        top: 5.5rem !important;
-        min-height: calc(100vh - 5.5rem) !important;
-        transition: none !important;
-    }
-}
 
 /* 移动端横屏优化 */
 @media (max-width: 1023px) and (orientation: landscape) {
@@ -601,8 +569,8 @@ html.is-page-transitioning .banner-home-text-overlay {
     
     /* 确保水波纹在banner底部正确定位 */
     .waves {
-        bottom: -1px !important;
-        position: absolute !important;
+        bottom: -1px;
+        position: absolute;
     }
 }
 
@@ -642,8 +610,8 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .waves {
-        height: 10vh !important;
-        min-height: 60px !important;
+        height: 10vh;
+        min-height: 60px;
     }
 }
 
@@ -655,7 +623,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .banner-home-text-overlay {
-        padding: 1.5rem !important;
+        padding: 1.5rem;
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
         text-align: center !important; /* 文字居中对齐 */
@@ -673,8 +641,8 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .waves {
-        height: 17vh !important;
-        min-height: 250px !important;
+        height: 17vh;
+        min-height: 250px;
     }
 }
 
@@ -686,7 +654,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .banner-home-text-overlay {
-        padding: 2rem !important;
+        padding: 2rem;
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
         text-align: center !important; /* 文字居中对齐 */
@@ -704,8 +672,8 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .waves {
-        height: 15vh !important;
-        min-height: 200px !important;
+        height: 15vh;
+        min-height: 200px;
     }
 }
 
@@ -717,7 +685,7 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .banner-home-text-overlay {
-        padding: 1rem 2rem !important;
+        padding: 1rem 2rem;
         align-items: center !important; /* 垂直居中 */
         justify-content: center !important; /* 水平居中 */
         text-align: center !important; /* 文字居中对齐 */
@@ -735,46 +703,8 @@ html.is-page-transitioning .banner-home-text-overlay {
     }
     
     .waves {
-        height: 10vh !important;
-        min-height: 50px !important;
+        height: 10vh;
+        min-height: 50px;
     }
 }
 
-/* ============================================
- * Overlay 模式 - 全屏壁纸
- * 通过 .wallpaper-overlay 类切换显示模式
- * ============================================ */
-#wallpaper-wrapper.wallpaper-overlay {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: var(--overlay-z-index, -1) !important;
-    opacity: var(--overlay-opacity, 0.8) !important;
-    pointer-events: none !important;
-    overflow: hidden !important;
-    top: 0 !important;
-    min-height: unset !important;
-    max-height: unset !important;
-    transform: none !important;
-    transition: opacity 0.6s ease !important;
-}
-
-/* Overlay 模式下图片模糊效果 */
-#wallpaper-wrapper.wallpaper-overlay img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: center !important;
-    filter: blur(var(--overlay-blur, 0px));
-}
-
-
-/* Overlay 模式隐藏 Banner 专属元素 */
-#wallpaper-wrapper.wallpaper-overlay .banner-home-text-overlay,
-#wallpaper-wrapper.wallpaper-overlay .banner-page-title-overlay,
-#wallpaper-wrapper.wallpaper-overlay .banner-post-meta-overlay,
-#wallpaper-wrapper.wallpaper-overlay .waves,
-#wallpaper-wrapper.wallpaper-overlay #header-waves {
-    display: none !important;
-}

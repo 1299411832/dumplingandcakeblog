@@ -256,12 +256,6 @@ export const zh_CN: Translation = {
 	// 置顶
 	[Key.pinned]: "置顶",
 
-	// 壁纸模式
-	[Key.wallpaperMode]: "壁纸模式",
-	[Key.wallpaperBannerMode]: "横幅壁纸",
-	[Key.wallpaperOverlayMode]: "全屏透明",
-	[Key.wallpaperNoneMode]: "纯色背景",
-
 	// 横幅设置
 	[Key.bannerSettings]: "横幅设置",
 	[Key.bannerTitle]: "首页横幅标题",

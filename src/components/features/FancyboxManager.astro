@@ -96,10 +96,42 @@ import "@/styles/vendor/fancybox.css";
     }
   }
 
+  // MutationObserver for dynamically loaded elements (e.g. client:visible Svelte components)
+  let observer: MutationObserver | null = null;
+  let observerTimer: ReturnType<typeof setTimeout> | null = null;
+  function stopObserving() {
+    if (observer) { observer.disconnect(); observer = null; }
+    if (observerTimer) { clearTimeout(observerTimer); observerTimer = null; }
+  }
+  function observeFancyboxElements() {
+    stopObserving();
+    observer = new MutationObserver(() => {
+      if (document.querySelector("[data-fancybox]")) {
+        setup();
+        stopObserving();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Fallback: stop observing after 5s to avoid long-lived observer
+    observerTimer = setTimeout(stopObserving, 5000);
+  }
+
   // 初始化
   setup();
+  observeFancyboxElements();
 
   // Swup 生命周期整合
-  document.addEventListener("swup:content:replace", setup);
-  document.addEventListener("swup:visit:start", cleanupFancybox);
+  document.addEventListener("swup:visit:start", () => {
+    cleanupFancybox();
+    stopObserving();
+  });
+  document.addEventListener("swup:content:replace", () => {
+    setup();
+    observeFancyboxElements();
+  });
+
+  // 加密文章解密后重新绑定灯箱
+  document.addEventListener("password:decrypted", () => {
+    setTimeout(setup, 200);
+  });
 </script>

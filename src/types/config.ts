@@ -2,9 +2,6 @@ import type {
 	DARK_MODE,
 	LIGHT_MODE,
 	SYSTEM_MODE,
-	WALLPAPER_BANNER,
-	WALLPAPER_NONE,
-	WALLPAPER_OVERLAY,
 } from "../constants/constants";
 
 export type SiteConfig = {
@@ -321,11 +318,6 @@ export type LIGHT_DARK_MODE =
 	| typeof DARK_MODE
 	| typeof SYSTEM_MODE;
 
-export type WALLPAPER_MODE =
-	| typeof WALLPAPER_BANNER
-	| typeof WALLPAPER_OVERLAY
-	| typeof WALLPAPER_NONE;
-
 export type BlogPostData = {
 	body: string;
 	title: string;
@@ -574,8 +566,6 @@ export type Live2DModelConfig = {
 };
 
 export type BackgroundWallpaperConfig = {
-	mode: "banner" | "overlay" | "none"; // 壁纸模式：banner横幅模式、overlay全屏透明覆盖模式或none纯色背景
-	switchable?: boolean; // 是否允许用户通过导航栏切换壁纸模式，默认true
 	src:
 		| string
 		| string[]
@@ -654,12 +644,6 @@ export type BackgroundWallpaperConfig = {
 				  }; // 是否启用水波纹动画效果，支持布尔值或分别设置桌面端和移动端
 			switchable?: boolean; // 是否允许用户通过控制面板切换水波纹动画
 		};
-	};
-	// 全屏透明覆盖模式特有配置
-	overlay?: {
-		zIndex?: number; // 层级，确保壁纸在合适的层级显示
-		opacity?: number; // 壁纸透明度，0-1之间
-		blur?: number; // 背景模糊程度，单位px
 	};
 };
 

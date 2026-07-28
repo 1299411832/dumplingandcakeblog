@@ -253,12 +253,6 @@ export const en: Translation = {
 	// Pinned
 	[Key.pinned]: "Pinned",
 
-	// Wallpaper Mode
-	[Key.wallpaperMode]: "Wallpaper Mode",
-	[Key.wallpaperBannerMode]: "Banner Wallpaper",
-	[Key.wallpaperOverlayMode]: "Overlay Wallpaper",
-	[Key.wallpaperNoneMode]: "None Wallpaper",
-
 	// Banner Settings
 	[Key.bannerSettings]: "Banner Settings",
 	[Key.bannerTitle]: "Home Banner Title",

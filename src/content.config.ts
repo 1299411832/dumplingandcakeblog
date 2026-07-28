@@ -268,14 +268,6 @@ const changelogCollection = defineCollection({
 	}),
 });
 
-const danmuCollection = defineCollection({
-	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/danmu" }),
-	schema: z.object({
-		nickname: z.string(),
-		time: z.string().optional().default(""),
-	}),
-});
-
 export const collections = {
 	posts: postsCollection,
 	spec: specCollection,
@@ -289,5 +281,4 @@ export const collections = {
 	friends: friendsCollection,
 	apps: appsCollection,
 	changelog: changelogCollection,
-	danmu: danmuCollection,
 };
