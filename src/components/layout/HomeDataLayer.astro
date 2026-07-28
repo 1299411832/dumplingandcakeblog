@@ -3,7 +3,7 @@ import Icon from "@components/common/Icon.astro";
 import DataMetricCard from "@components/features/DataMetricCard.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { homeConfig, siteConfig } from "@/config";
+import { homeConfig } from "@/config";
 import {
 	getCategoryList,
 	getSortedPosts,
@@ -46,20 +46,14 @@ const contactItems = homeConfig.links.map((link) => ({
 }));
 const primaryContactItems = contactItems.filter((link) =>
 	primaryContactNames.has(link.name.toLowerCase()),
-);
-const umamiConfig = siteConfig.analytics?.umamiAnalytics;
-const statsBaseUrl = umamiConfig?.scriptUrl
-	? new URL(umamiConfig.scriptUrl).origin
-	: "";
-const statsShareId = umamiConfig?.shareId ?? "";
+);	const statsApiUrl = url("/api/home-stats.json");
 ---
 
 <section
 	class="home-data-layer"
 	aria-labelledby="home-data-layer-title"
 	id="home-data-layer"
-	data-stats-base-url={statsBaseUrl}
-	data-stats-share-id={statsShareId}
+	data-stats-api-url={statsApiUrl}
 >
 	<div class="home-data-layer__inner">
 		<div class="home-data-layer__heading">
@@ -156,24 +150,10 @@ const statsShareId = umamiConfig?.shareId ?? "";
 </section>
 
 <script>
-	import { gsap } from "gsap";
-	import { createCache } from "@/utils/cache-utils";
-	import { formatCompactNumber } from "@/utils/home-data-layer.js";
+	import { gsap } from "gsap";	import { formatCompactNumber } from "@/utils/home-data-layer.js";
 	import { waitForPageLoaderHidden } from "@/utils/page-loader-controller.js";
 
-	type Cleanup = () => void;
-	type ShareData = { websiteId: string; token: string };
-	type GuideOpeningBlock = {
-		element: HTMLElement;
-		collapseX: number;
-		collapseY: number;
-		entryX: number;
-		entryY: number;
-		rotation: number;
-	};
-
-	const shareCache = createCache<ShareData>({ key: "umami_share_data", ttl: 3_600_000 });
-	let cleanups: Cleanup[] = [];
+	type Cleanup = () => void;	let cleanups: Cleanup[] = [];
 	let guideOpeningToken = 0;
 
 	function cleanupHomeDataLayer() {
@@ -340,22 +320,17 @@ const statsShareId = umamiConfig?.shareId ?? "";
 		});
 	}
 
-	function initVisitStats(layer: HTMLElement) {
-		const statsBaseUrl = layer.dataset.statsBaseUrl;
-		const statsShareId = layer.dataset.statsShareId;
-		if (!statsBaseUrl || !statsShareId) return;
-		const detail = layer.querySelector<HTMLElement>(".data-card[data-stat-kind='visits'] .data-card__detail");
-		const valueNodes = layer.querySelectorAll<HTMLElement>("[data-stat-value]");
-		shareCache.fetch(async () => {
-			const response = await fetch(`${statsBaseUrl}/api/share/${statsShareId}`);
-			if (!response.ok) throw new Error("获取 Umami 分享信息失败");
-			const share = await response.json() as { websiteId?: string; entityId?: string; token?: string };
-			const websiteId = share.websiteId || share.entityId;
-			if (!websiteId) throw new Error("Umami 分享信息缺少 websiteId");
-			return { websiteId, token: share.token || statsShareId };
-		}).then(({ websiteId, token }) => fetch(`${statsBaseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${Date.now()}`, {
-			headers: { "x-umami-share-token": token, "x-umami-share-context": "1", "Content-Type": "application/json" },
-		})).then((response) => response.json()).then((data: { uv?: number; visitors?: number; pv?: number; pageviews?: number }) => {
+function initVisitStats(layer: HTMLElement) {
+	const statsApiUrl = layer.dataset.statsApiUrl;
+	if (!statsApiUrl) return;
+	const detail = layer.querySelector<HTMLElement>(".data-card[data-stat-kind='visits'] .data-card__detail");
+	const valueNodes = layer.querySelectorAll<HTMLElement>("[data-stat-value]");
+	fetch(statsApiUrl)
+		.then((response) => {
+			if (!response.ok) throw new Error("Failed to load Umami stats");
+			return response.json();
+		})
+		.then((data: { uv?: number; visitors?: number; pv?: number; pageviews?: number }) => {
 			const uvRaw = data.uv || data.visitors || 0;
 			const pvRaw = data.pv || data.pageviews || 0;
 			const uvCompact = formatCompactNumber(uvRaw);
@@ -366,14 +341,16 @@ const statsShareId = umamiConfig?.shareId ?? "";
 				const isPv = node.dataset.statValue === "PV";
 				if (!isUv && !isPv) return;
 				const value = isUv ? uvRaw : pvRaw;
-				node.dataset.compactValue = formatCompactNumber(value);
+				const compact = formatCompactNumber(value);
+				node.dataset.compactValue = compact;
 				node.dataset.fullValue = Number(value).toLocaleString();
-				node.textContent = node.dataset.compactValue;
+				node.textContent = compact;
 			});
-		}).catch(() => {
+		})
+		.catch(() => {
 			if (detail) detail.textContent = "访客 -- / 浏览 --";
 		});
-	}
+}
 
 	function initMetricCards(layer: HTMLElement) {
 		if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
