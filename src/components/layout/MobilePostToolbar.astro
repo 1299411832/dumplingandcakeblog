@@ -240,7 +240,7 @@ const { slug = "" } = Astro.props;
 
 <script>
   import('../../utils/tocUtils.ts').then(function(mod) {
-    window.__mptTocReady = true;
+    (window as any).__mptTocReady = true;
     var postsBtn = document.getElementById('mpt-posts-btn');
     var postsDrawer = document.getElementById('mpt-posts-drawer');
     var postsBg = document.getElementById('mpt-posts-bg');
@@ -253,7 +253,7 @@ const { slug = "" } = Astro.props;
 
     if (!postsBtn || !tocBtn) return;
 
-    function openDrawer(drawer) {
+    function openDrawer(drawer: HTMLElement | null) {
       if (!drawer) return;
       drawer.classList.add('active');
       drawer.setAttribute('aria-hidden', 'false');

@@ -97,8 +97,8 @@ try {
 	});
 }
 
-// 服务端默认显示第一个方案，客户端 JavaScript 会随机切换
-const randomScheme = homeSchemes[0];
+// 构建时随机选一张（每次构建结果不同，无需客户端切换）
+const randomScheme = homeSchemes[Math.floor(Math.random() * homeSchemes.length)] || homeSchemes[0];
 
 // 移动端背景图随机选择
 const mobileBgDir = join(process.cwd(), "public/assets/images/mobile-bg");
@@ -113,19 +113,16 @@ try {
 } catch (e) {
 	// ignore
 }
-// 使用随机数，通过客户端脚本确保不重复
-const mobileBgIndex = Math.floor(Math.random() * mobileBgs.length);
-const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/assets/images/home/18188682411036032.webp";
 ---
 
-<section class="home-hero home-hero--motion-pending" id="home-hero"
+<section class="home-hero" id="home-hero"
 	data-avatar={avatarUrl}
 	data-avatar-pool={JSON.stringify(workAvatarUrls)}
 	data-avatar-off={avatarOffUrl}
 	data-work-hours={JSON.stringify(workHours)}
 >
-	<img class="home-hero__video hidden md:block" src="" alt="" id="desktop-bg" data-desktop-schemes={JSON.stringify(homeSchemes)} data-fallback={randomScheme.bg} />
-	<img class="home-hero__video block md:hidden" src="" alt="" data-mobile-bgs={JSON.stringify(mobileBgs)} id="mobile-bg" data-fallback="/assets/images/home/18188682411036032.webp" />
+	<img class="home-hero__video hidden md:block" src={randomScheme.bg} alt="" id="desktop-bg" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
+	<img class="home-hero__video block md:hidden" src={mobileBgs[Math.floor(Math.random() * mobileBgs.length)] || "/assets/images/home/18188682411036032.webp"} alt="" id="mobile-bg" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
 
 	<div class="home-hero__canvas-container" id="main-canvas">
 		<div class="home-hero__bracket home-hero__bracket--tl"></div>
@@ -223,102 +220,7 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 </section>
 
 <script>
-	// 桌面端背景图随机化（确保不重复，预加载后无缝切换）
-	function randomizeDesktopBg() {
-		var desktopBg = document.getElementById('desktop-bg');
-		if (!desktopBg) return;
-		var schemes = JSON.parse(desktopBg.getAttribute('data-desktop-schemes') || '[]');
-		var fallback = desktopBg.getAttribute('data-fallback') || '';
-
-		if (schemes.length === 0) {
-			if (fallback) desktopBg.src = fallback;
-			return;
-		}
-		if (schemes.length === 1) {
-			desktopBg.src = schemes[0].bg;
-			var deco = document.getElementById('desktop-decoration');
-			if (deco && schemes[0].decoration) deco.src = schemes[0].decoration;
-			return;
-		}
-
-		var lastIdx = parseInt(localStorage.getItem('lastDesktopBgIdx') || '-1');
-		var newIdx;
-		do {
-			newIdx = Math.floor(Math.random() * schemes.length);
-		} while (newIdx === lastIdx);
-
-		// 预加载背景图和装饰图，加载完成后再切换
-		var bgImg = new Image();
-		var decoSrc = schemes[newIdx].decoration;
-		var loaded = 0;
-		var total = decoSrc ? 2 : 1;
-
-		function onLoad() {
-			loaded++;
-			if (loaded >= total) {
-				desktopBg.src = schemes[newIdx].bg;
-				var deco = document.getElementById('desktop-decoration');
-				if (deco && decoSrc) deco.src = decoSrc;
-			}
-		}
-
-		bgImg.onload = onLoad;
-		bgImg.onerror = onLoad;
-		bgImg.src = schemes[newIdx].bg;
-
-		if (decoSrc) {
-			var decoImg = new Image();
-			decoImg.onload = onLoad;
-			decoImg.onerror = onLoad;
-			decoImg.src = decoSrc;
-		}
-
-		localStorage.setItem('lastDesktopBgIdx', String(newIdx));
-	}
-
-	// 移动端背景图随机化（确保不重复，预加载后无缝切换）
-	function randomizeMobileBg() {
-		var mobileBg = document.getElementById('mobile-bg');
-		if (!mobileBg) return;
-		var bgs = JSON.parse(mobileBg.getAttribute('data-mobile-bgs') || '[]');
-		var fallback = mobileBg.getAttribute('data-fallback') || '';
-
-		if (bgs.length === 0) {
-			if (fallback) mobileBg.src = fallback;
-			return;
-		}
-		if (bgs.length === 1) {
-			mobileBg.src = bgs[0];
-			return;
-		}
-
-		var lastIdx = parseInt(localStorage.getItem('lastMobileBgIdx') || '-1');
-		var newIdx;
-		do {
-			newIdx = Math.floor(Math.random() * bgs.length);
-		} while (newIdx === lastIdx && bgs.length > 1);
-
-		// 预加载新图片，加载完成后再设置 src（无闪烁）
-		var newImg = new Image();
-		newImg.onload = function() {
-			mobileBg.src = bgs[newIdx];
-		};
-		newImg.onerror = function() {
-			if (fallback) mobileBg.src = fallback;
-		};
-		newImg.src = bgs[newIdx];
-		localStorage.setItem('lastMobileBgIdx', String(newIdx));
-	}
-
-	randomizeDesktopBg();
-	randomizeMobileBg();
-	// Swup 导航返回首页时重新随机化
-	document.addEventListener('swup:page:view', function() {
-		setTimeout(function() {
-			randomizeDesktopBg();
-			randomizeMobileBg();
-		}, 100);
-	});
+	// 背景图已由服务端构建时随机选择（见 frontmatter），无需客户端切换 src
 
 	import { gsap } from "gsap";
 	import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -559,198 +461,9 @@ const randomMobileBg = mobileBgs.length > 0 ? mobileBgs[mobileBgIndex] : "/asset
 	function initHeroOpening() {
 		const hero = document.getElementById("home-hero");
 		if (!hero) return;
-		if (prefersReducedMotion()) {
-			hero.classList.remove("home-hero--motion-pending");
-			hero.classList.add("home-hero--motion-ready");
-			return;
-		}
-
-		const occupation = hero.querySelector(".home-hero__occupation");
-		const badge = hero.querySelector(".home-hero__name-badge");
-		const avatar = hero.querySelector(".home-hero__avatar-group");
-		const motto = hero.querySelector(".home-hero__motto-text");
-		const artWindow = hero.querySelector(".home-hero__art-window");
-		const characterMotion = hero.querySelector(".home-hero__character-motion");
-		const speech = hero.querySelector(".home-hero__speech");
-		const speechLines = hero.querySelectorAll(".home-hero__speech-type");
-		const rightPanel = hero.querySelector(".home-hero__right-panel");
-		const brackets = hero.querySelectorAll(".home-hero__bracket");
-		const bottomLine = hero.querySelector(".home-hero__bottom-line");
-		const leftLine = hero.querySelector(".home-hero__left-line");
-
-		hero.classList.add("home-hero--motion-ready");
-
-		heroOpeningTimeline = gsap.timeline({
-			defaults: { ease: "power4.out" },
-		});
-
-		heroOpeningTimeline
-			.fromTo(brackets, {
-				autoAlpha: 0,
-				scale: 0.5,
-			}, {
-				autoAlpha: 1,
-				scale: 1,
-				duration: 0.8,
-				stagger: 0.1,
-				ease: "expo.out",
-			}, 0.18)
-			.fromTo(bottomLine, {
-				autoAlpha: 0,
-				scaleX: 0,
-				transformOrigin: "0% 50%",
-			}, {
-				autoAlpha: 1,
-				scaleX: 1,
-				duration: 1.2,
-				ease: "expo.out",
-			}, 0.34)
-			.fromTo(leftLine, {
-				autoAlpha: 0,
-				scaleY: 0,
-				transformOrigin: "50% 100%",
-			}, {
-				autoAlpha: 1,
-				scaleY: 1,
-				duration: 1.2,
-				ease: "expo.out",
-			}, 0.34)
-			.fromTo(occupation, {
-				autoAlpha: 0,
-				y: 48,
-				clipPath: "inset(0 0 100% 0)",
-			}, {
-				autoAlpha: 1,
-				y: 0,
-				clipPath: "inset(0 0 0% 0)",
-				duration: 0.92,
-				ease: "expo.out",
-			}, 0.82)
-			// 名字逐字弹入动画
-			.fromTo(hero.querySelectorAll(".home-hero__name-letter"), {
-				autoAlpha: 0,
-				y: 20,
-				rotateX: 40,
-				scale: 0.85,
-			}, {
-				autoAlpha: 1,
-				y: 0,
-				rotateX: 0,
-				scale: 1,
-				duration: 0.5,
-				stagger: 0.04,
-				ease: "back.out(1.4)",
-			}, 0.98)
-			.fromTo(badge, {
-				autoAlpha: 0,
-				x: -42,
-				y: 14,
-				scaleX: 0.7,
-				transformOrigin: "0% 50%",
-			}, {
-				autoAlpha: 1,
-				x: 0,
-				y: 0,
-				scaleX: 1,
-				duration: 0.78,
-				ease: "expo.out",
-			}, 1.34)
-			.fromTo(avatar, {
-				autoAlpha: 0,
-				x: 54,
-				y: 12,
-				scale: 0.82,
-				clipPath: "circle(0% at 50% 50%)",
-			}, {
-				autoAlpha: 1,
-				x: 0,
-				y: 0,
-				scale: 1,
-				clipPath: "circle(76% at 50% 50%)",
-				duration: 1.05,
-				ease: "expo.out",
-				clearProps: "clipPath",
-			}, 1.45)
-			.fromTo(artWindow, {
-				autoAlpha: 0,
-				x: "7vw",
-				clipPath: "inset(0 0 0 100%)",
-			}, {
-				autoAlpha: 1,
-				x: "1vw",
-				clipPath: "inset(0 0 0 0%)",
-				duration: 1.25,
-				ease: "expo.out",
-				clearProps: "clipPath",
-			}, 1.15)
-			.fromTo(characterMotion, {
-				autoAlpha: 0,
-				y: 58,
-				rotationX: 68,
-				scaleX: 1.03,
-				scaleY: 0.72,
-				transformPerspective: 900,
-				filter: "blur(10px) saturate(1.1)",
-				transformOrigin: "50% 100%",
-			}, {
-				autoAlpha: 1,
-				y: 0,
-				rotationX: 0,
-				scaleX: 1,
-				scaleY: 1,
-				filter: "blur(0px) saturate(1)",
-				duration: 1.56,
-				ease: "expo.out",
-				clearProps: "transform,filter,visibility",
-			}, 1.42)
-			.fromTo(rightPanel, {
-				autoAlpha: 0,
-				x: 60,
-			}, {
-				autoAlpha: 1,
-				x: 0,
-				duration: 0.95,
-				ease: "power3.out",
-			}, 1.66)
-			.fromTo(motto, {
-				autoAlpha: 0,
-				y: 68,
-				filter: "blur(14px)",
-				clipPath: "inset(0 0 100% 0)",
-			}, {
-				autoAlpha: 1,
-				y: 0,
-				filter: "blur(0px)",
-				clipPath: "inset(0 0 0% 0)",
-				duration: 1.15,
-				ease: "expo.out",
-			}, 1.72)
-			.fromTo(speech, {
-				autoAlpha: 0,
-				xPercent: -50,
-				y: 34,
-				scale: 0.92,
-				filter: "blur(10px)",
-				transformOrigin: "50% 100%",
-			}, {
-				autoAlpha: 1,
-				xPercent: -50,
-				y: 0,
-				scale: 1,
-				filter: "blur(0px)",
-				duration: 0.92,
-				ease: "expo.out",
-				clearProps: "filter",
-			}, 2.62)
-			.fromTo(speechLines, {
-				clipPath: "inset(0 100% 0 0)",
-			}, {
-				clipPath: "inset(0 0% 0 0)",
-				duration: 1.05,
-				ease: "steps(18)",
-			}, 3.08);
-
+		// 跳过入口动画，直接显示所有元素
 		hero.classList.remove("home-hero--motion-pending");
+		hero.classList.add("home-hero--motion-ready");
 	}
 
 	function initHomeScrollMotion() {

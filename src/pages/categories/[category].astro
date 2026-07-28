@@ -30,7 +30,7 @@ export const getStaticPaths = (async () => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
-	const paths = [];
+	const paths: { params: { category: string }; props: { categoryName: string; posts: any[]; totalPosts: number; tags: { name: string; count: number }[] } }[] = [];
 
 	for (const category of categories) {
 		// 过滤该分类下的文章
@@ -81,7 +81,7 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { categoryName } = Astro.props;
-const { posts, totalPosts, tags } = Astro.props;
+const { posts, tags } = Astro.props;
 
 // 解码分类名称
 const decodedCategory = decodeURIComponent(categoryName);

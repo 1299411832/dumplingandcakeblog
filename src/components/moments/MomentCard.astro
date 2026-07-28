@@ -14,7 +14,7 @@ interface Props {
 
 const { moment, detail = false } = Astro.props;
 const { Content } = await render(moment);
-const { author, avatar, published, images, tags, location, device, pinned } =
+const { author, avatar, published, images, tags, location, pinned } =
 	moment.data;
 
 // 获取 moments 资产目录下的所有图片
@@ -81,7 +81,6 @@ const getGridCols = (count: number) => {
 	return 3;
 };
 
-const momentId = moment.id;
 const allMedia = parseImages(images);
 const videosArray = allMedia.filter((item): item is string => typeof item === "string" && isVideoUrl(item));
 const imagesArray = allMedia.filter((item) => !(typeof item === "string" && isVideoUrl(item)));

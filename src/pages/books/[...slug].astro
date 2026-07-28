@@ -20,11 +20,6 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 
-const bannerPostMeta = {
-	title: entry.data.title,
-	published: entry.data.published || new Date(),
-};
-
 const getStatusText = (status: number) => {
 	switch (status) {
 		case 1:
@@ -47,7 +42,6 @@ const getStatusText = (status: number) => {
 	title={entry.data.title}
 	banner={typeof entry.data.image === "string" ? entry.data.image : entry.data.image.src}
 	headings={headings}
-	bannerPostMeta={bannerPostMeta}
 >
 	<div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-4">
 		<div data-pagefind-body class="card-base z-10 px-3 md:px-5 pt-6 pb-4 relative w-full">

@@ -128,7 +128,7 @@ if (relatedPosts.length < maxCount) {
             </h3>
         </div>
         <div class="grid grid-cols-1 divide-y divide-neutral-100 dark:divide-neutral-800">
-            {relatedPosts.map(({ post, score }, idx) => {
+            {relatedPosts.map(({ post, score: _score }, idx) => {
                 const slug = removeFileExtension(post.id);
                 const postUrl = getPostUrlBySlug(slug);
                 return (

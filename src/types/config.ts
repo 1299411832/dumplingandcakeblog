@@ -88,6 +88,7 @@ export type SiteConfig = {
 		title?: string; // 导航栏标题，如果不设置则使用 title
 		widthFull?: boolean; // 导航栏是否占满屏幕宽度
 		followTheme?: boolean; // 导航栏图标和标题是否跟随主题色
+		hoverTitle?: string; // 页面离开时显示的标题
 	};
 
 	showLastModified: boolean; // 控制"上次编辑"卡片显示的开关

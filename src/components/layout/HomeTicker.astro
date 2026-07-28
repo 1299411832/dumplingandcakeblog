@@ -1,8 +1,8 @@
 ---
 import { getCollection } from "astro:content";
-import { announcementConfig, profileConfig } from "@/config";
+import { announcementConfig } from "@/config";
 import { externalBangumiConfig } from "@/config/externalBangumiConfig";
-import { getPostUrlBySlug } from "@/utils/url-utils";
+
 
 const bangumiGistId = externalBangumiConfig.enable ? externalBangumiConfig.gistId : "";
 
@@ -118,7 +118,7 @@ const tickerContent = summaryParts.join(" \u00d7 ");
 			.then(function(gist) {
 				var file = gist.files["bangumi.json"];
 				if (!file) return;
-				var items = [];
+				var items: any[] = [];
 				try { items = JSON.parse(file.content || "[]"); } catch(e) { return; }
 				if (!Array.isArray(items) || !items.length) return;
 

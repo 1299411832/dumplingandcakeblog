@@ -242,15 +242,14 @@ export function initPageLoader({
 	});
 	windowRef.__fireflyPageLoader = controller;
 
-	// 移动端或非首页：立即隐藏加载页
-	if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
-		loader.hidden = true;
-		loader.classList.add("page-loader--hidden");
-		loader.classList.remove("page-loader--visible");
-		documentRef.documentElement.classList.remove("is-page-loading");
-		documentRef.body?.removeAttribute("aria-busy");
-		return controller;
-	}
+	// 暂时关闭加载动画 — 立即隐藏，派发事件让 HomeHero 等组件正常启动
+	loader.hidden = true;
+	loader.classList.add("page-loader--hidden");
+	loader.classList.remove("page-loader--visible");
+	documentRef.documentElement.classList.remove("is-page-loading");
+	documentRef.body?.removeAttribute("aria-busy");
+	dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, { timestamp: Date.now() });
+	return controller;
 
 	controller.show("initial");
 

@@ -200,7 +200,7 @@ const pinnedMoments = moments
       var cols = getGridCols(images.length);
       var imagesDiv = document.createElement("div");
       imagesDiv.className = "card-images image-cols-" + cols;
-      images.slice(0, 9).forEach(function(url, i) {
+      images.slice(0, 9).forEach(function(url, _i) {
         var imgItem = document.createElement("div");
         imgItem.className = "image-item";
         var img = document.createElement("img");

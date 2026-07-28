@@ -36,13 +36,8 @@ const notebookFolders = new Set(
 );
 const notebooksCount = notebookFolders.size;
 
-// 格式化数字
-function formatNumber(num: number): string {
-	return num.toLocaleString();
-}
-
 // 构建统计数据
-const stats = [
+const stats: { icon: string; label: string; value: number; suffix?: string }[] = [
 	{
 		icon: "material-symbols:apartment",
 		label: "去过城市",

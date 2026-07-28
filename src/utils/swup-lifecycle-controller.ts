@@ -1,9 +1,7 @@
 import { pathsEqual, url } from "@/utils/url-utils";
 import { BANNER_HEIGHT_HOME } from "@/constants/constants";
 import { expressiveCodeConfig, siteConfig } from "@/config";
-import { updateMainGridCols, isCurrentPagePost } from "./grid-layout-utils";
 import { updateSidebarComponentsVisibility } from "./sidebar-utils";
-import { showBanner } from "./banner-utils";
 import { initCustomScrollbar } from "./scrollbar-utils";
 
 declare global {
@@ -192,7 +190,7 @@ export function initSwupLifecycle(): void {
 			// Reinitialize icon loader
 			import("@/utils/icon-loader").then(({ initIconLoader }) => {
 				initIconLoader();
-			});
+			}).catch((e) => console.warn("[swup] icon-loader init failed:", e));
 
 			// Reinitialize desktop TOC component for article pages only
 			const tocWrapper = document.getElementById("toc-wrapper");
@@ -214,11 +212,15 @@ export function initSwupLifecycle(): void {
 					navElForSemifull.getAttribute("data-transparent-mode");
 
 				if (transparentMode === "semifull") {
-					if (
-						typeof (window as any).initSemifullScrollDetection ===
-						"function"
-					) {
-						(window as any).initSemifullScrollDetection();
+					try {
+						if (
+							typeof (window as any).initSemifullScrollDetection ===
+							"function"
+						) {
+							(window as any).initSemifullScrollDetection();
+						}
+					} catch (e) {
+						console.warn("[swup] semifull scroll detection init failed:", e);
 					}
 				}
 			}
@@ -232,14 +234,16 @@ export function initSwupLifecycle(): void {
 			(visit: { to: { url: string } }) => {
 				// Music page uses different layout structure - force full page load
 				const fromPath = window.location.pathname;
-				const toPath = new URL(
-					visit.to.url,
-					window.location.origin,
-				).pathname;
+				let toPath: string;
+				try {
+					toPath = new URL(visit.to.url, window.location.origin).pathname;
+				} catch {
+					toPath = visit.to.url || "";
+				}
 				const isMusicPage = (p: string) =>
 					p === "/music/" || p === "/music";
 				if (isMusicPage(fromPath) || isMusicPage(toPath)) {
-					visit.abort();
+					(visit as any).abort();
 					(window as any).swup.loadPage(visit.to.url, {
 						animate: false,
 					});
@@ -451,7 +455,7 @@ export function initSwupLifecycle(): void {
 
 					function items() {
 						return Array.from(
-							feed.querySelectorAll(".wx-feed-item"),
+							feed!.querySelectorAll(".wx-feed-item"),
 						);
 					}
 					function show() {
@@ -465,7 +469,7 @@ export function initSwupLifecycle(): void {
 					function check() {
 						const total = items().length;
 						done = count >= total;
-						sentinel.classList[done ? "add" : "remove"]("hidden");
+						sentinel!.classList[done ? "add" : "remove"]("hidden");
 					}
 					function more() {
 						if (loading || done) return;
@@ -483,7 +487,7 @@ export function initSwupLifecycle(): void {
 						}, 300);
 					}
 					function vis() {
-						const r = sentinel.getBoundingClientRect();
+						const r = sentinel!.getBoundingClientRect();
 						return r.top < window.innerHeight + 200;
 					}
 					function obs() {
@@ -528,8 +532,8 @@ export function initSwupLifecycle(): void {
 						progressBar.classList.add("done");
 						setTimeout(() => {
 							progressBar.classList.remove("done");
-						}, 300);
-					}, 200);
+						}, 150);
+					}, 100);
 				}
 
 				setTimeout(() => {
@@ -549,7 +553,7 @@ export function initSwupLifecycle(): void {
 					document.documentElement.classList.remove(
 						"is-page-transitioning",
 					);
-				}, 200);
+				}, 100);
 			},
 		);
 	};

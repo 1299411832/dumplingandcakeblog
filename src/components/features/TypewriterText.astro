@@ -167,14 +167,18 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
   }
 
   // 支持页面切换时重新初始化（兼容不同 swup 事件名）
-  document.addEventListener("swup:content:replaced", runInitWithDelay);
-  document.addEventListener("swup:content:replace", runInitWithDelay);
-  document.addEventListener("swup:page:view", runInitWithDelay);
+  // Guard 防止重复注册（Swup 内容替换时 script 会重新执行）
+  if (!(window as any).__typewriterHooksBound) {
+    (window as any).__typewriterHooksBound = true;
+    document.addEventListener("swup:content:replaced", runInitWithDelay);
+    document.addEventListener("swup:content:replace", runInitWithDelay);
+    document.addEventListener("swup:page:view", runInitWithDelay);
 
-  // swup hooks（若可用）
-  if (typeof window !== "undefined" && window.swup?.hooks) {
-    window.swup.hooks.on("content:replace", runInitWithDelay);
-    window.swup.hooks.on("page:view", runInitWithDelay);
+    // swup hooks（若可用）
+    if (typeof window !== "undefined" && window.swup?.hooks) {
+      window.swup.hooks.on("content:replace", runInitWithDelay);
+      window.swup.hooks.on("page:view", runInitWithDelay);
+    }
   }
 </script>
 

@@ -19,7 +19,6 @@ import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import CoverImage from "@/components/common/CoverImage.astro";
-import MobilePostToolbar from "@/components/layout/MobilePostToolbar.astro";
 import PostMetadata from "@/components/layout/PostMeta.astro";
 import SharePoster from "@/components/misc/SharePoster.svelte";
 import AiSummary from "@/components/widget/AiSummary.astro";
@@ -48,14 +47,6 @@ const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 
 const { remarkPluginFrontmatter } = await render(entry);
-
-const bannerPostMeta = {
-	title: entry.data.title,
-	published: entry.data.published,
-	updated: entry.data.updated,
-	words: remarkPluginFrontmatter.words,
-	minutes: remarkPluginFrontmatter.minutes,
-};
 
 // 处理随机图：如果image为"api"，则从配置的API获取随机图
 const processedImage = processCoverImageSync(entry.data.image, entry.id);
@@ -142,7 +133,6 @@ const jsonLd = {
   prevTitle={entry.data.prevTitle}
   nextSlug={entry.data.nextSlug}
   nextTitle={entry.data.nextTitle}
-  bannerPostMeta={bannerPostMeta}
 >
   <!-- KaTeX 按需加载 - 仅在文章页面 -->
   <KatexManager slot="head" />
@@ -235,7 +225,7 @@ const jsonLd = {
       entry.data.description && (
         <AiSummary
           description={entry.data.description}
-          descriptionSource={entry.data.descriptionSource}
+          descriptionSource={(entry.data as any).descriptionSource}
         />
       )
     }

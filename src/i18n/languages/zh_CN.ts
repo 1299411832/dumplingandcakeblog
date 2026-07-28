@@ -20,7 +20,6 @@ export const zh_CN: Translation = {
 	[Key.all]: "全部",
 
 	[Key.tags]: "标签",
-	[Key.categories]: "分类",
 	[Key.recentPosts]: "最新文章",
 	[Key.postList]: "文章列表",
 	[Key.tableOfContents]: "目录",

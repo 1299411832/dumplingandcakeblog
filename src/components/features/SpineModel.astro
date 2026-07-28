@@ -106,6 +106,12 @@ import { url } from "@/utils/url-utils";
   function cleanupSpineModel() {
     console.log("🧹 Cleaning up existing Spine model...");
 
+    // 清理待机动画循环定时器
+    if (window.__spineIdleIntervalId) {
+      clearInterval(window.__spineIdleIntervalId);
+      window.__spineIdleIntervalId = null;
+    }
+
     // 清理消息显示（使用公共组件）
     if (window.clearModelMessage) {
       window.clearModelMessage();
@@ -313,7 +319,7 @@ import { url } from "@/utils/url-utils";
 
               // 设置待机动画循环
               if (spineModelConfig.interactive.idleAnimations.length > 1) {
-                setInterval(() => {
+                window.__spineIdleIntervalId = setInterval(() => {
                   try {
                     const idleAnims =
                       spineModelConfig.interactive.idleAnimations;

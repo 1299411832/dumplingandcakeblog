@@ -1,9 +1,8 @@
 ---
 import { getCategoryList } from "@/utils/content-utils";
-import { getCategoryPageUrl, url } from "@/utils/url-utils";
+import { url } from "@/utils/url-utils";
 
 const categories = await getCategoryList();
-const categoriesUrl = getCategoryPageUrl();
 
 interface Props {
 	class?: string;

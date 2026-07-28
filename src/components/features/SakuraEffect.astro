@@ -23,8 +23,6 @@ const config = sakuraConfig;
       var saved = localStorage.getItem(STORAGE_KEY);
       S.enabled = saved === null ? true : saved === 'true';
 
-      var enabled = function () { return S.enabled; };
-
       class Flake {
         constructor(xRange, yRange, size, speed, driftRange, startY) {
           this.xRange = xRange;
@@ -143,6 +141,13 @@ const config = sakuraConfig;
       setTimeout(function () {
         if (S.enabled) start();
       }, 300);
+
+      // Swup 导航时暂停动画，避免后台持续渲染
+      document.addEventListener('swup:content:replaced', function () { stop(); });
+      document.addEventListener('swup:visit:start', function () { stop(); });
+      document.addEventListener('swup:page:view', function () {
+        setTimeout(function () { if (S.enabled) start(); }, 300);
+      });
     })();
   </script>
 )}

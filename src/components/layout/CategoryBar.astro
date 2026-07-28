@@ -278,7 +278,7 @@ const categoriesUrl = getCategoryPageUrl();
       btn.classList.add('active');
     }
     btn.addEventListener('click', function() {
-      var active = btn.classList.toggle('active');
+      var active = btn!.classList.toggle('active');
       localStorage.setItem('hideCovers', String(active));
       document.documentElement.setAttribute('data-hide-covers', String(active));
     });

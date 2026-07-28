@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
 import Markdown from "@/components/common/Markdown.astro";
-import PostMetadata from "@/components/layout/PostMeta.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { removeFileExtension } from "@/utils/url-utils";
@@ -16,18 +15,12 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
-
-const bannerPostMeta = {
-	title: entry.data.title,
-	published: entry.data.published || new Date(),
-};
 ---
 
 <MainGridLayout
   title={entry.data.title}
   banner={typeof entry.data.image === "string" ? entry.data.image : entry.data.image.src}
   headings={headings}
-  bannerPostMeta={bannerPostMeta}
 >
   <div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-4">
     <div class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full">

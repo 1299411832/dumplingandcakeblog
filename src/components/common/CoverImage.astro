@@ -313,7 +313,7 @@ const showLoading = coverImageConfig.randomCoverImage.showLoading ?? true;
 			// 每次刷新页面都随机选择图片
 			if (apiUrls.length > 0) {
 				// 随机选择一个不同于当前图片的索引
-				let newIndex;
+				let newIndex: number;
 				if (serverIndex >= 0 && apiUrls.length > 1) {
 					do {
 						newIndex = Math.floor(Math.random() * apiUrls.length);

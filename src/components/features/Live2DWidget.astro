@@ -402,6 +402,11 @@ const size = config.size || { width: 280, height: 250 };
   }
 
   // Handle window resize for responsive behavior
+  // Store reference for cleanup to avoid duplicate listeners across Swup navigations
+  if (window.__live2dResizeHandler) {
+    window.removeEventListener("resize", window.__live2dResizeHandler);
+  }
+  window.__live2dResizeHandler = handleResponsive;
   window.addEventListener("resize", handleResponsive);
 
   // 监听 Swup 页面切换事件（如果使用了 Swup）

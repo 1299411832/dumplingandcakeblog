@@ -8,6 +8,7 @@ import "@/styles/vendor/fancybox.css";
   let Fancybox: any;
 
   async function setup() {
+    try {
     const selectors = [
       ".custom-md img, #post-cover img, .moment-images img, .entry-card-images img",
       ".moment-images a[data-fancybox]",
@@ -87,6 +88,9 @@ import "@/styles/vendor/fancybox.css";
 
     // 绑定其他
     Fancybox.bind("[data-fancybox]:not(.moment-images a)", commonOptions);
+    } catch (e) {
+      console.warn("[Fancybox] setup failed:", e);
+    }
   }
 
   function cleanupFancybox() {

@@ -20,11 +20,20 @@ export const ru: Translation = {
 	[Key.all]: "Все",
 
 	[Key.tags]: "Теги",
-	[Key.categories]: "Категории",
 	[Key.recentPosts]: "Последние посты",
 	[Key.postList]: "Список постов",
 	[Key.tableOfContents]: "Содержание",
 	[Key.music]: "Музыка",
+	[Key.changelog]: "Журнал изменений",
+	[Key.changelogTitle]: "Журнал изменений",
+	[Key.changelogSubtitle]: "История функций, исправлений и важных изменений блога",
+	[Key.changelogAll]: "Все",
+	[Key.changelogFeature]: "Новые функции",
+	[Key.changelogImprovement]: "Улучшения",
+	[Key.changelogFix]: "Исправления",
+	[Key.changelogRemoval]: "Удалённые функции",
+	[Key.changelogNoData]: "Записей об изменениях нет",
+
 	[Key.musicNoPlaying]: "Ничего не воспроизводится",
 	[Key.musicLyrics]: "Текст песни",
 	[Key.musicVolume]: "Громкость",
@@ -57,6 +66,17 @@ export const ru: Translation = {
 	[Key.friends]: "Ссылки",
 	[Key.friendsDescription]:
 		"Вот мои друзья, добро пожаловать посетить и общаться друг с другом",
+	[Key.circle]: "Круг друзей",
+	[Key.circleTitle]: "Круг друзей",
+	[Key.circleSubtitle]: "Последние статьи друзей",
+	[Key.circleFriends]: "Всего ссылок",
+	[Key.circleActive]: "Активные ссылки",
+	[Key.circleLost]: "Потерянные ссылки",
+	[Key.circleArticles]: "Всего статей",
+	[Key.circleLastUpdated]: "Последнее обновление",
+	[Key.circleNoData]: "Данных о статьях нет",
+	[Key.circleLoading]: "Загрузка круга друзей...",
+	[Key.circleError]: "Ошибка загрузки. Попробуйте позже",
 	[Key.guestbook]: "Гостевая книга",
 	[Key.guestbookDescription]:
 		"Добро пожаловать, оставьте свой след здесь, поделитесь своими мыслями и предложениями",
@@ -85,6 +105,7 @@ export const ru: Translation = {
 	[Key.readTime]: "Время чтения",
 	[Key.license]: "Лицензия",
 	[Key.bangumi]: "Бангуми",
+	[Key.moments]: "Моменты",
 
 	[Key.recentMoments]: "Недавние обновления",
 	[Key.portalRecentPosts]: "Недавние записи",
@@ -93,6 +114,8 @@ export const ru: Translation = {
 	[Key.portalViewMore]: "Ещё",
 	[Key.portalRunningDays]: "Работает",
 	[Key.portalDays]: "дней",
+	[Key.recentLife]: "Последние записи",
+	[Key.recentItems]: "Недавние обновления",
 
 	// Фильтр и статус Бангуми текст
 	[Key.bangumiTitle]: "Мой план группы",

@@ -20,11 +20,20 @@ export const ja: Translation = {
 	[Key.all]: "すべて",
 
 	[Key.tags]: "タグ",
-	[Key.categories]: "カテゴリ",
 	[Key.recentPosts]: "最近の投稿",
 	[Key.postList]: "投稿リスト",
 	[Key.tableOfContents]: "目次",
 	[Key.music]: "音楽",
+	[Key.changelog]: "更新履歴",
+	[Key.changelogTitle]: "更新履歴",
+	[Key.changelogSubtitle]: "ブログプロジェクトの機能追加、バグ修正、重要な変更の記録",
+	[Key.changelogAll]: "すべて",
+	[Key.changelogFeature]: "新機能",
+	[Key.changelogImprovement]: "機能改善",
+	[Key.changelogFix]: "バグ修正",
+	[Key.changelogRemoval]: "機能削除",
+	[Key.changelogNoData]: "更新履歴はありません",
+
 	[Key.musicNoPlaying]: "再生中なし",
 	[Key.musicLyrics]: "歌詞",
 	[Key.musicVolume]: "音量",
@@ -57,6 +66,17 @@ export const ja: Translation = {
 	[Key.friends]: "友達",
 	[Key.friendsDescription]:
 		"ここは私の友達です、お互いに訪問して交流することを歓迎します",
+	[Key.circle]: "友達の輪",
+	[Key.circleTitle]: "友達の輪",
+	[Key.circleSubtitle]: "友達の最新記事",
+	[Key.circleFriends]: "友達リンク数",
+	[Key.circleActive]: "アクティブなリンク",
+	[Key.circleLost]: "リンク切れ",
+	[Key.circleArticles]: "記事総数",
+	[Key.circleLastUpdated]: "最近の更新",
+	[Key.circleNoData]: "記事データがありません",
+	[Key.circleLoading]: "友達の輪を読み込み中...",
+	[Key.circleError]: "読み込みに失敗しました。後でもう一度お試しください",
 	[Key.guestbook]: "ゲストブック",
 	[Key.guestbookDescription]:
 		"ここに足跡を残して、あなたの考えや提案を共有してください",
@@ -85,6 +105,7 @@ export const ja: Translation = {
 	[Key.readTime]: "読了時間",
 	[Key.license]: "ライセンス",
 	[Key.bangumi]: "バングミ",
+	[Key.moments]: "モーメント",
 
 	[Key.recentMoments]: "最近の更新",
 	[Key.portalRecentPosts]: "最近の記事",
@@ -93,6 +114,8 @@ export const ja: Translation = {
 	[Key.portalViewMore]: "もっと見る",
 	[Key.portalRunningDays]: "運営",
 	[Key.portalDays]: "日目",
+	[Key.recentLife]: "最新の記録",
+	[Key.recentItems]: "最近の更新",
 
 	// バングミフィルターと状態文本
 	[Key.bangumiTitle]: "私のバングミ",

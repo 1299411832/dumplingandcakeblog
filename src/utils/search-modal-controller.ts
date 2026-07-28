@@ -49,10 +49,10 @@ export function bindSearchModalController(
 	}
 
 	function unbind() {
-		if (targetWindow.__fireflySearchModalController === controller) {
+		if (targetWindow && targetWindow.__fireflySearchModalController === controller) {
 			delete targetWindow.__fireflySearchModalController;
 		}
-		if (targetWindow.__fireflySearchModalUnbind === unbind) {
+		if (targetWindow && targetWindow.__fireflySearchModalUnbind === unbind) {
 			delete targetWindow.__fireflySearchModalUnbind;
 		}
 	}

@@ -37,7 +37,7 @@ const categoryMap = {
 const customBangumi = await getCollection("bangumi");
 const allPosts = await getCollection("posts");
 
-const mappedData: UserSubjectCollection[] = customBangumi.map((item) => {
+const mappedData = customBangumi.map((item) => {
 	const { data } = item;
 	const categoryInfo = categoryMap[data.category];
 
@@ -138,7 +138,7 @@ for (const key of displayCategories) {
 	if (categoryMap[key as keyof typeof categoryMap]) {
 		const info = categoryMap[key as keyof typeof categoryMap];
 		const items = mappedData.filter((d) => d.subject_type === info.subjectType);
-		bangumiData[key] = items;
+		bangumiData[key] = items as UserSubjectCollection[];
 		tabs.push({
 			id: key,
 			name: info.name,

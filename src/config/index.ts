@@ -34,7 +34,6 @@ export { commentConfig } from "./commentConfig"; // 评论系统配置
 export { guestbookConfig } from "./guestbookConfig"; // 留言板配置
 export { coverImageConfig } from "./coverImageConfig"; // 封面图配置
 export { expressiveCodeConfig } from "./expressiveCodeConfig"; // 代码高亮配置
-export { folderIconConfig } from "./folderIconConfig"; // 文件夹图标配置
 export { fontConfig } from "./fontConfig"; // 字体配置
 export { footerConfig } from "./footerConfig"; // 页脚配置
 export { friendsPageConfig } from "./friendsConfig"; // 友链配置

@@ -24,7 +24,6 @@ const ziyuanEntries = await getCollection("ziyuan");
 const announcementEntry = ziyuanEntries.find((e) => e.id === "announcement");
 const announcementData = announcementEntry?.data as any;
 const announcementContent = (announcementData?.content as string) || "暂无公告";
-const announcementTitle = (announcementData?.title as string) || "公告";
 const announcementLink = announcementData?.link;
 
 // Fetch music playlist from bangumi (same source as music page)

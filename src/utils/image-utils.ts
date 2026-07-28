@@ -34,7 +34,7 @@ function appendSeedParam(apiUrl: string, hash: number): string {
  */
 export function processCoverImageSync(
 	image: string | undefined,
-	seed?: string,
+	_seed?: string,
 ): string {
 	if (!image || image === "") {
 		return "";

@@ -100,7 +100,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 			function renderMarkdown(md) {
 				var html = md;
 				// 代码块
-				html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(m, l, c) {
+				html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(_m, _l, c) {
 					return '<pre><code>' + esc(c) + '</code></pre>';
 				});
 				// 行内代码

@@ -13,53 +13,31 @@ import FloatingButton from "@/components/common/FloatingButton.astro";
 
 <script is:raw is:inline>
   function backToTop() {
-    // 直接使用原生滚动，避免OverlayScrollbars冲突
     window.scroll({ top: 0, behavior: "smooth" });
   }
 
-  // 响应式返回顶部按钮管理器
-  if (typeof window.BackToTopManager === "undefined") {
-    window.BackToTopManager = class BackToTopManager {
-      constructor() {
-        this.button = document.getElementById("back-to-top-btn");
-        this.init();
+  // Singleton guard — only initialize once across all Swup navigations
+  if (!window.__backToTopInited) {
+    window.__backToTopInited = true;
+
+    function updateVisibility() {
+      var btn = document.getElementById("back-to-top-btn");
+      if (!btn) return;
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (scrollTop > 200) {
+        btn.classList.remove("hide");
+      } else {
+        btn.classList.add("hide");
       }
+    }
 
-      init() {
-        if (!this.button) return; // wrapper checks removed as it is now flexible
+    window.addEventListener("scroll", updateVisibility, { passive: true });
 
-        this.setupScrollListener();
-      }
-
-      setupScrollListener() {
-        const updateVisibility = () => {
-          const scrollTop =
-            window.pageYOffset || document.documentElement.scrollTop;
-
-          // 当滚动超过200px时显示按钮
-          if (scrollTop > 200) {
-            this.button.classList.remove("hide");
-          } else {
-            this.button.classList.add("hide");
-          }
-        };
-
-        window.addEventListener("scroll", updateVisibility, { passive: true });
-      }
-    };
-  }
-  // ... existing initialization logic ...
-  // 页面加载完成后初始化
-  document.addEventListener("DOMContentLoaded", () => {
-    new BackToTopManager();
-  });
-
-  // 如果页面已经加载完成，立即初始化
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      new BackToTopManager();
-    });
-  } else {
-    new BackToTopManager();
+    // Initial check
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", updateVisibility);
+    } else {
+      updateVisibility();
+    }
   }
 </script>

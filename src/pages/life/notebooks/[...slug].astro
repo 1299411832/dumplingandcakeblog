@@ -16,7 +16,7 @@ const notebookImageFiles = import.meta.glob<ImageMetadata>(
 
 export async function getStaticPaths() {
 	const allEntries = await getCollection("notebooks");
-	const paths = [];
+	const paths: { params: { slug: string }; props: { entry: any; entries?: any[]; sortedEntries?: any[]; item?: any; isNotebookIndex?: boolean } }[] = [];
 
 	for (const entry of allEntries) {
 		const normalizedId = entry.id.replace(/\\/g, "/");
@@ -67,8 +67,8 @@ export async function getStaticPaths() {
 	return paths;
 }
 
-const { entry, entries, sortedEntries, item, isNotebookIndex } = Astro.props as {
-	entry: any; entries?: any[]; sortedEntries?: any[]; item?: any; isNotebookIndex: boolean;
+const { entry, sortedEntries, item, isNotebookIndex } = Astro.props as {
+	entry: any; sortedEntries?: any[]; item?: any; isNotebookIndex: boolean;
 };
 const notebookContent = !isNotebookIndex && item ? await render(item) : null;
 const normalizedEntryId = entry.id.replace(/\\/g, "/");
@@ -78,29 +78,6 @@ const isNotebookRootMatch =
 const folderName = isNotebookRootMatch
 	? isNotebookRootMatch[1]
 	: normalizedEntryId.split("/")[0];
-
-let coverSrc: string | null = null;
-const rawCover = entry.data.cover as string | undefined;
-if (rawCover) {
-	if (rawCover.startsWith("http://") || rawCover.startsWith("https://")) {
-		coverSrc = rawCover;
-	} else {
-		const imageKey = path
-			.normalize(
-				path.join("../../content/life/notebooks", folderName, rawCover),
-			)
-			.replace(/\\/g, "/");
-		const loader = notebookImageFiles[imageKey];
-		if (loader) {
-			try {
-				const img = await loader();
-				coverSrc = img.src;
-			} catch {
-				coverSrc = null;
-			}
-		}
-	}
-}
 
 const notebookCommentPath = !isNotebookIndex && item
 	? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
