@@ -10,7 +10,6 @@ category: 技术分享
 description: 介绍如何利用 宝塔面板 Docker 部署Meting-API。
 ---
 
-# Meting-API 部署指南：宝塔面板 Docker 部署
 
 > 基于 [@meting/core](https://www.npmjs.com/package/@meting/core) 的多平台音乐 API 代理服务，支持网易云、QQ音乐、酷狗、百度、酷我。
 

@@ -41,6 +41,7 @@
 @import './components/post-list.css';
 @import './components/post-card.css';
 @import './components/post-page.css';
+@import './components/post-hero.css';
 @import './pages/article-list.css';
 @import './components/home-data-layer.css';
 @import './components/home-display-layer.css';
