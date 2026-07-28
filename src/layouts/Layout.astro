@@ -99,6 +99,15 @@ const siteLang = lang.replace("_", "-");
 <html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px]" style="overflow-x: hidden;">
   <head>
     <meta charset="UTF-8" />
+    <style is:inline>
+      body[class~="lg:is-home"] .home-main-grid-wrapper {
+        max-width: none;
+      }
+
+      body[class~="lg:is-home"] #main-grid {
+        padding-inline: 0;
+      }
+    </style>
     {siteConfig.analytics?.googleAnalyticsId && (
             <GoogleAnalytics analyticsId={siteConfig.analytics.googleAnalyticsId} />
     )}

@@ -168,7 +168,7 @@ const navLinks = navBarConfig.links.map((item: NavBarLink | LinkPreset) => {
 <!-- Main content -->
 <div class="absolute w-full z-30 pointer-events-none no-banner-layout" style={`top: ${isHomePageCheck ? '0' : finalMainPanelTop}`}>
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
-    <div class="relative max-w-(--page-width) mx-auto pointer-events-auto">
+    <div class:list={["relative", "max-w-(--page-width)", "mx-auto", "pointer-events-auto", { "home-main-grid-wrapper": isHomePageCheck }]}>
         <div id="main-grid"
           class={`transition duration-700 w-full left-0 right-0 grid ${gridCols} grid-rows-[auto_1fr_auto] lg:grid-rows-[auto] mx-auto px-2 md:px-4 ${!sidebarConfig.mobileShowSidebar ? 'mobile-no-sidebar' : ''} ${isPostPage ? 'gap-0 is-post-layout' : 'gap-4'}`}
           data-sidebar-position={sidebarLayoutConfig.position}
