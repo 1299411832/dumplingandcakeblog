@@ -1,23 +1,21 @@
 ---
 import { getCollection } from "astro:content";
 import { announcementConfig } from "@/config";
-import { externalBangumiConfig } from "@/config/externalBangumiConfig";
 
+type TickerItem = {
+	tag: string;
+	content: string;
+	sort: number;
+};
 
-const bangumiGistId = externalBangumiConfig.enable ? externalBangumiConfig.gistId : "";
+const items: TickerItem[] = [
+	{ tag: "欢迎", content: "欢迎来自远方的朋友！", sort: 100 },
+];
 
-// 收集统计
-const summaryParts: string[] = [];
-
-// 欢迎语（位置由客户端 JS 填入）
-summaryParts.push("[欢迎] 欢迎来自远方的朋友！");
-
-// 公告
 if (announcementConfig.content) {
-	summaryParts.push(`[公告] ${announcementConfig.content}`);
+	items.push({ tag: "公告", content: announcementConfig.content, sort: 90 });
 }
 
-// 最近三天更新统计
 const threeDaysAgo = new Date();
 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
@@ -28,125 +26,152 @@ try {
 		import.meta.env.PROD ? data.draft !== true : true,
 	);
 	const count = posts.filter(
-		(p) => new Date(p.data.published) >= threeDaysAgo,
+		(post) => new Date(post.data.published) >= threeDaysAgo,
 	).length;
 	if (count > 0) updateParts.push(`${count} 篇文章`);
-} catch {}
+} catch {
+	// Content collection availability differs by route; ticker can render without it.
+}
 
 try {
 	const moments = await getCollection("moments");
 	const count = moments.filter(
-		(m) => new Date(m.data.published) >= threeDaysAgo,
+		(moment) => new Date(moment.data.published) >= threeDaysAgo,
 	).length;
 	if (count > 0) updateParts.push(`${count} 条动态`);
-} catch {}
-
-try {
-	const bangumi = await getCollection("bangumi");
-	const count = bangumi.filter(
-		(b) => b.data.published && new Date(b.data.published) >= threeDaysAgo,
-	).length;
-	if (count > 0) updateParts.push(`${count} 部影视`);
-} catch {}
-
-try {
-	const notebooks = await getCollection("notebooks");
-	const count = notebooks.filter(
-		(n) =>
-			!n.id.includes("_index") &&
-			n.data.date &&
-			new Date(n.data.date) >= threeDaysAgo,
-	).length;
-	if (count > 0) updateParts.push(`${count} 篇笔记`);
-} catch {}
+} catch {
+	// Optional collection.
+}
 
 try {
 	const changelog = await getCollection("changelog");
 	const count = changelog.filter(
-		(c) => new Date(c.data.date) >= threeDaysAgo,
+		(item) => new Date(item.data.date) >= threeDaysAgo,
 	).length;
 	if (count > 0) updateParts.push(`${count} 条日志`);
-} catch {}
-
-if (updateParts.length > 0) {
-	summaryParts.push(`[更新] 最近三天更新了 ${updateParts.join("、")}`);
-} else {
-	summaryParts.push("[更新] 最近三天暂无更新");
+} catch {
+	// Optional collection.
 }
 
-const tickerContent = summaryParts.join(" \u00d7 ");
+items.push({
+	tag: "更新",
+	content:
+		updateParts.length > 0
+			? `最近三天更新了 ${updateParts.join("、")}`
+			: "最近三天暂无更新",
+	sort: 80,
+});
+
+items.sort((a, b) => b.sort - a.sort);
 ---
 
 {
-	tickerContent && (
-		<section class="home-ticker" aria-label="公告跑马灯" id="home-ticker" data-bangumi-gist={bangumiGistId}>
+	items.length > 0 && (
+		<home-ticker
+			class="home-ticker"
+			aria-label="公告跑马灯"
+			data-speed="100"
+			data-ready="false"
+		>
 			<div class="home-ticker__inner">
 				<div class="home-ticker__track">
-					<span class="home-ticker__text">{tickerContent}</span>
-					<span class="home-ticker__text" aria-hidden="true">{tickerContent}</span>
-					<span class="home-ticker__text" aria-hidden="true">{tickerContent}</span>
+					<div class="home-ticker__group">
+						<div class="home-ticker__sequence" data-ticker-source>
+							{items.map((item) => (
+								<span class="home-ticker__item">
+									<span class="home-ticker__text">[{item.tag}] {item.content}</span>
+									<span class="home-ticker__sep" aria-hidden="true">×</span>
+								</span>
+							))}
+						</div>
+					</div>
 				</div>
 			</div>
-		</section>
+		</home-ticker>
 	)
 }
 
 <script>
-	function updateTickerLocation() {
-		if (!navigator.onLine) return;
-		fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=zh")
-			.then((r) => r.json())
-			.then((data) => {
-				const parts = [data.principalSubdivision, data.city].filter(Boolean);
-				const loc = parts.slice(0, 2).join(" ");
-				if (!loc) return;
-				document.querySelectorAll(".home-ticker__text").forEach((el) => {
-					el.textContent = (el.textContent || "").replace(/欢迎来自远方的朋友/g, `欢迎来自 ${loc} 的朋友`);
-				});
-			})
-			.catch(() => {});
+	class HomeTicker extends HTMLElement {
+		private track: HTMLElement | null = null;
+		private inner: HTMLElement | null = null;
+		private sourceSequence: HTMLElement | null = null;
+		private resizeObserver: ResizeObserver | null = null;
+		private layoutFrame = 0;
+
+		connectedCallback() {
+			this.track = this.querySelector<HTMLElement>(".home-ticker__track");
+			this.inner = this.querySelector<HTMLElement>(".home-ticker__inner");
+
+			if (!this.track || !this.inner) return;
+
+			if (!this.sourceSequence) {
+				const source = this.querySelector<HTMLElement>("[data-ticker-source]");
+				if (!source) return;
+				this.sourceSequence = source.cloneNode(true) as HTMLElement;
+				this.sourceSequence.removeAttribute("data-ticker-source");
+			}
+
+			this.resizeObserver?.disconnect();
+			this.resizeObserver = new ResizeObserver(() => this.scheduleLayout());
+			this.resizeObserver.observe(this.inner);
+			this.scheduleLayout();
+
+			document.fonts?.ready.then(() => {
+				if (this.isConnected) this.scheduleLayout();
+			});
+		}
+
+		disconnectedCallback() {
+			this.resizeObserver?.disconnect();
+			this.resizeObserver = null;
+			cancelAnimationFrame(this.layoutFrame);
+		}
+
+		private scheduleLayout() {
+			cancelAnimationFrame(this.layoutFrame);
+			this.layoutFrame = requestAnimationFrame(() => this.layout());
+		}
+
+		private layout() {
+			if (!this.track || !this.inner || !this.sourceSequence) return;
+
+			this.dataset.ready = "false";
+
+			const group = document.createElement("div");
+			group.className = "home-ticker__group";
+
+			const firstSequence = this.sourceSequence.cloneNode(true) as HTMLElement;
+			group.appendChild(firstSequence);
+			this.track.replaceChildren(group);
+
+			const sequenceWidth = firstSequence.getBoundingClientRect().width;
+			if (sequenceWidth <= 0) return;
+
+			const copiesPerGroup = Math.max(
+				1,
+				Math.ceil((this.inner.clientWidth + 1) / sequenceWidth),
+			);
+
+			for (let index = 1; index < copiesPerGroup; index += 1) {
+				const repeatedSequence = this.sourceSequence.cloneNode(true) as HTMLElement;
+				repeatedSequence.setAttribute("aria-hidden", "true");
+				group.appendChild(repeatedSequence);
+			}
+
+			const duplicateGroup = group.cloneNode(true) as HTMLElement;
+			duplicateGroup.setAttribute("aria-hidden", "true");
+			this.track.appendChild(duplicateGroup);
+
+			const distance = group.getBoundingClientRect().width;
+			const configuredSpeed = Number.parseFloat(this.dataset.speed ?? "");
+			const speed = configuredSpeed > 0 ? configuredSpeed : 100;
+			this.style.setProperty("--home-ticker-duration", `${distance / speed}s`);
+			this.dataset.ready = "true";
+		}
 	}
 
-	function updateTickerBangumi() {
-		var gistId = document.getElementById("home-ticker")?.getAttribute("data-bangumi-gist");
-		if (!gistId) return;
-
-		fetch("https://api.github.com/gists/" + gistId, {
-			headers: { "Accept": "application/vnd.github+json" }
-		})
-			.then(function(r) { if (!r.ok) return null; return r.json(); })
-			.then(function(gist) {
-				var file = gist.files["bangumi.json"];
-				if (!file) return;
-				var items: any[] = [];
-				try { items = JSON.parse(file.content || "[]"); } catch(e) { return; }
-				if (!Array.isArray(items) || !items.length) return;
-
-				var threeDaysAgo = new Date();
-				threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-				var count = items.filter(function(item) {
-					return item.updated_at && new Date(item.updated_at) >= threeDaysAgo;
-				}).length;
-
-				if (count <= 0) return;
-
-				document.querySelectorAll(".home-ticker__text").forEach(function(el) {
-					var text = el.textContent || "";
-					if (text.indexOf("部影视") !== -1) return;
-					if (text.indexOf("[更新]") !== -1) {
-						text = text.replace(/(\[更新\] 最近三天更新了 )/, "$1" + count + " 部影视、");
-						text = text.replace(/、\s*×/g, " ×");
-						el.textContent = text;
-					}
-				});
-			})
-			.catch(function() {});
+	if (!customElements.get("home-ticker")) {
+		customElements.define("home-ticker", HomeTicker);
 	}
-
-	updateTickerLocation();
-	updateTickerBangumi();
-	document.addEventListener("astro:page-load", () => {
-		updateTickerLocation();
-		updateTickerBangumi();
-	});
 </script>

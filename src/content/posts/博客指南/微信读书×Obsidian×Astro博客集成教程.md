@@ -115,7 +115,7 @@ npm run build
 2. 首次使用时，会弹出扫码授权页面——**使用微信读书 App 扫描二维码**
 3. 微信读书 App 中确认授权后，Obsidian 插件即完成了登录绑定
 
-![Obsidian Weread 登录界面](https://re.tsh520.cn/zl/zbd.webp)
+![Obsidian Weread 登录界面](/assets/ziyuan/zbd.webp)
 
 > **安全提醒**：你的登录凭证仅存储在本地 Obsidian 的 `data.json` 中，不会上传到第三方服务器。插件的所有网络请求直接访问微信读书官方 API。
 

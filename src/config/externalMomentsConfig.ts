@@ -14,7 +14,7 @@ export const externalMomentsConfig = {
 
 	// 默认作者信息
 	defaultAuthor: "团子",
-	defaultAvatar: "https://re.tsh520.cn/zl/tx.webp",
+	defaultAvatar: "/assets/ziyuan/tx.webp",
 
 	// 后台登录密码的 SHA-256 哈希（从环境变量读取）
 	// 生成方式：echo -n "你的密码" | sha256sum

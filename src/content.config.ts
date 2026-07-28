@@ -2,6 +2,15 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
+const publicOrRemoteImage = z.string().refine((value) => {
+	return (
+		value.startsWith("/") ||
+		value.startsWith("http://") ||
+		value.startsWith("https://") ||
+		value.startsWith("data:")
+	);
+});
+
 const postsCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/posts" }),
 	schema: z.object({
@@ -155,24 +164,24 @@ const notebooksCollection = defineCollection({
 
 const albumCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx,json}", base: "./src/content/album" }),
-	schema: ({ image }) =>
-		z.object({
+	schema: ({ image }) => {
+		const albumImage = publicOrRemoteImage.or(image()).or(z.string());
+
+		return z.object({
 			title: z.string(),
 			subtitle: z.string().optional().default(""),
-			cover: image().or(z.string()).optional(),
+			cover: albumImage.optional(),
 			date: z.coerce.date(),
 			location: z.string().optional().default(""),
 			photos: z
 				.array(
-					image()
-						.or(z.string())
-						.or(
-							z.object({
-								src: z.string(),
-								alt: z.string().optional(),
-								caption: z.string().optional(),
-							}),
-						),
+					albumImage.or(
+						z.object({
+							src: z.string(),
+							alt: z.string().optional(),
+							caption: z.string().optional(),
+						}),
+					),
 				)
 				.optional()
 				.default([]),
@@ -180,7 +189,8 @@ const albumCollection = defineCollection({
 			draft: z.boolean().optional().default(false),
 			// 图床文件夹路径，设置后从 CloudFlare ImgBed 动态加载图片
 			imgbedFolder: z.string().optional().default(""),
-		}),
+		});
+	},
 });
 
 const ziyuanCollection = defineCollection({

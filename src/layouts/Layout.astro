@@ -105,7 +105,22 @@ const siteLang = lang.replace("_", "-");
       }
 
       body[class~="lg:is-home"] #main-grid {
+        gap: 0;
+        grid-template-columns: minmax(0, 1fr);
         padding-inline: 0;
+      }
+
+      body[class~="lg:is-home"] #main-grid > #left-sidebar-wrapper,
+      body[class~="lg:is-home"] #main-grid > #left-sidebar-dynamic,
+      body[class~="lg:is-home"] #main-grid > #right-sidebar-static,
+      body[class~="lg:is-home"] #main-grid > #right-sidebar-dynamic,
+      body[class~="lg:is-home"] #main-grid > #mobile-bottom-sidebar {
+        display: none;
+      }
+
+      body[class~="lg:is-home"] #main-content-wrapper,
+      body[class~="lg:is-home"] #main-grid > .footer {
+        grid-column: 1 / -1;
       }
     </style>
     {siteConfig.analytics?.googleAnalyticsId && (

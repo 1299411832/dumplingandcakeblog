@@ -1,6 +1,6 @@
 ---
 author: 团子和蛋糕
-avatar: https://re.tsh520.cn/zl/tx.webp
+avatar: /assets/ziyuan/tx.webp
 pinned: false
 published:
 images: photo1.jpg, photo2.jpg, photo3.jpg

@@ -455,7 +455,7 @@ async function migrateMoments() {
 		const fm = {
 			published: entry.published.replace("T", " ").replace("Z", "").slice(0, 19),
 			author: entry.author || "团子和蛋糕",
-			avatar: entry.avatar || "https://re.tsh520.cn/zl/tx.webp",
+			avatar: entry.avatar || "/assets/ziyuan/tx.webp",
 		};
 		if (entry.id) fm.id = entry.id;
 		if (entry.pinned) fm.pinned = true;

@@ -7,8 +7,8 @@ export const relationshipConfig: RelationshipConfig = {
 	name1: "---TSH",
 	name2: "CXY---",
 	// 双方头像
-	avatar1: "https://re.tsh520.cn/zl/tsh.jpg",
-	avatar2: "https://re.tsh520.cn/zl/cxy.jpg",
+	avatar1: "/assets/ziyuan/tsh.jpg",
+	avatar2: "/assets/ziyuan/cxy.jpg",
 	// 小组件标题
 	title: "我和宝宝在一起已经",
 };

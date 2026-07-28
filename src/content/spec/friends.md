@@ -13,7 +13,7 @@ description: "与优秀的朋友们一起成长"
 站点名称: 团子和蛋糕
 站点描述: 如果你喜欢那么欢迎来到我的世界！
 站点链接: https://blog.tsh520.cn
-头像链接: https://re.tsh520.cn/zl/tx.webp
+头像链接: /assets/ziyuan/tx.webp
 
 ```
 

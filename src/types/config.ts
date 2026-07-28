@@ -237,6 +237,100 @@ export type NavBarConfig = {
 	links: (NavBarLink | LinkPreset)[];
 };
 
+export type HomePortfolioShutterPanel = {
+	title: string;
+	english: string;
+	description: string;
+	image: string;
+	alt?: string;
+};
+
+export type HomePortfolioShutterInterlude = {
+	/** 前景大图（仅显示上半部分） */
+	foreground: string;
+	/** 背景左侧滑入长条（从左向右） */
+	stripLeft: string;
+	/** 背景右侧滑入长条（从右向左） */
+	stripRight: string;
+	/** 中景左侧文字（人物左侧） */
+	copyLeft: string;
+	/** 中景右侧文字（人物右侧） */
+	copyRight: string;
+};
+
+export type HomePortfolioShutterFinalImage = {
+	/** 中景图（首层渐入） */
+	midgroundImage: string;
+	/** 后景视频（中景完全显现后渐入，最底层，静音循环） */
+	backgroundVideo: string;
+	/** 前景人物图（与后景同时渐入，最前层，不裁剪） */
+	foregroundImage: string;
+	alt: string;
+};
+
+export type HomePortfolioShutterConfig = {
+	enabled: boolean;
+	kicker: string;
+	title: string;
+	description: string;
+	scrollDistance: number;
+	finalImage: HomePortfolioShutterFinalImage;
+	panels: HomePortfolioShutterPanel[];
+	/** 5 张长条图之后的插入动画段：三层布局（背景长条 / 中景文字 / 前景大图） */
+	interlude: HomePortfolioShutterInterlude;
+};
+
+export type HomeDisplayLayerConfig = {
+	/** 是否启用展示层（移动端与 prefers-reduced-motion 下始终隐藏） */
+	enabled: boolean;
+	/** 左侧垂直大字 */
+	kicker: string;
+	/** 中间垂直主标题（建议英文，纵向显示） */
+	title: string;
+	/** 右侧英文长句，作为副释义 */
+	description: string;
+	/** pin 滚动距离（px），最终值取该值与「最小视口倍数」中的较大者 */
+	scrollDistance: number;
+	/** 柱子最终宽度（初始垂直线水平扩展到该宽度后停留） */
+	pillarFinalWidth: string;
+	/** 底部发射图（水平居中、垂直底部），线条从其上方往上延展，柱子扩展后覆盖它 */
+	emitterImage?: string;
+};
+
+export type HeroDialogueLine = {
+	/** 说话者：host=站长 / visitor=访客，默认 host。左上角名牌随之切换 */
+	speaker?: "host" | "visitor";
+	/** 台词文本（逐字打字机播放） */
+	text: string;
+};
+
+export type HeroDialogueTopic = {
+	/** 话题菜单标题，如「关于我」 */
+	title: string;
+	/** 该话题的逐句台词 */
+	lines: HeroDialogueLine[];
+};
+
+export type HeroDialogueConfig = {
+	/** 是否启用对话框；关闭则 Hero 不渲染对话框 */
+	enabled?: boolean;
+	/** 说话者名称 */
+	speakers?: {
+		host?: string;
+		visitor?: string;
+	};
+	/** 默认展示的简介台词，逐句播放；末句后可打开话题菜单 */
+	intro: HeroDialogueLine[];
+	/** 话题列表；点击某话题进入其逐句台词，末句后返回菜单 */
+	topics: HeroDialogueTopic[];
+	/** 话题菜单提示语，默认「想聊点什么？」 */
+	menuTitle?: string;
+	/** 打字机速度（毫秒/字），默认 45 */
+	typingSpeed?: number;
+	/** 自动播放时每句停留时间（毫秒），默认 1600 */
+	autoDelay?: number;
+};
+
 export type ProfileConfig = {
 	avatar?: string;
 	name: string;
@@ -244,6 +338,58 @@ export type ProfileConfig = {
 	occupation?: string;
 	avatarOffWork?: string;
 	bio?: string | string[];
+	links: {
+		name: string;
+		url: string;
+		icon: string;
+		showName?: boolean;
+	}[];
+};
+
+export type HomeConfig = {
+	avatar?: string;
+	avatarOnWork?: string;
+	avatarOffWork?: string;
+	name: string;
+	displayName?: string;
+	nameBadge?: string;
+	occupation?: string;
+	bio?: string | string[];
+	hero: {
+		backgroundImage: string;
+		backgroundImageMobile?: string;
+		characterImage?: string;
+		speechAccentImage: string;
+		speech?: {
+			text: string;
+			english: string;
+		};
+		dialogue?: HeroDialogueConfig;
+		rightPanel?: {
+			pill: string;
+			title: string;
+			diamond: string;
+			microText: string;
+		};
+		rain?: {
+			enabled?: boolean;
+			intensity?: number;
+			color?: string;
+		};
+	};
+	dataLayer: {
+		visitImage: string;
+		archiveImage: string;
+		contactImage: string;
+		skillsImage: string;
+	};
+	displayLayer: HomeDisplayLayerConfig;
+	portfolioShutter: HomePortfolioShutterConfig;
+	skills?: {
+		name: string;
+		icon?: string;
+		group?: string;
+	}[];
 	links: {
 		name: string;
 		url: string;

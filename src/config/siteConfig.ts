@@ -54,7 +54,7 @@ export const siteConfig: SiteConfig = {
 	favicon: [
 		{
 			// 图标文件路径
-			src: "https://re.tsh520.cn/zl/tx.webp",
+			src: "/assets/ziyuan/tx.webp",
 			// 可选，指定主题 'light' | 'dark'
 			// theme: "light",
 			// 可选，图标大小

@@ -42,10 +42,13 @@
 @import './components/post-card.css';
 @import './components/post-page.css';
 @import './pages/article-list.css';
-@import './components/home-hero.css';
-@import './components/home-ticker.css';
 @import './components/home-data-layer.css';
+@import './components/home-display-layer.css';
+@import './components/home-hero-dialogue.css';
+@import './components/home-hero.css';
 @import './components/home-portfolio-shutter.css';
+@import './components/home-section.css';
+@import './components/home-ticker.css';
 @import './components/page-loader.css';
 @import './components/friend-card.css';
 @import './components/app-card.css';
