@@ -676,9 +676,6 @@ try {
 		if (!nameEl) return;
 		if (prefersReducedMotion()) return;
 
-		// 等待逐字弹入动画基本完成（从 0.98s 开始，10 字 × 0.04s + 0.5s ≈ 1.88s 结束）
-		await new Promise((r) => setTimeout(r, 1500));
-
 		if (!document.contains(nameEl)) return;
 
 		destroyHeroHatch();
