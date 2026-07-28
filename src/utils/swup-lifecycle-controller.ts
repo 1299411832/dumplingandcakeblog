@@ -19,6 +19,14 @@ declare global {
 export function initSwupLifecycle(): void {
 	const bannerEnabled = !!document.getElementById("wallpaper-wrapper");
 	let bannerAnimCtrl: AbortController | null = null;
+	const mainContentTop = "5.5rem";
+
+	const syncMainContentTop = (isHome: boolean) => {
+		const mainContentWrapper =
+			document.getElementById("main-content-wrapper");
+		if (!mainContentWrapper) return;
+		mainContentWrapper.style.top = isHome ? "0" : mainContentTop;
+	};
 
 	const setup = () => {
 		window.swup.hooks.on(
@@ -141,6 +149,7 @@ export function initSwupLifecycle(): void {
 						);
 					}
 				}
+				syncMainContentTop(isHome);
 
 				// 4. Update footer
 				const footer = mainGrid.querySelector(".footer");
@@ -359,6 +368,9 @@ export function initSwupLifecycle(): void {
 		);
 
 		window.swup.hooks.on("page:view", () => {
+			const isHome = pathsEqual(window.location.pathname, url("/"));
+			syncMainContentTop(isHome);
+
 			// Update sidebar component visibility
 			updateSidebarComponentsVisibility();
 

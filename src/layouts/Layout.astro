@@ -104,6 +104,16 @@ const siteLang = lang.replace("_", "-");
         max-width: none;
       }
 
+      @media (min-width: 769px) {
+        body[class~="lg:is-home"] #main-content-wrapper {
+          top: 0 !important;
+        }
+
+        body:not([class~="lg:is-home"]) #main-content-wrapper {
+          top: 5.5rem !important;
+        }
+      }
+
       body[class~="lg:is-home"] #main-grid {
         gap: 0;
         grid-template-columns: minmax(0, 1fr);
