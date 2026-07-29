@@ -214,10 +214,12 @@ const navLinks = navBarConfig.links.map((item: NavBarLink | LinkPreset) => {
 
                 </div>
                 <FloatingDock headings={headings} />
-                <MobileDock />
-                <MobileMenuSheet />
             </main>
             </div>
+
+            {/* 移动端 Dock & 菜单 Sheet — 放在 swup-container 外部，跨导航持久化 */}
+            <MobileDock />
+            <MobileMenuSheet />
 
             {/* 右侧边栏 - CSS .lg\:is-home 控制首页隐藏 */}
             {(sidebarLayoutConfig.position === "both" || sidebarLayoutConfig.position === "right") ? (
