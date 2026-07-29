@@ -479,5 +479,11 @@ import { Icon } from "astro-icon/components";
 		lastScrollY = window.scrollY;
 		dockEl.classList.remove("is-hidden");
 	});
+
+	// 双保险：内容替换时立即强制关闭 Sheet（比 page-load 更早）
+	document.addEventListener("swup:content:replaced", function() {
+		closeSheet();
+		closeMenuSheet();
+	});
 })();
 </script>
