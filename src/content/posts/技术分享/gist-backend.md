@@ -1,5 +1,5 @@
 ---
-title: "用 GitHub Gist 做博客后端：零成本的说说与笔记方案"
+title: "用 GitHub Gist 做博客临时后端"
 published: 2026-06-12
 tags:
   - GitHub

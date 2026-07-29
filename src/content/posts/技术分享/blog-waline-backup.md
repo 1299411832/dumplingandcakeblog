@@ -1,5 +1,5 @@
 ---
-title: "给 Waline 评论系统加一个自动备份到 GitHub 的脚本"
+title: "Waline 评论系统自动备份到 GitHub"
 published: 2026-07-27
 order: 1
 tags:

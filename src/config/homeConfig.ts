@@ -3,6 +3,12 @@ import { profileConfig } from "./profileConfig";
 import { siteConfig } from "./siteConfig";
 import { skillsConfig } from "./skillsConfig";
 
+// 构建时自动扫描背景图文件夹
+const _deskGlob = import.meta.glob("../../public/assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const _mobGlob = import.meta.glob("../../public/assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const _deskImgs = Object.values(_deskGlob);
+const _mobImgs = Object.values(_mobGlob);
+
 const replicaRoot = "/assets/images/replica-home";
 const bioLines = Array.isArray(profileConfig.bio)
 	? profileConfig.bio
@@ -23,8 +29,10 @@ export const homeConfig = {
 	bio: profileConfig.bio,
 
 	hero: {
-		backgroundImage: `${replicaRoot}/home/home.webp`,
-		backgroundImageMobile: `${replicaRoot}/home/home-mobile.webp`,
+		backgroundImage: _deskImgs.length > 0 ? _deskImgs[0] : `${replicaRoot}/home/home.webp`,
+		backgroundImageMobile: _mobImgs.length > 0 ? _mobImgs[0] : `${replicaRoot}/home/home-mobile.webp`,
+		backgroundImagePool: _deskImgs.length > 0 ? _deskImgs : [],
+		backgroundImageMobilePool: _mobImgs.length > 0 ? _mobImgs : [],
 		speechAccentImage: `${replicaRoot}/home/home2-1.webp`,
 		dialogue: {
 			enabled: true,

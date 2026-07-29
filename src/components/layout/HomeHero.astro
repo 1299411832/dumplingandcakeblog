@@ -112,8 +112,10 @@ const rainConfig = {
 	data-avatar-off-pool={JSON.stringify(offAvatarUrls)}
 	data-work-hours={JSON.stringify(workHours)}
 	data-hero-rain={JSON.stringify(rainConfig)}
+	data-bg-pool={JSON.stringify(homeConfig.hero.backgroundImagePool || [])}
+	data-bg-mobile-pool={JSON.stringify(homeConfig.hero.backgroundImageMobilePool || [])}
 >
-	<!-- 背景层：移动端 / 桌面端通过 <picture> 服务端切换 -->
+	<!-- 背景层：客户端随机选图 -->
 	<picture class="home-hero__video-picture">
 		<source media="(max-width: 768px)" srcset={mobileBackground} />
 		<img class="home-hero__video" src={homeConfig.hero.backgroundImage} alt="" />
@@ -255,6 +257,28 @@ const rainConfig = {
 		</aside>
 	</div>
 </section>
+
+<!-- 客户端随机切换背景图 -->
+<script is:inline>
+(function() {
+	var hero = document.getElementById("home-hero");
+	if (!hero) return;
+	try {
+		var deskPool = JSON.parse(hero.dataset.bgPool || "[]");
+		var mobPool = JSON.parse(hero.dataset.bgMobilePool || "[]");
+		var isMobile = window.innerWidth <= 768;
+		var pool = isMobile ? mobPool : deskPool;
+		if (pool.length < 2) return;
+		var pick = pool[Math.floor(Math.random() * pool.length)];
+		var img = hero.querySelector(".home-hero__video");
+		var source = hero.querySelector("source");
+		if (img && pick) {
+			if (isMobile && source) source.srcset = pick;
+			else img.src = pick;
+		}
+	} catch(e) {}
+})();
+</script>
 
 <script>
 	import { gsap } from "gsap";

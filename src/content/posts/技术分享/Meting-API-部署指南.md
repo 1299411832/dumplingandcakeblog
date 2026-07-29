@@ -1,5 +1,5 @@
 ---
-title: "Meting-API 部署指南：宝塔面板 Docker 部署"
+title: "Meting-API 部署服务器指南"
 published: 2026-07-26
 order: 2
 tags:

@@ -1,5 +1,5 @@
 ---
-title: "Waline 部署教程：从 Vercel 迁移到腾讯云服务器（宝塔面板 + Docker）"
+title: "Waline 部署教程：云服务器篇"
 published: 2026-07-27
 order: 2
 tags:

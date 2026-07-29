@@ -1,5 +1,12 @@
 import type { BackgroundWallpaperConfig } from "@/types/config";
 
+// 构建时自动扫描 desktop-bg / mobile-bg 文件夹，新增图片无需改代码
+const desktopGlob = import.meta.glob("../../public/assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const mobileGlob = import.meta.glob("../../public/assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+
+const desktopImages = Object.values(desktopGlob);
+const mobileImages = Object.values(mobileGlob);
+
 export const backgroundWallpaper: BackgroundWallpaperConfig = {
 	/**
 	 * 背景图片配置
@@ -32,8 +39,8 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 	 * ],
 	 */
 	src: {
-		desktop: ["/assets/images/home/home1/home.webp"],
-		mobile: ["/assets/images/home/home1/home2.webp"],
+		desktop: desktopImages.length > 0 ? desktopImages : ["/assets/images/home/home1/home.webp"],
+		mobile: mobileImages.length > 0 ? mobileImages : ["/assets/images/home/home1/home2.webp"],
 	},
 	// Banner模式特有配置
 	banner: {

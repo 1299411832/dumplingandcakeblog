@@ -358,6 +358,8 @@ export type HomeConfig = {
 	hero: {
 		backgroundImage: string;
 		backgroundImageMobile?: string;
+		backgroundImagePool?: string[];
+		backgroundImageMobilePool?: string[];
 		characterImage?: string;
 		speechAccentImage: string;
 		speech?: {
