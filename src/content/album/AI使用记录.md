@@ -4,6 +4,6 @@ subtitle: 记录AI使用记录
 date: 2026-05-14
 tags:
   - AI
-imgbedFolder: "相册/AI使用"
+imgbedFolder: "相册/ai使用"
 ---
 
