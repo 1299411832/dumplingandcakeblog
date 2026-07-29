@@ -123,9 +123,21 @@ import { Icon } from "astro-icon/components";
 <script is:inline>
 (function() {
 	var dockEl = document.getElementById("mobile-dock");
+	if (!dockEl) return;
+
 	var overlayEl = document.getElementById("mobile-dock-overlay");
 	var sheetEl = document.getElementById("mobile-dock-sheet");
-	if (!dockEl || !overlayEl || !sheetEl) return;
+
+	// menu-sheet 在 MobileMenuSheet.astro 中渲染，位于 MobileDock 之后
+	// is:inline 脚本在解析到时立即执行，此时 menu-sheet 尚未解析
+	// 需要等待 DOM 完全解析后再获取
+	function getMenuSheetElements() {
+		return {
+			sheet: document.getElementById("menu-sheet"),
+			overlay: document.getElementById("menu-sheet-overlay"),
+			close: document.getElementById("menu-sheet-close"),
+		};
+	}
 
 	var lastScrollY = window.scrollY;
 	var isOverlayOpen = false;
@@ -163,7 +175,7 @@ import { Icon } from "astro-icon/components";
 		}
 	});
 
-	// 菜单（触发隐藏的 Navbar 汉堡按钮）
+	// 菜单（打开 Bottom Sheet）
 	var menuBtn = document.getElementById("mobile-dock-menu-btn");
 	var menuCollapsedIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-collapsed");
 	var menuOpenIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-open");
@@ -171,22 +183,66 @@ import { Icon } from "astro-icon/components";
 	function setMenuOpenState(open) {
 		if (menuCollapsedIcon) menuCollapsedIcon.style.display = open ? "none" : "";
 		if (menuOpenIcon) menuOpenIcon.style.display = open ? "" : "none";
+		isOverlayOpen = open;
+	}
+
+	function openMenuSheet() {
+		var els = getMenuSheetElements();
+		els.sheet?.classList.add("is-open");
+		els.overlay?.classList.add("is-open");
+		els.overlay?.setAttribute("aria-hidden", "false");
+		setMenuOpenState(true);
+	}
+
+	function closeMenuSheet() {
+		var els = getMenuSheetElements();
+		if (els.sheet) {
+			els.sheet.classList.remove("is-open");
+			els.sheet.style.maxHeight = "";
+		}
+		els.overlay?.classList.remove("is-open");
+		els.overlay?.setAttribute("aria-hidden", "true");
+		setMenuOpenState(false);
 	}
 
 	menuBtn?.addEventListener("click", function(e) {
 		e.stopPropagation();
-		document.getElementById("nav-menu-switch")?.click();
+		var els = getMenuSheetElements();
+		if (els.sheet?.classList.contains("is-open")) {
+			closeMenuSheet();
+		} else {
+			openMenuSheet();
+		}
 	});
 
-	// 监听 NavMenuPanel 抽屉状态同步菜单图标
-	var navDrawer = document.getElementById("nav-menu-panel");
-	if (navDrawer) {
-		new MutationObserver(function() {
-			var isOpen = navDrawer.classList.contains("is-open");
-			setMenuOpenState(isOpen);
-			isOverlayOpen = isOpen;
-		}).observe(navDrawer, { attributes: true, attributeFilter: ["class"] });
+	// 延迟注册关闭事件（menu-sheet 在 MobileMenuSheet.astro 中，DOM 可能尚未就绪）
+	function bindMenuSheetCloseEvents() {
+		var els = getMenuSheetElements();
+		if (!els.sheet) return;
+		els.close?.addEventListener("click", function(e) {
+			e.stopPropagation();
+			closeMenuSheet();
+		});
+		els.overlay?.addEventListener("click", function() {
+			closeMenuSheet();
+		});
 	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", bindMenuSheetCloseEvents);
+	} else {
+		bindMenuSheetCloseEvents();
+	}
+
+	// ESC 关闭 Sheet
+	document.addEventListener("keydown", function(e) {
+		if (e.key === "Escape") {
+			var els = getMenuSheetElements();
+			if (els.sheet?.classList.contains("is-open")) {
+				closeMenuSheet();
+			}
+		}
+	});
 
 	// 主题切换（在工具 sheet 中）
 	var themeSheetBtn = document.getElementById("md-theme-btn");
@@ -229,16 +285,16 @@ import { Icon } from "astro-icon/components";
 
 	// 工具栏 sheet 开关
 	function openSheet() {
-		sheetEl.classList.add("is-open");
-		overlayEl.classList.add("is-open");
-		overlayEl.setAttribute("aria-hidden", "false");
+		sheetEl?.classList.add("is-open");
+		overlayEl?.classList.add("is-open");
+		overlayEl?.setAttribute("aria-hidden", "false");
 		isOverlayOpen = true;
 	}
 
 	function closeSheet() {
-		sheetEl.classList.remove("is-open");
-		overlayEl.classList.remove("is-open");
-		overlayEl.setAttribute("aria-hidden", "true");
+		sheetEl?.classList.remove("is-open");
+		overlayEl?.classList.remove("is-open");
+		overlayEl?.setAttribute("aria-hidden", "true");
 		isOverlayOpen = false;
 	}
 
@@ -415,6 +471,7 @@ import { Icon } from "astro-icon/components";
 	// Swup 页面加载后重新初始化
 	document.addEventListener("astro:page-load", function() {
 		closeSheet();
+		closeMenuSheet();
 		updatePathDependent();
 		lastScrollY = window.scrollY;
 		dockEl.classList.remove("is-hidden");

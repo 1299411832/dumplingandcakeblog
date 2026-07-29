@@ -83,6 +83,7 @@
 
 /* --- 移动端组件 --- */
 @import './components/mobile-dock.css';
+@import './components/mobile-menu-sheet.css';
 @import './components/douyin-hot.css';
 @import './components/weather.css';
 

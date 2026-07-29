@@ -4,6 +4,7 @@ import Live2DWidget from "@components/features/Live2DWidget.astro";
 import SpineModel from "@components/features/SpineModel.astro";
 import Footer from "@components/layout/Footer.astro";
 import MobileDock from "@components/layout/MobileDock.astro";
+import MobileMenuSheet from "@/components/layout/MobileMenuSheet.astro";
 import Navbar from "@components/layout/Navbar.astro";
 import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
 import SideBar from "@components/layout/SideBar.astro";
@@ -214,6 +215,7 @@ const navLinks = navBarConfig.links.map((item: NavBarLink | LinkPreset) => {
                 </div>
                 <FloatingDock headings={headings} />
                 <MobileDock />
+                <MobileMenuSheet />
             </main>
             </div>
 
