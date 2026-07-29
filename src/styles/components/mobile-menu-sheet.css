@@ -14,7 +14,7 @@
 }
 
 .menu-sheet-overlay.is-open {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.3);
   opacity: 1;
   pointer-events: auto;
 }
