@@ -99,13 +99,12 @@ export const fontConfig = {
 			display: "swap" as const,
 		},
 
-		// 霞鹜文楷 - LXGW WenKai（本地 TTF，25MB 较大，仅测试用）
+		// 霞鹜文楷 - LXGW WenKai（ZeoSeven CDN，WOFF2 按需加载）
 		"lxgw-wenkai": {
 			id: "lxgw-wenkai",
 			name: "霞鹜文楷",
-			src: "/fonts/lxgw-wenkai/LXGWWenKai-Regular.ttf",
+			src: "https://fontsapi.zeoseven.com/292/main/result.css",
 			family: "LXGW WenKai",
-			format: "truetype" as const,
 			display: "swap" as const,
 		},
 	},

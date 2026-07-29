@@ -120,8 +120,11 @@ import { Icon } from "astro-icon/components";
 	</div>
 </div>
 
-<script is:inline>
+<script is:inline data-swup-ignore-script>
 (function() {
+	if (window.__mobileDockInited) return;
+	window.__mobileDockInited = true;
+
 	var dockEl = document.getElementById("mobile-dock");
 	if (!dockEl) return;
 
