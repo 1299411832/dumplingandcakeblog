@@ -41,3 +41,15 @@ package/
 # AI 摘要补全脚本（包含 API 密钥，不上传 GitHub）
 scripts/fill-descriptions/index.ts
 
+# AI 工具与临时文件
+.agent
+.agents
+.mimocode
+.pnpm-store
+note-organizer-workspace
+obsidian-sync-plugin
+src/临时收集
+src/.claudian
+src/.trash
+src/notes
+

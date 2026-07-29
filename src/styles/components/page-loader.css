@@ -31,10 +31,20 @@
 	opacity: 1;
 }
 
+:root.dark .page-loader {
+	--page-loader-bg: oklch(0.08 0 0);
+}
+
 .page-loader--hidden {
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
+}
+
+.page-loader--visible {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
 }
 
 .page-loader__sr-only {
@@ -70,12 +80,5 @@
 	.page-loader * {
 		animation: none !important;
 		transition: none !important;
-	}
-}
-
-/* Mobile: hide page loader completely */
-@media (max-width: 768px) {
-	.page-loader {
-		display: none !important;
 	}
 }
