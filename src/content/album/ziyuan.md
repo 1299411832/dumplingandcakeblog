@@ -9,9 +9,9 @@ tags:
   - 网站
 photos:
 - /assets/ziyuan/tx.webp
-- /assets/ziyuan/cxy.webp
+- /assets/ziyuan/cxy.jpg
 - /assets/ziyuan/qq.webp
-- /assets/ziyuan/tsh.webp
+- /assets/ziyuan/tsh.jpg
 - /assets/ziyuan/vx.webp
 - /assets/ziyuan/zbd.webp
 - /assets/ziyuan/zfb.webp

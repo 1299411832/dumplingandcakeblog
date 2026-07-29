@@ -9,7 +9,7 @@ photos:
   - https://i.imglt.com/20260421/853341b77769fad1a24adee80d45010c.webp
   - https://i.imglt.com/20260421/90b3b0f1638f49c1c0cc2dd532b4aee4.webp
   - https://i.imglt.com/20260421/cec3144da2edfd5676ffde9e19949208.webp
-  - ttps://i.imglt.com/20260421/52bfd97369dda2d0f9de8dd5f67f4661.webp
+  - https://i.imglt.com/20260421/52bfd97369dda2d0f9de8dd5f67f4661.webp
   - https://i.imglt.com/20260421/c1a1193a27c02a9962b887cc5237e1e2.webp
   - https://i.imglt.com/20260421/ea6c7294fe5e2cb661f7491aebba22a8.webp
   - https://i.imglt.com/20260421/2969e1da6cf61ab5a9da58808b66ff0a.webp
