@@ -6,8 +6,9 @@ import { skillsConfig } from "./skillsConfig";
 // 构建时自动扫描背景图文件夹
 const _deskGlob = import.meta.glob("../../public/assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 const _mobGlob = import.meta.glob("../../public/assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
-const _deskImgs = Object.values(_deskGlob);
-const _mobImgs = Object.values(_mobGlob);
+const _fixPath = (p: string) => p.replace(/^\/public/, "");
+const _deskImgs = Object.values(_deskGlob).map(_fixPath);
+const _mobImgs = Object.values(_mobGlob).map(_fixPath);
 
 const replicaRoot = "/assets/images/replica-home";
 const bioLines = Array.isArray(profileConfig.bio)

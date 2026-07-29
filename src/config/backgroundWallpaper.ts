@@ -4,8 +4,10 @@ import type { BackgroundWallpaperConfig } from "@/types/config";
 const desktopGlob = import.meta.glob("../../public/assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 const mobileGlob = import.meta.glob("../../public/assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 
-const desktopImages = Object.values(desktopGlob);
-const mobileImages = Object.values(mobileGlob);
+// 去掉 /public 前缀，Vite 在 public 目录下以根路径提供文件
+const fixPath = (p: string) => p.replace(/^\/public/, "");
+const desktopImages = Object.values(desktopGlob).map(fixPath);
+const mobileImages = Object.values(mobileGlob).map(fixPath);
 
 export const backgroundWallpaper: BackgroundWallpaperConfig = {
 	/**
