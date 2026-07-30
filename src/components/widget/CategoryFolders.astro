@@ -31,6 +31,14 @@ const { groups } = Astro.props;
 							{group.count} 篇文章 · {group.tags.length} 个标签
 						</span>
 					</span>
+					<a
+						href={group.url}
+						class="category-folder__link"
+						aria-label={`查看${group.name}分类的所有文章`}
+						onclick="event.stopPropagation()"
+					>
+						<Icon name="material-symbols:arrow-outward-rounded" />
+					</a>
 					<Icon
 						name="material-symbols:keyboard-arrow-down-rounded"
 						class="category-folder__chevron"
