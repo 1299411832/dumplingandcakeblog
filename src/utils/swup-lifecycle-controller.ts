@@ -22,10 +22,12 @@ export function initSwupLifecycle(): void {
 	const mainContentTop = "5.5rem";
 
 	const syncMainContentTop = (isHome: boolean) => {
-		const mainContentWrapper =
-			document.getElementById("main-content-wrapper");
-		if (!mainContentWrapper) return;
-		mainContentWrapper.style.top = isHome ? "0" : mainContentTop;
+		// 目标是 absolute 定位的外层容器（main-content-wrapper 的祖先）
+		const outerWrapper = document.querySelector(
+			".no-banner-layout.absolute"
+		) as HTMLElement | null;
+		if (!outerWrapper) return;
+		outerWrapper.style.top = isHome ? "0" : mainContentTop;
 	};
 
 	const setup = () => {
