@@ -342,6 +342,14 @@
   color: var(--primary);
 }
 
+/* 迷你下拉触发器（仅箭头，无文字） */
+.cb__dropdown-trigger--mini {
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0;
+  justify-content: center;
+}
+
 .cb__dropdown-label {
   overflow: hidden;
   white-space: nowrap;
