@@ -90,18 +90,18 @@
   color: oklch(0.62 0.19 145);
 }
 
-/* --- 分享按钮 — 红色无边框紧凑 --- */
+/* --- 分享按钮 — 红色无边框 --- */
 .post-hero__share button,
 .post-hero__share .btn-regular {
-  color: oklch(0.62 0.2 25) !important;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  color: oklch(0.62 0.2 25);
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 .post-hero__share button:hover,
 .post-hero__share .btn-regular:hover {
-  color: oklch(0.55 0.22 25) !important;
-  background: transparent !important;
+  color: oklch(0.55 0.22 25);
+  background: transparent;
 }
 
 /* --- 浏览量+分享行 --- */

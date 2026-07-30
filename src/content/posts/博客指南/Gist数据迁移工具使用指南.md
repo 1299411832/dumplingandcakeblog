@@ -9,7 +9,6 @@ category: 博客指南
 descriptionSource: manual
 ---
 
-# Gist 数据迁移工具使用指南
 
 博客的部分数据（说说、友链、影视、笔记本）存储在 GitHub Gist 中，通过客户端 JS 获取并渲染。当数据量增大或需要离线使用时，可以使用迁移工具将 Gist 数据转移到本地 Content Collection 中。
 

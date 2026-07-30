@@ -8,7 +8,6 @@ category: 博客指南
 descriptionSource: manual
 ---
 
-# Obsidian 笔记同步指南
 
 本文档介绍如何使用博客内置的同步工具，将 Obsidian 笔记库中的内容同步到博客的 `content` 文件夹。
 

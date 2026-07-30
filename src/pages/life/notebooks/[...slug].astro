@@ -75,6 +75,19 @@ const notebookCommentPath = !isNotebookIndex && item
 	? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
 	: "";
 
+// 获取所有笔记本列表（面包屑下拉用）
+const allNotebooks = await getCollection("notebooks");
+const notebookList = allNotebooks
+	.filter((e) => {
+		const id = e.id.replace(/\\/g, "/");
+		return /\/(_index|_index\.md|_index\.json)$/.test(id) || /\/_index$/.test(id);
+	})
+	.map((e) => {
+		const m = e.id.replace(/\\/g, "/").match(/^([^/]+)\//);
+		return { name: e.data.name || m?.[1] || "", folder: m?.[1] || "" };
+	})
+	.filter((n) => n.name);
+
 // 为热力图准备数据（仅当前笔记本的条目）
 const heatmapPosts = isNotebookIndex
 	? (sortedEntries || []).map((e) => ({
@@ -118,11 +131,42 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 		<div class="flex w-full overflow-hidden relative min-h-32">
 			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
 
-					{/* 返回按钮 */}
-				<a href="/life/notebooks/" class="diary-paper-back">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.575 12L16 18.425l-1.425 1.425L6.725 12l7.85-7.85L16 5.575 9.575 12Z" fill="currentColor"/></svg>
-					<span>返回笔记本列表</span>
-				</a>
+				{/* 面包屑：笔记本 › [当前笔记本名 下拉] */}
+				<nav class="cb" id="nb-breadcrumb" aria-label="Breadcrumb">
+					<ol class="cb__list">
+						<li class="cb__item">
+							<a href="/life/notebooks/" class="cb__link">
+								<span class="cb__icon">
+									<Icon name="material-symbols:menu-book-outline" />
+								</span>
+								<span>笔记本</span>
+							</a>
+						</li>
+						<li class="cb__item">
+							<span class="cb__sep" aria-hidden="true">›</span>
+							<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
+								<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
+									<span class="cb__dropdown-label" data-nb-dropdown-label>{entry.data.name || "笔记本"}</span>
+									<span class="cb__dropdown-arrow" aria-hidden="true">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
+									</span>
+								</button>
+								<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
+									{notebookList.map((nb) => (
+										<a
+											href={`/life/notebooks/${nb.folder}/`}
+											class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]}
+											role="menuitem"
+											data-nb-dropdown-item
+										>
+											<span>{nb.name}</span>
+										</a>
+									))}
+								</span>
+							</span>
+						</li>
+					</ol>
+				</nav>
 
 				{/* 标题 */}
 				<div class="mb-8">
@@ -191,6 +235,57 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 
 			</div>
 		</div>
+
+		{/* 笔记本下拉菜单 */}
+		<script is:inline>
+		(function() {
+			if (window.__nbDropdownInited) return;
+			window.__nbDropdownInited = true;
+
+			function closeDropdown(dd) {
+				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
+				if (trigger) trigger.setAttribute("aria-expanded", "false");
+				dd.classList.remove("is-open");
+			}
+
+			function openDropdown(dd) {
+				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
+				var menu = dd.querySelector("[data-nb-dropdown-menu]");
+				if (trigger) trigger.setAttribute("aria-expanded", "true");
+				if (menu && trigger) {
+					var rect = trigger.getBoundingClientRect();
+					menu.style.top = (rect.bottom + 6) + "px";
+					menu.style.left = rect.left + "px";
+				}
+				dd.classList.add("is-open");
+			}
+
+			document.addEventListener("click", function(e) {
+				var t = e.target;
+				if (!t) return;
+				var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
+				var item = t.closest && t.closest("[data-nb-dropdown-item]");
+				if (trigger) {
+					e.preventDefault();
+					var dd = trigger.closest("[data-nb-dropdown]");
+					if (!dd) return;
+					var isOpen = dd.classList.contains("is-open");
+					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+					if (!isOpen) openDropdown(dd);
+					return;
+				}
+				if (item) {
+					e.preventDefault();
+					var href = item.getAttribute("href") || "";
+					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+					if (href) window.location.href = href;
+					return;
+				}
+				document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+			});
+		})();
+		</script>
+
 	</MainGridLayout>
 ) : (
 	<MainGridLayout title={(item?.data?.name || "日记") + " - 笔记本"}>
@@ -198,10 +293,37 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
 			<div class="diary-detail-page">
 			<article class="diary-paper">
-				<a href={`/life/notebooks/${folderName}/`} class="diary-paper-back">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.575 12L16 18.425l-1.425 1.425L6.725 12l7.85-7.85L16 5.575 9.575 12Z" fill="currentColor"/></svg>
-					<span>返回 {entry.data.name || "日记本"}</span>
-				</a>
+				{/* 面包屑：笔记本 › 喜马拉雅 › 此笔记 */}
+				<nav class="cb" aria-label="Breadcrumb">
+					<ol class="cb__list">
+						<li class="cb__item">
+							<a href="/life/notebooks/" class="cb__link">
+								<span class="cb__icon">
+									<Icon name="material-symbols:menu-book-outline" />
+								</span>
+								<span>笔记本</span>
+							</a>
+						</li>
+						<li class="cb__item">
+							<span class="cb__sep" aria-hidden="true">›</span>
+							<a href={`/life/notebooks/${folderName}/`} class="cb__link">
+								<span class="cb__icon">
+									<Icon name="material-symbols:folder-outline" />
+								</span>
+								<span>{entry.data.name || "笔记本"}</span>
+							</a>
+						</li>
+						<li class="cb__item">
+							<span class="cb__sep" aria-hidden="true">›</span>
+							<span class="cb__current">
+								<span class="cb__icon">
+									<Icon name="material-symbols:description-outline" />
+								</span>
+								<span>此笔记</span>
+							</span>
+						</li>
+					</ol>
+				</nav>
 
 				<h1 class="diary-paper-title">
 					{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "无标题"}

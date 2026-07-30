@@ -31,7 +31,7 @@
   padding: 0 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
+  background: var(--page-bg);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-radius: 24px 24px 0 0;
@@ -45,7 +45,7 @@
 }
 
 :root.dark .menu-sheet {
-  background: #1c1c1e;
+  background: var(--page-bg);
   box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.35);
 }
 
