@@ -35,15 +35,14 @@ const widgetId = customId || `bc-${Math.random().toString(36).substring(2, 9)}`;
 ---
 
 <div
-  class="bounce-cards-container"
+  class:list={["bounce-cards-container", { "bounce-hover": enableHover }]}
   id={widgetId}
   style={`width: ${containerWidth}px; height: ${containerHeight}px;`}
-  data-hover={enableHover ? "true" : "false"}
   data-transforms={JSON.stringify(transforms)}
 >
   {images.map((src, idx) => (
     <div
-      class={`bounce-card`}
+      class="bounce-card"
       data-index={idx}
       data-base-transform={transforms[idx] ?? "none"}
       style={`transform: ${transforms[idx] ?? "none"}; animation-delay: ${animationDelay + idx * animationStagger}s;`}
@@ -63,13 +62,23 @@ const widgetId = customId || `bc-${Math.random().toString(36).substring(2, 9)}`;
 
   .bounce-card {
     position: absolute;
-    width: 200px;
+    width: 120px;
     aspect-ratio: 1;
-    border: 5px solid #fff;
-    border-radius: 25px;
+    border: 3px solid #fff;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+  }
+
+  @media (max-width: 640px) {
+    .bounce-card {
+      width: 90px;
+      border-width: 2px;
+      border-radius: 12px;
+    }
   }
 
   :root.dark .bounce-card {
@@ -83,6 +92,11 @@ const widgetId = customId || `bc-${Math.random().toString(36).substring(2, 9)}`;
     object-fit: cover;
   }
 
+  /* Hover 效果：纯 CSS，不依赖 JS */
+  .bounce-hover .bounce-card {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
   @keyframes bounce-in {
     0% { scale: 0; opacity: 0; }
     60% { scale: 1.1; opacity: 1; }
@@ -91,90 +105,56 @@ const widgetId = customId || `bc-${Math.random().toString(36).substring(2, 9)}`;
 </style>
 
 <script>
-  import { gsap } from "gsap";
+  function initBounceCards() {
+    if ((window as any).__bounceCardsInited) return;
+    (window as any).__bounceCardsInited = true;
 
-  function bindHover(container: HTMLElement) {
-    if (container.dataset.hover !== "true") return;
-    if ((container as any)._hoverBound) return;
-    (container as any)._hoverBound = true;
+    document.querySelectorAll(".bounce-hover").forEach((container) => {
+      const el = container as HTMLElement;
+      const cards = el.querySelectorAll(".bounce-card");
 
-    const cards = container.querySelectorAll(".bounce-card");
+      cards.forEach((card) => {
+        const cardEl = card as HTMLElement;
+        const idx = parseInt(cardEl.dataset.index || "0");
 
-    cards.forEach((card) => {
-      const el = card as HTMLElement;
-      const idx = parseInt(el.dataset.index || "0");
+        cardEl.addEventListener("mouseenter", () => {
+          cards.forEach((c) => {
+            const target = c as HTMLElement;
+            const i = parseInt(target.dataset.index || "0");
+            const base = target.dataset.baseTransform || "none";
 
-      el.addEventListener("mouseenter", () => {
-        cards.forEach((c) => {
-          const target = c as HTMLElement;
-          const i = parseInt(target.dataset.index || "0");
-          const baseTransform = target.dataset.baseTransform || "none";
-
-          gsap.killTweensOf(target);
-
-          if (i === idx) {
-            const noRotation = baseTransform.replace(/rotate\([\s\S]*?\)/, "rotate(0deg)");
-            gsap.to(target, {
-              transform: noRotation,
-              duration: 0.4,
-              ease: "back.out(1.4)",
-              overwrite: "auto",
-            });
-          } else {
-            const offsetX = i < idx ? -30 : 30;
-            const translateRegex = /translate\(([-0-9.]+)px\)/;
-            const match = baseTransform.match(translateRegex);
-            let pushedTransform: string;
-            if (match) {
-              const newX = parseFloat(match[1]) + offsetX;
-              pushedTransform = baseTransform.replace(translateRegex, `translate(${newX}px)`);
+            if (i === idx) {
+              // 悬停的卡片：去掉旋转
+              const noRot = base.replace(/rotate\([^)]*\)/, "rotate(0deg)");
+              target.style.transform = noRot;
             } else {
-              pushedTransform = baseTransform === "none"
-                ? `translate(${offsetX}px)`
-                : `${baseTransform} translate(${offsetX}px)`;
+              // 其他卡片：推开
+              const offset = i < idx ? -20 : 20;
+              const m = base.match(/translate\(([-0-9.]+)px\)/);
+              if (m) {
+                const newX = parseFloat(m[1]) + offset;
+                target.style.transform = base.replace(/translate\([^)]*\)/, `translate(${newX}px)`);
+              } else {
+                target.style.transform = base === "none" ? `translate(${offset}px)` : `${base} translate(${offset}px)`;
+              }
             }
-
-            const distance = Math.abs(idx - i);
-            gsap.to(target, {
-              transform: pushedTransform,
-              duration: 0.4,
-              ease: "back.out(1.4)",
-              delay: distance * 0.05,
-              overwrite: "auto",
-            });
-          }
+          });
         });
-      });
 
-      el.addEventListener("mouseleave", () => {
-        cards.forEach((c) => {
-          const target = c as HTMLElement;
-          const baseTransform = target.dataset.baseTransform || "none";
-          gsap.killTweensOf(target);
-          gsap.to(target, {
-            transform: baseTransform,
-            duration: 0.4,
-            ease: "back.out(1.4)",
-            overwrite: "auto",
+        cardEl.addEventListener("mouseleave", () => {
+          cards.forEach((c) => {
+            const target = c as HTMLElement;
+            target.style.transform = target.dataset.baseTransform || "none";
           });
         });
       });
     });
   }
 
-  function initAll() {
-    document.querySelectorAll(".bounce-cards-container").forEach((el) => {
-      bindHover(el as HTMLElement);
-    });
-  }
-
-  // 首次加载
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initAll);
+    document.addEventListener("DOMContentLoaded", initBounceCards);
   } else {
-    initAll();
+    initBounceCards();
   }
-
-  // Swup 页面切换后重新初始化
-  document.addEventListener("astro:page-load", initAll);
+  document.addEventListener("astro:page-load", initBounceCards);
 </script>

@@ -4,8 +4,7 @@ subtitle: 武侠风电脑壁纸
 date: 2026-05-11
 location: 郑州
 tags:
-  - 壁纸
-  - 电脑
+  - 电脑壁纸
 photos:
 - https://ph.0824.uk/file/武侠风/52.webp
 - https://ph.0824.uk/file/武侠风/36.webp

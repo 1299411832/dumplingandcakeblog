@@ -33,14 +33,19 @@ const sortedAlbums = albums.sort(
 	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
 
-// 为图床相册获取预览图
+// 为图床相册获取预览图（并行请求，避免串行等待）
 const imgbedPreviewCache = new Map<string, string[]>();
-for (const album of sortedAlbums) {
-	if (album.data.imgbedFolder) {
-		const previews = await fetchImgbedPreview(album.data.imgbedFolder);
-		imgbedPreviewCache.set(album.id, previews);
-	}
+const imgbedAlbums = sortedAlbums.filter((a) => a.data.imgbedFolder);
+if (imgbedAlbums.length > 0) {
+	const results = await Promise.all(
+		imgbedAlbums.map((a) => fetchImgbedPreview(a.data.imgbedFolder!))
+	);
+	imgbedAlbums.forEach((a, i) => {
+		if (results[i].length > 0) imgbedPreviewCache.set(a.id, results[i]);
+	});
 }
+
+const allTags = [...new Set(sortedAlbums.flatMap((a) => a.data.tags || []))].sort();
 
 const totalPhotos = sortedAlbums.reduce(
 	(sum, album) => sum + (album.data.photos?.length || 0),
@@ -98,6 +103,19 @@ function getPreviewPhotos(album: any) {
 
     </div>
 
+    <!-- 标签筛选 -->
+    {sortedAlbums.length > 0 && allTags.length > 0 && (
+      <div class="tools-tab-wrapper">
+        <div class="tools-tab-pill" data-album-filter>
+          <div class="tools-tab-indicator album-filter-indicator" style="opacity:0;"></div>
+          <button data-tag="all" class="tools-tab-btn tools-tab-btn-active">全部</button>
+          {allTags.map((tag) => (
+            <button data-tag={tag} class="tools-tab-btn tools-tab-btn-inactive">{tag}</button>
+          ))}
+        </div>
+      </div>
+    )}
+
     <!-- 相册网格 -->
     <div class="albums-grid">
       {sortedAlbums.length > 0 ? (
@@ -106,20 +124,22 @@ function getPreviewPhotos(album: any) {
             const previewPhotos = getPreviewPhotos(album);
             const photoCount = album.data.photos?.length || 0;
             const photoUrls = previewPhotos.map((p: any) => typeof p === 'string' ? p : p.src);
-            // 根据照片数量生成散开样式
+            // 根据照片数量生成散开样式（卡片 120px，容器 340px）
             const cardTransforms = photoUrls.length === 1
               ? ["rotate(-2deg)"]
               : photoUrls.length === 2
-                ? ["rotate(-5deg) translate(-40px)", "rotate(5deg) translate(40px)"]
+                ? ["rotate(-4deg) translate(-40px)", "rotate(4deg) translate(40px)"]
                 : photoUrls.length === 3
                   ? ["rotate(-5deg) translate(-70px)", "rotate(0deg)", "rotate(5deg) translate(70px)"]
                   : photoUrls.length === 4
-                    ? ["rotate(5deg) translate(-105px)", "rotate(0deg) translate(-35px)", "rotate(-5deg) translate(35px)", "rotate(5deg) translate(105px)"]
-                    : ["rotate(10deg) translate(-140px)", "rotate(5deg) translate(-70px)", "rotate(-3deg)", "rotate(-10deg) translate(70px)", "rotate(2deg) translate(140px)"];
+                    ? ["rotate(5deg) translate(-90px)", "rotate(0deg) translate(-30px)", "rotate(-5deg) translate(30px)", "rotate(-5deg) translate(90px)"]
+                    : ["rotate(8deg) translate(-110px)", "rotate(4deg) translate(-55px)", "rotate(-2deg)", "rotate(-8deg) translate(55px)", "rotate(3deg) translate(110px)"];
             return (
               <a
                 href={`/album/${album.id}/`}
                 class="album-card group onload-animation"
+                data-tags={(album.data.tags || []).join(",")}
+                data-album-card
                 style={`animation-delay: calc(var(--content-delay) + ${index * 80}ms)`}
               >
                 <!-- BounceCards 照片展示 -->
@@ -128,8 +148,8 @@ function getPreviewPhotos(album: any) {
                     <BounceCards
                       id={`bounce-${album.id}`}
                       images={photoUrls}
-                      containerWidth={280}
-                      containerHeight={180}
+                      containerWidth={340}
+                      containerHeight={190}
                       animationDelay={0.3 + index * 0.1}
                       animationStagger={0.08}
                       enableHover={true}
@@ -174,8 +194,168 @@ function getPreviewPhotos(album: any) {
         </div>
       )}
     </div>
+
+    <!-- 分页控件 -->
+    <nav class="album-pagination" data-album-pagination hidden aria-label="相册分页">
+      <button type="button" class="album-page-btn" data-page-prev aria-label="上一页">
+        <Icon name="material-symbols:chevron-left-rounded" class="text-lg" />
+      </button>
+      <div class="album-page-nums" data-page-nums></div>
+      <button type="button" class="album-page-btn" data-page-next aria-label="下一页">
+        <Icon name="material-symbols:chevron-right-rounded" class="text-lg" />
+      </button>
+    </nav>
+
     </div>
   </div>
+
+  <!-- 标签筛选 + 分页 -->
+  <script is:inline>
+  (function() {
+    if (window.__albumFilterReady) return;
+    window.__albumFilterReady = true;
+
+    var PAGE_SIZE = 6;
+    var currentTag = "all";
+    var currentPage = 1;
+
+    function getCards() {
+      return Array.prototype.slice.call(document.querySelectorAll("[data-album-card]"));
+    }
+
+    function getFiltered() {
+      return getCards().filter(function(card) {
+        if (currentTag === "all") return true;
+        var tags = (card.getAttribute("data-tags") || "").split(",").filter(Boolean);
+        return tags.indexOf(currentTag) !== -1;
+      });
+    }
+
+    function render() {
+      var filtered = getFiltered();
+      var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      var start = (currentPage - 1) * PAGE_SIZE;
+      var end = start + PAGE_SIZE;
+      var visibleSet = new Set(filtered.slice(start, end));
+
+      getCards().forEach(function(card) {
+        if (visibleSet.has(card)) {
+          card.style.display = "";
+          card.classList.remove("album-card-fade-in");
+          void card.offsetHeight;
+          card.classList.add("album-card-fade-in");
+        } else {
+          card.style.display = "none";
+          card.classList.remove("album-card-fade-in");
+        }
+      });
+
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+      var nav = document.querySelector("[data-album-pagination]");
+      if (!nav) return;
+      if (totalPages <= 1) { nav.hidden = true; return; }
+      nav.hidden = false;
+
+      var prev = nav.querySelector("[data-page-prev]");
+      var next = nav.querySelector("[data-page-next]");
+      if (prev) prev.disabled = currentPage <= 1;
+      if (next) next.disabled = currentPage >= totalPages;
+
+      var nums = nav.querySelector("[data-page-nums]");
+      if (!nums) return;
+      nums.innerHTML = "";
+      for (var i = 1; i <= totalPages; i++) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "album-page-num" + (i === currentPage ? " is-active" : "");
+        btn.dataset.pageGo = String(i);
+        btn.textContent = String(i);
+        nums.appendChild(btn);
+      }
+    }
+
+    function updateIndicator(container, button) {
+      var indicator = container.querySelector(".album-filter-indicator");
+      if (!indicator || !button) return;
+      var parentRect = container.getBoundingClientRect();
+      var btnRect = button.getBoundingClientRect();
+      indicator.style.left = (btnRect.left - parentRect.left) + "px";
+      indicator.style.top = (btnRect.top - parentRect.top) + "px";
+      indicator.style.width = btnRect.width + "px";
+      indicator.style.height = btnRect.height + "px";
+      indicator.style.opacity = "1";
+    }
+
+    // 标签筛选点击
+    document.addEventListener("click", function(e) {
+      var btn = e.target.closest("[data-album-filter] .tools-tab-btn");
+      if (!btn) return;
+      var container = btn.closest("[data-album-filter]");
+      if (!container) return;
+
+      var filters = container.querySelectorAll(".tools-tab-btn");
+      filters.forEach(function(f) {
+        f.classList.remove("tools-tab-btn-active");
+        f.classList.add("tools-tab-btn-inactive");
+      });
+      btn.classList.remove("tools-tab-btn-inactive");
+      btn.classList.add("tools-tab-btn-active");
+
+      currentTag = btn.getAttribute("data-tag") || "all";
+      currentPage = 1;
+      updateIndicator(container, btn);
+      render();
+    });
+
+    // 分页点击
+    document.addEventListener("click", function(e) {
+      var nav = e.target.closest("[data-album-pagination]");
+      if (!nav) return;
+
+      var go = e.target.closest("[data-page-go]");
+      if (go) {
+        currentPage = parseInt(go.dataset.pageGo, 10) || 1;
+      } else if (e.target.closest("[data-page-prev]")) {
+        currentPage = Math.max(1, currentPage - 1);
+      } else if (e.target.closest("[data-page-next]")) {
+        currentPage = currentPage + 1;
+      } else {
+        return;
+      }
+
+      render();
+      document.querySelector(".albums-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    function init() {
+      var container = document.querySelector("[data-album-filter]");
+      if (container) {
+        var activeBtn = container.querySelector(".tools-tab-btn-active") || container.querySelector('[data-tag="all"]');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            if (activeBtn) updateIndicator(container, activeBtn);
+          });
+        });
+      }
+      currentPage = 1;
+      render();
+    }
+
+    init();
+    document.addEventListener("astro:page-load", init);
+    window.addEventListener("resize", function() {
+      var container = document.querySelector("[data-album-filter]");
+      if (!container) return;
+      var activeBtn = container.querySelector(".tools-tab-btn-active");
+      if (activeBtn) updateIndicator(container, activeBtn);
+    });
+  })();
+  </script>
 </MainGridLayout>
 
 <style>
@@ -193,43 +373,80 @@ function getPreviewPhotos(album: any) {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    background: var(--card-bg);
-    border: 2px solid #000;
+    padding: 8px 16px;
+    background: var(--page-bg);
+    border: 1px solid var(--line-divider);
     border-radius: 50px;
     font-size: 13px;
     color: var(--deep-text);
+    transition: border-color 0.2s ease;
   }
-  :root.dark .stat-pill { border-color: #fff; }
-
+  .stat-pill:hover {
+    border-color: var(--primary);
+  }
   .stat-pill :global(svg) {
     color: var(--primary);
   }
 
-  /* 相册卡片 */
+  /* ============================================
+     相册卡片 — 画廊墙风格
+     灵感来源：美术馆挂画 + 照片墙
+     特点：厚画框 + 投影 + 标签胶带 + 铭牌式标题
+     ============================================ */
   .album-card {
+    --ac-frame: var(--deep-text);
+    --ac-mat: var(--page-bg);
+    --ac-shadow: color-mix(in srgb, var(--deep-text) 12%, transparent);
+
     display: flex;
     flex-direction: column;
-    background: var(--card-bg);
-    border: 2px dashed var(--line-divider);
-    border-radius: 20px;
+    background: var(--ac-mat);
+    /* 厚画框效果：双层边框模拟画框切面 */
+    border: 3px solid var(--ac-frame);
+    outline: 1px solid color-mix(in srgb, var(--ac-frame) 15%, transparent);
+    outline-offset: 4px;
+    border-radius: 6px;
     overflow: visible;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    /* 画框投影：右下偏移 + 扩散 */
+    box-shadow:
+      5px 5px 0 0 var(--ac-shadow),
+      5px 5px 0 1px color-mix(in srgb, var(--ac-frame) 8%, transparent);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s ease;
+  }
+
+  :root.dark .album-card {
+    --ac-shadow: color-mix(in srgb, var(--deep-text) 25%, transparent);
   }
 
   .album-card:hover {
-    transform: translateY(-6px);
-    border-color: var(--primary);
+    /* 悬停：画框微微抬起，投影拉远 */
+    transform: translateY(-8px) rotate(-0.5deg);
+    box-shadow:
+      8px 10px 0 0 var(--ac-shadow),
+      8px 10px 0 1px color-mix(in srgb, var(--ac-frame) 8%, transparent),
+      0 20px 40px color-mix(in srgb, var(--deep-text) 8%, transparent);
   }
 
-  /* BounceCards 堆叠区域 */
+  /* BounceCards 堆叠区域 — 画框内的衬板 */
   .bounce-stack {
     position: relative;
-    height: 200px;
+    height: 210px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: visible;
+    /* 衬板纹理：极淡的十字纹 */
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--line-divider) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(color-mix(in srgb, var(--line-divider) 8%, transparent) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border-radius: 3px 3px 0 0;
+  }
+
+  @media (max-width: 640px) {
+    .bounce-stack { height: 150px; }
   }
 
   .bounce-stack :global(.bounce-card) {
@@ -238,13 +455,22 @@ function getPreviewPhotos(album: any) {
     border-radius: 14px;
   }
 
+  /* 照片数量徽章 — 胶片卷标签 */
   .photo-badge {
     position: absolute;
-    bottom: 8px; right: 12px;
-    background: rgba(0, 0, 0, 0.75);
-    color: white; font-size: 11px; font-weight: 600;
-    padding: 3px 8px; border-radius: 12px;
-    backdrop-filter: blur(4px);
+    bottom: 12px;
+    right: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--ac-frame);
+    color: var(--ac-mat);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     z-index: 10;
   }
 
@@ -252,23 +478,51 @@ function getPreviewPhotos(album: any) {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    color: var(--primary);
-    opacity: 0.3;
+    color: var(--content-meta);
+    opacity: 0.15;
   }
 
+  /* 信息区域 — 画框下方的铭牌 */
   .card-body {
-    padding: 14px 8px 8px;
+    padding: 14px 16px 18px;
+    /* 顶部分割线模拟画框底边 */
+    border-top: 1px solid color-mix(in srgb, var(--line-divider) 40%, transparent);
+    margin-top: 2px;
   }
 
   .card-title {
-    font-size: 15px; font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: var(--deep-text);
-    margin-bottom: 6px;
-    transition: color 0.3s;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
   }
 
   .album-card:hover .card-title {
     color: var(--primary);
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--content-meta);
+    letter-spacing: 0.02em;
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+  }
+
+  .meta-item :global(svg) {
+    opacity: 0.5;
+    font-size: 13px;
   }
 
   .card-meta {
@@ -283,5 +537,156 @@ function getPreviewPhotos(album: any) {
   @media (max-width: 640px) {
     .polaroid-stack { height: 180px; }
     .stat-pill { padding: 6px 12px; font-size: 12px; }
+  }
+
+  /* --- 标签筛选胶囊 --- */
+  .tools-tab-wrapper {
+    margin-bottom: 1.5rem;
+  }
+
+  .tools-tab-pill {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.375rem;
+    border-radius: 1rem;
+    border: 2px solid #000;
+  }
+  :root.dark .tools-tab-pill {
+    border-color: #fff;
+  }
+
+  .tools-tab-indicator {
+    position: absolute;
+    border-radius: 9999px;
+    background: #000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  :root.dark .tools-tab-indicator {
+    background: #fff;
+  }
+
+  .tools-tab-btn {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.875rem;
+    border: none;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    font-family: inherit;
+    color: #000;
+  }
+  :root.dark .tools-tab-btn {
+    color: #fff;
+  }
+
+  .tools-tab-btn-active {
+    color: #fff;
+    cursor: default;
+  }
+  :root.dark .tools-tab-btn-active {
+    color: #000;
+  }
+
+  .tools-tab-btn-inactive:hover {
+    opacity: 0.7;
+  }
+
+  /* 筛选动画 */
+  .album-card-fade-in {
+    animation: albumFadeInUp 0.35s ease-out both;
+  }
+  @keyframes albumFadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* --- 分页控件 --- */
+  .album-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 0 0.5rem;
+  }
+
+  .album-page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 2px solid var(--primary);
+    border-radius: 0.75rem;
+    background: transparent;
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .album-page-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--page-bg);
+    transform: scale(1.08);
+  }
+  .album-page-btn:active {
+    transform: scale(0.95);
+  }
+  .album-page-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .album-page-nums {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .album-page-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 2px solid var(--primary);
+    border-radius: 0.75rem;
+    background: transparent;
+    color: var(--primary);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .album-page-num:hover {
+    background: var(--primary);
+    color: var(--page-bg);
+    transform: scale(1.08);
+  }
+  .album-page-num:active {
+    transform: scale(0.95);
+  }
+  .album-page-num.is-active {
+    background: var(--primary);
+    color: var(--page-bg);
+    cursor: default;
+    transform: none;
   }
 </style>

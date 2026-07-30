@@ -1,13 +1,11 @@
 import type { BackgroundWallpaperConfig } from "@/types/config";
 
 // 构建时自动扫描 desktop-bg / mobile-bg 文件夹，新增图片无需改代码
-const desktopGlob = import.meta.glob("../../public/assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
-const mobileGlob = import.meta.glob("../../public/assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const desktopGlob = import.meta.glob("../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const mobileGlob = import.meta.glob("../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 
-// 去掉 /public 前缀，Vite 在 public 目录下以根路径提供文件
-const fixPath = (p: string) => p.replace(/^\/public/, "");
-const desktopImages = Object.values(desktopGlob).map(fixPath);
-const mobileImages = Object.values(mobileGlob).map(fixPath);
+const desktopImages = Object.values(desktopGlob);
+const mobileImages = Object.values(mobileGlob);
 
 export const backgroundWallpaper: BackgroundWallpaperConfig = {
 	/**

@@ -90,16 +90,18 @@
   color: oklch(0.62 0.19 145);
 }
 
-/* --- 分享按钮 — 红色无边框 --- */
-.post-hero__share button {
-  color: oklch(0.62 0.2 25);
-  border: none;
-  background: transparent;
-  box-shadow: none;
+/* --- 分享按钮 — 红色无边框紧凑 --- */
+.post-hero__share button,
+.post-hero__share .btn-regular {
+  color: oklch(0.62 0.2 25) !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
-.post-hero__share button:hover {
-  color: oklch(0.55 0.22 25);
-  background: transparent;
+.post-hero__share button:hover,
+.post-hero__share .btn-regular:hover {
+  color: oklch(0.55 0.22 25) !important;
+  background: transparent !important;
 }
 
 /* --- 浏览量+分享行 --- */
@@ -371,9 +373,7 @@
 }
 
 .cb__dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
+  position: fixed;
   min-width: 12rem;
   max-width: min(18rem, calc(100vw - 2rem));
   max-height: 18rem;
@@ -382,7 +382,7 @@
   border: 1px solid var(--line-divider);
   border-radius: 0.75rem;
   background: color-mix(in oklch, var(--page-bg) 92%, transparent);
-  box-shadow: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   opacity: 0;
@@ -390,6 +390,7 @@
   pointer-events: none;
   transform: translateY(-0.375rem);
   transition: opacity 180ms ease, visibility 180ms ease, transform 180ms ease;
+  z-index: 100;
 }
 
 .cb__dropdown.is-open .cb__dropdown-menu {

@@ -4,8 +4,7 @@ subtitle: 记录从小到大用过的头像
 date: 2026-05-12
 location: 郑州
 tags:
-  - 头像
-  - 记录
+  - 历史头像
 photos: 
 - https://ph.0824.uk/file/用过的头像/1778519104225_Image_1778518483582_984.jpg
 - https://ph.0824.uk/file/用过的头像/1778519103578_Image_1778518438451_408.jpg

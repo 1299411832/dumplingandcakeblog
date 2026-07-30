@@ -76,7 +76,7 @@ const notebooksWithCovers = await Promise.all(
 			let coverSrc: string | null = null;
 			const rawCover = book.cover as string | undefined;
 			if (rawCover) {
-				if (rawCover.startsWith("http://") || rawCover.startsWith("https://")) {
+				if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("/")) {
 					coverSrc = rawCover;
 				} else {
 					const imageKey = path
@@ -204,14 +204,10 @@ const randomNotebook = sortedNotebooks.find((b) => b?.folderName === randomNoteF
 
 							{/* 右侧内容 */}
 							<div class="diary-row-content">
-								<div class="diary-row-top">
-									<div class="diary-row-tag">
-										<Icon name="material-symbols:menu-book-outline" class="text-xs" />
-										<span>笔记</span>
-									</div>
+								<div class="diary-row-title-line">
+									<h3 class="diary-row-name">{book.name || "未命名笔记本"}</h3>
 									<span class="diary-row-entries">{book.entries} 篇</span>
 								</div>
-								<h3 class="diary-row-name">{book.name || "未命名笔记本"}</h3>
 								<p class="diary-row-desc">{book.summary || "暂无描述"}</p>
 								<div class="diary-row-bottom">
 									<span class="diary-row-date">

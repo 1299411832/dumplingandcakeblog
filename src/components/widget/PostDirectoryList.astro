@@ -129,7 +129,7 @@ function walk(
 	}
 
 	const articles = [...node.articles].sort((a, b) =>
-		a.title.localeCompare(b.title, "zh-CN", { numeric: true }),
+		b.date.localeCompare(a.date),
 	);
 	for (const a of articles) {
 		if (a.slug === normalizedCurrentSlug) subtreeHasCurrent = true;

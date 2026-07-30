@@ -38,13 +38,13 @@ const currentDropdownOption =
 
 <nav class="cb" id="breadcrumb-nav" aria-label="Breadcrumb">
   <ol class="cb__list">
-    {/* 首页 */}
+    {/* 文章列表 */}
     <li class="cb__item">
-      <a href={homeUrl} class="cb__link">
+      <a href="/posts/" class="cb__link">
         <span class="cb__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M4 19v-9q0-.475.213-.9t.587-.7l7-5.25q.525-.4 1.2-.4t1.2.4l7 5.25q.375.275.588.7T20 10v9q0 .825-.588 1.413T18 21h-3q-.425 0-.712-.288T14 20v-5q0-.425-.288-.712T13 14h-2q-.425 0-.712.288T10 14v5q0 .425-.288.713T9 21H6q-.825 0-1.412-.587T4 19Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M4 18q-.825 0-1.412-.587T2 16V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H4Zm0-2h16V4H4v12Zm2-2h12V6H6v8Zm-2 6q-.825 0-1.412-.587T2 20v-2h20v2q0 .825-.587 1.413T20 22H4Z"/></svg>
         </span>
-        <span>{i18n(I18nKey.home)}</span>
+        <span>文章列表</span>
       </a>
     </li>
 
@@ -118,7 +118,14 @@ const currentDropdownOption =
 
   function openDropdown(dd) {
     var trigger = dd.querySelector("[data-breadcrumb-dropdown-trigger]");
+    var menu = dd.querySelector("[data-breadcrumb-dropdown-menu]");
     if (trigger) trigger.setAttribute("aria-expanded", "true");
+    // 定位 fixed 下拉菜单
+    if (menu && trigger) {
+      var rect = trigger.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 6) + "px";
+      menu.style.left = rect.left + "px";
+    }
     dd.classList.add("is-open");
   }
 
