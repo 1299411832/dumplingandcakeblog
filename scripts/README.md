@@ -134,7 +134,7 @@ python scripts/fetch-music/fetch-lrc.py "知我" "国风堂" --test
 
 - 音频/封面/歌词：`scripts/fetch-music/downloads/`
 - 博客 md：`src/content/bangumi/music/`
-- 封面 CDN：`https://ph.0824.uk/file/music/`
+- 封面 CDN：`https://img.tsh520.cn/file/music/`
 
 #### 依赖
 

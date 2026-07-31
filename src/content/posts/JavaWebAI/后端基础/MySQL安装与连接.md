@@ -51,7 +51,7 @@ mysql -u用户名 -p密码 [-h数据库服务器IP地址 -P端口号]
 mysql -h服务器IP -P端口号 -u用户名 -p
 ```
 
-![企业远程连接](https://ph.0824.uk/file/article/05-Web后端基础_数据库_-image-8.png)
+![企业远程连接](https://img.tsh520.cn/file/article/05-Web后端基础_数据库_-image-8.png)
 
 ## 注意事项
 

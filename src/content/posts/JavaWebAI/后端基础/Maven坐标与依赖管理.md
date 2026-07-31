@@ -27,7 +27,7 @@ order: 3
 - **SNAPSHOT**：功能不稳定、尚处于开发中的快照版本
 - **RELEASE**：功能趋于稳定、可以用于发行的版本
 
-![坐标表示项目](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-29.png)
+![坐标表示项目](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-29.png)
 
 ## POM 文件结构
 
@@ -89,7 +89,7 @@ POM（Project Object Model）通过 `pom.xml` 描述当前 Maven 项目。
 
 在 Maven 项目中，如果 A 依赖 B，B 依赖 C，C 依赖 D，那么 A 项目中也会传递引入 C 和 D。
 
-![依赖传递](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-33.png)
+![依赖传递](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-33.png)
 
 ### 排除依赖
 
@@ -111,7 +111,7 @@ POM（Project Object Model）通过 `pom.xml` 描述当前 Maven 项目。
 </dependency>
 ```
 
-![排除依赖](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-34.png)
+![排除依赖](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-34.png)
 
 ## 注意事项
 

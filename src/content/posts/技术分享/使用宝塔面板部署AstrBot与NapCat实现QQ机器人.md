@@ -7,7 +7,7 @@ tags:
 category: 技术分享
 ---
 此文章转载为这位大佬：[THW](https://blog.tianhw.top/posts/bt-astrbot-napcat/#%E7%99%BB%E5%BD%95-astrbot)
-![697](https://ph.0824.uk/file/picgo/astrbot.webp)
+![697](https://img.tsh520.cn/file/picgo/astrbot.webp)
 
 > [!note] Note
 > NOTE
@@ -43,7 +43,7 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 
 二者通过 WebSocket 建立连接，方可实现完整功能闭环。
 
-![](https://ph.0824.uk/file/picgo/file-20260725030657784.png)
+![](https://img.tsh520.cn/file/picgo/file-20260725030657784.png)
 
 ## 部署
 
@@ -58,7 +58,7 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 	| 端口映射 | `6199:6199` （反向 WS） `6185:6185` （WebUI） |
 3. 点击 **创建** ，等待容器启动完成。
 
-![AstrBot 容器创建](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_22-37-39.webp)
+![AstrBot 容器创建](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_22-37-39.webp)
 
 ### NapCat
 
@@ -76,12 +76,12 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 ### 配置 NapCat 并登录 QQ
 
 1. 在容器列表中找到 `napcat` ，点击 **更多 → 日志** ；
-	![查看 NapCat 日志](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_22-48-22.webp)
+	![查看 NapCat 日志](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_22-48-22.webp)
 2. 查找日志中的 `WebUI Token` ；
-	![获取 WebUI Token](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_22-50-11.webp)
+	![获取 WebUI Token](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_22-50-11.webp)
 3. 浏览器访问 `http://<服务器IP>:6099` ，输入 Token 登录；
 4. 使用手机 QQ 或 TIM 扫描二维码完成账号登录。
-	![NapCat WebUI 登录](https://ph.0824.uk/file/picgo/1.webp)
+	![NapCat WebUI 登录](https://img.tsh520.cn/file/picgo/1.webp)
 
 ### 登录 AstrBot
 
@@ -94,14 +94,14 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 
 1. 进入 **Docker → 网络** ，点击 **添加网络** ；
 	- 网络名称： `astrbot-napcat`
-	![添加自定义网络](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_22-57-03.webp)
+	![添加自定义网络](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_22-57-03.webp)
 2. 返回 **容器** 页面，对 `napcat` 和 `astrbot` 容器分别执行：
 	- 点击 **管理 → 容器网络 → 加入网络**
 		- 选择 `astrbot-napcat`
 		- **退出默认网络**
-	![加入网络](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_22-59-54.webp)
+	![加入网络](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_22-59-54.webp)
 3. 记录 `astrbot` 容器在 `astrbot-napcat` 网络中的 IPv4 地址。
-	![获取 AstrBot IP](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_23-01-11.webp)
+	![获取 AstrBot IP](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_23-01-11.webp)
 
 ### 配置 NapCat 的 WebSocket 客户端
 
@@ -115,7 +115,7 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 	| 心跳间隔 (ms) | `5000` |
 	| 重连间隔 (ms) | `5000` |
 	| Token | （可选，若 AstrBot 设置了则需一致） |
-	![新建 WebSocket 客户端](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_23-02-34.webp)
+	![新建 WebSocket 客户端](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_23-02-34.webp)
 3. 点击 **保存** 。
 
 ### 配置 AstrBot 的 OneBot 适配器
@@ -131,7 +131,7 @@ AstrBot 与 NapCat 通过 **OneBot v11 协议** 协同工作：
 	| 反向 WebSocket 主机地址 | `<astrbot容器IP>` |
 	| 反向 WebSocket 端口 | `6199` |
 	| Token | （如果没有设置就不用填） |
-	![配置 OneBot v11](https://ph.0824.uk/file/picgo/Snipaste_2026-01-24_23-06-31.webp)
+	![配置 OneBot v11](https://img.tsh520.cn/file/picgo/Snipaste_2026-01-24_23-06-31.webp)
 5. 点击 **保存** 。
 
 ## 大功告成

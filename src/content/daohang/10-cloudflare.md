@@ -1,7 +1,7 @@
 ---
 name: Cloudflare
 url: https://dash.cloudflare.com/
-icon: https://ph.0824.uk/file/网络资源/dash.cloudflare.com-icon.ico
+icon: https://img.tsh520.cn/file/网络资源/dash.cloudflare.com-icon.ico
 description: 全球CDN与网络安全服务
 category: 常用网站
 tags: [云服务, CDN]

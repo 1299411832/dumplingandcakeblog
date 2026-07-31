@@ -1,7 +1,7 @@
 ---
 name: 在线本地字体预览
 url: https://www.lddgo.net/convert/local-font-preview
-icon: https://ph.0824.uk/file/网络资源/www.lddgo.net-icon.png
+icon: https://img.tsh520.cn/file/网络资源/www.lddgo.net-icon.png
 description: 本地字体在线预览工具
 category: 工具网站
 tags: [字体, 工具]

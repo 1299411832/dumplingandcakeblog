@@ -19,7 +19,7 @@ order: 5
 
 ### 测试阶段划分
 
-![测试阶段划分](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-47.png)
+![测试阶段划分](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-47.png)
 
 | 阶段 | 说明 | 目的 | 测试人员 |
 |------|------|------|----------|
@@ -30,7 +30,7 @@ order: 5
 
 ### 测试方法
 
-![测试方法](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-48.png)
+![测试方法](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-48.png)
 
 | 方法 | 说明 |
 |------|------|
@@ -38,13 +38,13 @@ order: 5
 | **黑盒测试** | 不清楚内部结构，用于验证功能、兼容性、验收测试 |
 | **灰盒测试** | 结合白盒和黑盒，既关注内部结构又考虑外部表现 |
 
-![灰盒测试](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-49.png)
+![灰盒测试](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-49.png)
 
 ## JUnit 单元测试
 
 JUnit 是最流行的 Java 测试框架之一。相比在 `main` 方法中测试，JUnit 具有以下优势：
 
-![JUnit优势](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-51.png)
+![JUnit优势](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-51.png)
 
 | main 方法测试的问题 | JUnit 的优势 |
 |---------------------|-------------|
@@ -100,7 +100,7 @@ public void testGetGender() {
 }
 ```
 
-![断言测试结果](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-54.png)
+![断言测试结果](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-54.png)
 
 ## 常见注解
 
@@ -148,7 +148,7 @@ public class UserServiceTest {
 }
 ```
 
-![注解输出结果](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-55.png)
+![注解输出结果](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-55.png)
 
 **参数化测试示例**：
 
@@ -173,13 +173,13 @@ public class UserServiceTest {
 }
 ```
 
-![参数化测试输出](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-56.png)
+![参数化测试输出](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-56.png)
 
 ## 依赖范围
 
 通过 `<scope>` 标签控制依赖的使用范围：
 
-![依赖范围](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-58.png)
+![依赖范围](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-58.png)
 
 | scope 值 | 主程序（main） | 测试程序（test） | 打包（package） |
 |-----------|:---:|:---:|:---:|
@@ -199,7 +199,7 @@ public class UserServiceTest {
 </dependency>
 ```
 
-![scope配置](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-59.png)
+![scope配置](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-59.png)
 
 ## 注意事项
 

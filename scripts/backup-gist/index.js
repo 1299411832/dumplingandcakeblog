@@ -80,7 +80,7 @@ const EXTERNAL_PLACES_CONFIG = {
 
 const CONTENT_DIR = path.join(ROOT, "src/content");
 const IMG_DIR = path.join(ROOT, "scripts/fetch-media/img-anime");
-const IMG_URL_PREFIX = "https://ph.0824.uk/file/anime/";
+const IMG_URL_PREFIX = "https://img.tsh520.cn/file/anime/";
 
 // 说说图片下载目录
 const MOMENTS_IMG_DIR = "F:/电脑备份文件夹/CloudFlare-ImgBed/telegram/手机uu";

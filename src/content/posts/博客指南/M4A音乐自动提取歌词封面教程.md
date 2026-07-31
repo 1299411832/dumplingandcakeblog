@@ -124,7 +124,7 @@ python scripts/fetch-lrc.py "晴天" --dry-run
 | `--md` | 生成博客 md 文件到 `src/content/bangumi/music/` | 关闭 |
 | `--no-md` | 只提取/下载，不生成 md | - |
 | `--server=xxx` | 音乐平台 | `netease` |
-| `--audio-base=xxx` | 自定义 URL 前缀 | `https://ph.0824.uk/file/music/` |
+| `--audio-base=xxx` | 自定义 URL 前缀 | `https://img.tsh520.cn/file/music/` |
 | `--md-dir=xxx` | 自定义 md 输出目录 | `src/content/bangumi/music/` |
 | `--out=xxx` | 搜索模式的下载目录 | `scripts/downloads/` |
 | `--dry-run` | 搜索模式只预览，不下载 | - |
@@ -225,10 +225,10 @@ src/content/bangumi/music/
 title: 知我
 category: music
 status: 2
-image: https://ph.0824.uk/file/music/知我-国风堂哦漏.jpg
+image: https://img.tsh520.cn/file/music/知我-国风堂哦漏.jpg
 artist: 国风堂 / 哦漏
-audioUrl: https://ph.0824.uk/file/music/知我-国风堂哦漏.m4a
-lrcUrl: https://ph.0824.uk/file/music/知我-国风堂哦漏.lrc
+audioUrl: https://img.tsh520.cn/file/music/知我-国风堂哦漏.m4a
+lrcUrl: https://img.tsh520.cn/file/music/知我-国风堂哦漏.lrc
 score: 0
 published: 2026-05-16
 ---

@@ -22,7 +22,7 @@ Maven 从大量项目和构建工具中总结了一套高度完善的构建生�
 
 Maven 将项目构建生命周期划分为三套，相互独立：
 
-![生命周期三套](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-37.png)
+![生命周期三套](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-37.png)
 
 | 生命周期 | 作用 |
 |----------|------|
@@ -32,7 +32,7 @@ Maven 将项目构建生命周期划分为三套，相互独立：
 
 ### 生命周期阶段详解
 
-![生命周期阶段](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-41.png)
+![生命周期阶段](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-41.png)
 
 常用阶段：
 
@@ -52,7 +52,7 @@ Maven 将项目构建生命周期划分为三套，相互独立：
 
 Maven 的生命周期是抽象的，生命周期本身不做任何实际工作。**实际任务（如源代码编译）都交由插件来完成。**
 
-![插件执行机制](https://ph.0824.uk/file/article/03-Web后端基础_Maven基础_-image-42.png)
+![插件执行机制](https://img.tsh520.cn/file/article/03-Web后端基础_Maven基础_-image-42.png)
 
 生命周期顺序：`clean` → `validate` → `compile` → `test` → `package` → `verify` → `install` → `site` → `deploy`
 

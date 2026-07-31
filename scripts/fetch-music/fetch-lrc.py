@@ -29,7 +29,7 @@ tencent → kugou → netease 等平台，直到获取完整版音频。
 
 默认输出目录: ./downloads/
 默认 md 输出: src/content/bangumi/music/
-默认音频 URL 前缀: https://ph.0824.uk/file/music/
+默认音频 URL 前缀: https://img.tsh520.cn/file/music/
 
 依赖: 已部署的 Meting API, mutagen
 """
@@ -68,7 +68,7 @@ NETEASE_SEARCH_ONLY = {"https://meting.mikus.ink/api"}
 API_BASE = API_ENDPOINTS[0]
 
 BLOG_CONTENT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src", "content", "bangumi", "music"))
-AUDIO_BASE = "https://ph.0824.uk/file/music/"
+AUDIO_BASE = "https://img.tsh520.cn/file/music/"
 DEFAULT_OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), "downloads"))
 
 # 多平台 fallback 顺序，--server 指定的平台优先

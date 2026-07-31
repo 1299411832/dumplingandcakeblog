@@ -116,7 +116,7 @@ enabled: true
 | 本地目录 | `src/content/bangumi/{category}/` |
 | 文件命名 | `{中文标题}.md`（如 `你的名字.md`） |
 | 去重依据 | `title` |
-| 封面图 | 自动下载到 `scripts/fetch-media/img-anime/`，URL 重写为 `https://ph.0824.uk/file/anime/{文件名}` |
+| 封面图 | 自动下载到 `scripts/fetch-media/img-anime/`，URL 重写为 `https://img.tsh520.cn/file/anime/{文件名}` |
 
 **Category 映射规则：**
 
@@ -140,7 +140,7 @@ enabled: true
 title: 你的名字
 category: anime
 status: 2
-image: https://ph.0824.uk/file/anime/你的名字.jpg
+image: https://img.tsh520.cn/file/anime/你的名字.jpg
 score: 10
 tags:
   - 动画
@@ -201,7 +201,7 @@ node scripts/backup-gist/download-images.js
 
 ### 上传到图床
 
-下载完成后，将 `scripts/fetch-media/img-anime/` 中的图片上传到你的图床 `https://ph.0824.uk/file/anime/`。
+下载完成后，将 `scripts/fetch-media/img-anime/` 中的图片上传到你的图床 `https://img.tsh520.cn/file/anime/`。
 
 ---
 

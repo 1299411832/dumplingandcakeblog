@@ -30,7 +30,7 @@ TMDB 搜不到时自动降级为手动模式，交互填写所有字段。
 
 默认 MD 输出目录: src/content/bangumi/anime/
 默认封面输出目录: scripts/img-anime/
-封面 CDN 地址: https://ph.0824.uk/file/anime/
+封面 CDN 地址: https://img.tsh520.cn/file/anime/
 
 TMDB API: https://developer.themoviedb.org/reference/intro/getting-started
 """
@@ -51,7 +51,7 @@ if sys.platform == "win32":
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BLOG_BANGUMI_DIR = os.path.join(BASE_DIR, "src", "content", "bangumi", "anime")
 COVER_DIR = os.path.join(os.path.dirname(__file__), "img-anime")
-CDN_BASE = "https://ph.0824.uk/file/anime"
+CDN_BASE = "https://img.tsh520.cn/file/anime"
 TMDB_API_KEY = "8a9a0dd41f7b6fe6d4d20f6cc9bd26f2"
 TMDB_BASE = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
@@ -465,7 +465,7 @@ def process(query, api_key, user_type=None, fast_mode=False,
     print("=" * 50)
 
     # 5. 确认 / 填写字段
-    image_path = "https://ph.0824.uk/file/anime/{}.jpg".format(title)
+    image_path = "https://img.tsh520.cn/file/anime/{}.jpg".format(title)
 
     if fast_mode:
         status = preset_status or 2
@@ -662,7 +662,7 @@ def finalize(title, name_cn, subcategory, genre_tags, poster_url,
         print("\n  [无封面] 未获取到海报")
 
     # 生成 md
-    image_path = "https://ph.0824.uk/file/anime/{}.jpg".format(title)
+    image_path = "https://img.tsh520.cn/file/anime/{}.jpg".format(title)
     os.makedirs(BLOG_BANGUMI_DIR, exist_ok=True)
     md_file = "{}.md".format(title)
     md_path = os.path.join(BLOG_BANGUMI_DIR, md_file)

@@ -1,7 +1,7 @@
 ---
 name: Qwerty Learner
 url: https://qwerty.kaiyi.cool/
-icon: https://ph.0824.uk/file/网络资源/qwerty.kaiyi.cool-icon.png
+icon: https://img.tsh520.cn/file/网络资源/qwerty.kaiyi.cool-icon.png
 description: 键盘工作者单词记忆软件
 category: 学习网站
 tags: [学习, 工具]
