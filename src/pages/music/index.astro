@@ -1,7 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import Comment from "@components/comment/index.astro";
-import Navbar from "@components/layout/Navbar.astro";
 import MusicVisualizer from "@components/features/music-visualizer/MusicVisualizer.svelte";
 import Layout from "@layouts/Layout.astro";
 import { musicPlayerConfig, siteConfig } from "@/config";
@@ -54,33 +53,15 @@ const collectionPlaylist = musicEntries
 		metingId: item.metingId || "",
 	}));
 
-const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 ---
 
 <Layout title={i18n(I18nKey.musicPageTitle) + " - 3D可视化"} description="音乐地形可视化，沉浸式音乐体验">
-	<div
-		id="top-row"
-		class="music-visualizer-top-row z-50 pointer-events-none"
-		class:list={[
-			navbarWidthFull ? "w-full" : "w-full max-w-(--page-width) px-0 md:px-4",
-		]}
-	>
-		<div id="navbar-wrapper" class="pointer-events-auto bg-transparent">
-			<Navbar />
-		</div>
-	</div>
-
-	<div id="left-sidebar-dynamic" class="hidden"></div>
-	<div id="right-sidebar-dynamic" class="hidden"></div>
-
-	<main id="swup-container" class="music-visualizer-swup transition-main">
+	<main class="music-visualizer-swup">
 		<h1 class="sr-only">{i18n(I18nKey.musicPageTitle)}</h1>
 		<div class="music-visualizer-page">
 			<MusicVisualizer client:only="svelte" />
 		</div>
 	</main>
-
-	<Comment customPath="/music/" />
 
 	<script is:inline define:vars={{ collectionPlaylistJson: JSON.stringify(collectionPlaylist), metingApiUrl: metingApiBase }}>
 	(function() {

@@ -83,7 +83,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		recordChildren.push(LinkPreset.MoviesGames);
 	}
 	if (siteConfig.pages.musicPage) {
-		recordChildren.push(LinkPreset.MusicPage);
+		recordChildren.push({
+			name: "音乐",
+			url: "/music/",
+			icon: "material-symbols:music-note",
+			external: true,
+		});
 	}
 	if (siteConfig.pages.changelog) {
 		recordChildren.push(LinkPreset.Changelog);
