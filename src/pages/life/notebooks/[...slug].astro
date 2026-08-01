@@ -88,7 +88,7 @@ const notebookCommentPath =
 		? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
 		: "";
 
-// 获取所有笔记本列表（面包屑下拉用）
+// 获取所有笔记本列表
 const allNotebooks = await getCollection("notebooks");
 const notebookList = allNotebooks
 	.filter((e) => {
@@ -103,7 +103,6 @@ const notebookList = allNotebooks
 	})
 	.filter((n) => n.name);
 
-// 为热力图准备数据（仅当前笔记本的条目）
 const heatmapPosts = isNotebookIndex
 	? (sortedEntries || []).map((e) => ({
 			id: e.id,
@@ -114,7 +113,6 @@ const heatmapPosts = isNotebookIndex
 		}))
 	: [];
 
-// 预处理：按年月分组（归档式时间线用）
 interface ArchiveEntry {
 	slug: string;
 	day: string;
@@ -169,14 +167,11 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 		<div class="flex w-full overflow-hidden relative min-h-32">
 			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
 
-				{/* 面包屑：笔记本 › [当前笔记本名 下拉] */}
 				<nav class="cb" id="nb-breadcrumb" aria-label="Breadcrumb">
 					<ol class="cb__list">
 						<li class="cb__item">
 							<a href="/life/notebooks/" class="cb__link">
-								<span class="cb__icon">
-									<Icon name="material-symbols:menu-book-outline" />
-								</span>
+								<span class="cb__icon"><Icon name="material-symbols:menu-book-outline" /></span>
 								<span>笔记本</span>
 							</a>
 						</li>
@@ -191,12 +186,7 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 								</button>
 								<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
 									{notebookList.map((nb) => (
-										<a
-											href={`/life/notebooks/${nb.folder}/`}
-											class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]}
-											role="menuitem"
-											data-nb-dropdown-item
-										>
+										<a href={`/life/notebooks/${nb.folder}/`} class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]} role="menuitem" data-nb-dropdown-item>
 											<span>{nb.name}</span>
 										</a>
 									))}
@@ -206,43 +196,30 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 					</ol>
 				</nav>
 
-				{/* 标题 */}
 				<div class="mb-8">
 					<div class="flex items-center gap-3 mb-3">
 						<Icon name="material-symbols:menu-book-outline" class="text-[1.875rem]" />
-						<div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-							{entry.data.name || "笔记本"}
-						</div>
+						<div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">{entry.data.name || "笔记本"}</div>
 					</div>
-					{entry.data.summary && (
-						<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">{entry.data.summary}</p>
-					)}
+					{entry.data.summary && <p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">{entry.data.summary}</p>}
 				</div>
 
-				{/* 热力图 */}
 				<ArchiveHeatmap posts={heatmapPosts} />
 
-				{/* 归档式时间线（与 ArchivePanel 样式一致） */}
 				<div class="archive-panel">
 					{archiveYears.length > 0 ? (
 						archiveYears.map((yr) => (
 							<div class="ap-year-block">
 								<div class="ap-year-header">
 									<div class="ap-col"><div class="ap-node ap-year-node"></div></div>
-									<div class="ap-year-label">
-										<h2 class="ap-h1">{yr.year}年</h2>
-										<span class="ap-count">共 {yr.totalCount} 篇</span>
-									</div>
+									<div class="ap-year-label"><h2 class="ap-h1">{yr.year}年</h2><span class="ap-count">共 {yr.totalCount} 篇</span></div>
 								</div>
 								<div class="ap-months-area">
 									{yr.months.map((mg) => (
 										<div class="ap-month-block">
 											<div class="ap-month-header">
 												<div class="ap-col"><div class="ap-hline ap-month-hline"></div><div class="ap-node ap-month-node"></div></div>
-												<div class="ap-month-label">
-													<h3 class="ap-h2">{mg.month}月</h3>
-													<span class="ap-count">{mg.entries.length} 篇</span>
-												</div>
+												<div class="ap-month-label"><h3 class="ap-h2">{mg.month}月</h3><span class="ap-count">{mg.entries.length} 篇</span></div>
 											</div>
 											<div class="ap-posts-area">
 												<ul class="ap-post-list">
@@ -250,9 +227,7 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 														<li class:list={["ap-post-row", { last: idx === mg.entries.length - 1 }]}>
 															<div class="ap-col"><div class="ap-hline ap-post-hline"></div><div class="ap-node ap-post-node"></div></div>
 															<a href={`/life/notebooks/${folderName}/${entry.slug}/`} class="ap-post-link group btn-plain">
-																<span class="ap-date">{entry.day}</span>
-																<span class="ap-type-badge">笔记</span>
-																<span class="ap-title group-hover:text-(--primary)">{entry.name}</span>
+																<span class="ap-date">{entry.day}</span><span class="ap-type-badge">笔记</span><span class="ap-title group-hover:text-(--primary)">{entry.name}</span>
 															</a>
 														</li>
 													))}
@@ -264,207 +239,130 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 							</div>
 						))
 					) : (
-						<div class="nb-empty">
-							<span class="nb-empty-icon">📝</span>
-							<p>还没有日记内容</p>
-						</div>
+						<div class="nb-empty"><span class="nb-empty-icon">📝</span><p>还没有日记内容</p></div>
 					)}
 				</div>
-
 			</div>
 		</div>
 
-		{/* 笔记本下拉菜单 */}
 		<script is:inline>
 		(function() {
 			if (window.__nbDropdownInited) return;
 			window.__nbDropdownInited = true;
-
-			function closeDropdown(dd) {
-				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
-				if (trigger) trigger.setAttribute("aria-expanded", "false");
-				dd.classList.remove("is-open");
-			}
-
-			function openDropdown(dd) {
-				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
-				var menu = dd.querySelector("[data-nb-dropdown-menu]");
-				if (trigger) trigger.setAttribute("aria-expanded", "true");
-				if (menu && trigger) {
-					var rect = trigger.getBoundingClientRect();
-					menu.style.top = (rect.bottom + 6) + "px";
-					menu.style.left = rect.left + "px";
-				}
-				dd.classList.add("is-open");
-			}
-
+			function closeDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); if (trigger) trigger.setAttribute("aria-expanded", "false"); dd.classList.remove("is-open"); }
+			function openDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); var menu = dd.querySelector("[data-nb-dropdown-menu]"); if (trigger) trigger.setAttribute("aria-expanded", "true"); if (menu && trigger) { var rect = trigger.getBoundingClientRect(); menu.style.top = (rect.bottom + 6) + "px"; menu.style.left = rect.left + "px"; } dd.classList.add("is-open"); }
 			document.addEventListener("click", function(e) {
-				var t = e.target;
-				if (!t) return;
+				var t = e.target; if (!t) return;
 				var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
 				var item = t.closest && t.closest("[data-nb-dropdown-item]");
-				if (trigger) {
-					e.preventDefault();
-					var dd = trigger.closest("[data-nb-dropdown]");
-					if (!dd) return;
-					var isOpen = dd.classList.contains("is-open");
-					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
-					if (!isOpen) openDropdown(dd);
-					return;
-				}
-				if (item) {
-					e.preventDefault();
-					var href = item.getAttribute("href") || "";
-					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
-					if (href) window.location.href = href;
-					return;
-				}
+				if (trigger) { e.preventDefault(); var dd = trigger.closest("[data-nb-dropdown]"); if (!dd) return; var isOpen = dd.classList.contains("is-open"); document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (!isOpen) openDropdown(dd); return; }
+				if (item) { e.preventDefault(); var href = item.getAttribute("href") || ""; document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (href) window.location.href = href; return; }
 				document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
 			});
 		})();
 		</script>
-
 	</MainGridLayout>
 ) : (
 	<MainGridLayout title={(item?.data?.name || "日记") + " - 笔记本"}>
-		<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
-			<div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
-			<div class="diary-detail-page">
-			<article class="diary-paper">
-				{/* 面包屑：笔记本 › 下拉(切换) › 笔记本名(可点击) › 文章名 */}
-				<nav class="cb" aria-label="Breadcrumb">
-					<ol class="cb__list">
-						<li class="cb__item">
-							<a href="/life/notebooks/" class="cb__link">
-								<span class="cb__icon">
-									<Icon name="material-symbols:menu-book-outline" />
-								</span>
-								<span>笔记本</span>
-							</a>
-						</li>
-						<li class="cb__item">
-							<span class="cb__sep" aria-hidden="true">›</span>
-							<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
-								<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
-									<span class="cb__dropdown-label" data-nb-dropdown-label>全部笔记本</span>
-									<span class="cb__dropdown-arrow" aria-hidden="true">
-										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
-									</span>
-								</button>
-								<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
-									{notebookList.map((nb) => (
-										<a
-											href={`/life/notebooks/${nb.folder}/`}
-											class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]}
-											role="menuitem"
-											data-nb-dropdown-item
-										>
-											<span>{nb.name}</span>
-										</a>
-									))}
-								</span>
+		{/* 面包屑：笔记本 › 下拉(切换) › 笔记本名(可点击) › 文章名 */}
+		<nav class="cb" aria-label="Breadcrumb">
+			<ol class="cb__list">
+				<li class="cb__item">
+					<a href="/life/notebooks/" class="cb__link">
+						<span class="cb__icon"><Icon name="material-symbols:menu-book-outline" /></span>
+						<span>笔记本</span>
+					</a>
+				</li>
+				<li class="cb__item">
+					<span class="cb__sep" aria-hidden="true">›</span>
+					<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
+						<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
+							<span class="cb__dropdown-label" data-nb-dropdown-label>全部笔记本</span>
+							<span class="cb__dropdown-arrow" aria-hidden="true">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
 							</span>
-							<span class="cb__sep" aria-hidden="true">›</span>
-							<a href={`/life/notebooks/${folderName}/`} class="cb__link">
-								<span>{entry.data.name || "笔记本"}</span>
-							</a>
-						</li>
-						<li class="cb__item">
-							<span class="cb__sep" aria-hidden="true">›</span>
-							<span class="cb__current">
-								<span class="cb__icon">
-									<Icon name="material-symbols:description-outline" />
-								</span>
-								<span>{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "此笔记"}</span>
-							</span>
-						</li>
-					</ol>
-				</nav>
+						</button>
+						<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
+							{notebookList.map((nb) => (
+								<a href={`/life/notebooks/${nb.folder}/`} class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]} role="menuitem" data-nb-dropdown-item>
+									<span>{nb.name}</span>
+								</a>
+							))}
+						</span>
+					</span>
+					<span class="cb__sep" aria-hidden="true">›</span>
+					<a href={`/life/notebooks/${folderName}/`} class="cb__link"><span>{entry.data.name || "笔记本"}</span></a>
+				</li>
+				<li class="cb__item">
+					<span class="cb__sep" aria-hidden="true">›</span>
+					<span class="cb__current">
+						<span class="cb__icon"><Icon name="material-symbols:description-outline" /></span>
+						<span>{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "此笔记"}</span>
+					</span>
+				</li>
+			</ol>
+		</nav>
 
-				<h1 class="diary-paper-title">
+		<!-- 文章标题区 — 与博客文章页一致的 post-hero 样式 -->
+		<div class="post-hero rounded-(--radius-large) mb-2 onload-animation">
+			<div class="post-hero__content">
+				<h1 class="post-hero__title">
 					{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "无标题"}
 				</h1>
-
-				<div class="diary-paper-content">
-					{notebookContent ? (
-						<Markdown class="diary-paper-content"><notebookContent.Content /></Markdown>
+				<div class="post-hero__meta-row">
+					{item?.data?.date instanceof Date ? (
+						<span class="post-hero__meta-item">
+							{item.data.date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+						</span>
 					) : (
-						<p>（无内容）</p>
+						<span class="post-hero__meta-item">未填写日期</span>
 					)}
-				</div>
-
-				<div class="diary-paper-footer">
 					{item?.data?.tags && item.data.tags.length > 0 && (
-						<div class="diary-tags">
-							{item.data.tags.map((tag: string) => (<span class="diary-tag">#{tag}</span>))}
-						</div>
+						<>
+							<span class="post-hero__meta-dot">·</span>
+							{item.data.tags.map((tag: string) => (<span class="post-hero__meta-tag">#{tag}&nbsp;</span>))}
+						</>
 					)}
-					<span class="diary-date-final">
-						{item?.data?.date instanceof Date ? item.data.date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" }) : "未填写日期"}
-					</span>
 				</div>
-			</article>
+			</div>
+		</div>
 
-			<Comment customPath={notebookCommentPath} />
+		<!-- 正文卡片 -->
+		<div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-4">
+			<div class="card-base z-10 px-3 md:px-6 lg:px-10 pb-4 pt-0 relative w-full">
+				{notebookContent ? (
+					<Markdown class="mb-6 markdown-content onload-animation">
+						<notebookContent.Content />
+					</Markdown>
+				) : (
+					<p class="text-(--content-meta) text-center py-8">（无内容）</p>
+				)}
+			</div>
 		</div>
-		</div>
-		</div>
+
+		<Comment customPath={notebookCommentPath} />
 
 		{/* 笔记本下拉菜单 */}
 		<script is:inline>
 		(function() {
 			if (window.__nbDropdownInited) return;
 			window.__nbDropdownInited = true;
-
-			function closeDropdown(dd) {
-				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
-				if (trigger) trigger.setAttribute("aria-expanded", "false");
-				dd.classList.remove("is-open");
-			}
-
-			function openDropdown(dd) {
-				var trigger = dd.querySelector("[data-nb-dropdown-trigger]");
-				var menu = dd.querySelector("[data-nb-dropdown-menu]");
-				if (trigger) trigger.setAttribute("aria-expanded", "true");
-				if (menu && trigger) {
-					var rect = trigger.getBoundingClientRect();
-					menu.style.top = (rect.bottom + 6) + "px";
-					menu.style.left = rect.left + "px";
-				}
-				dd.classList.add("is-open");
-			}
-
+			function closeDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); if (trigger) trigger.setAttribute("aria-expanded", "false"); dd.classList.remove("is-open"); }
+			function openDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); var menu = dd.querySelector("[data-nb-dropdown-menu]"); if (trigger) trigger.setAttribute("aria-expanded", "true"); if (menu && trigger) { var rect = trigger.getBoundingClientRect(); menu.style.top = (rect.bottom + 6) + "px"; menu.style.left = rect.left + "px"; } dd.classList.add("is-open"); }
 			document.addEventListener("click", function(e) {
-				var t = e.target;
-				if (!t) return;
+				var t = e.target; if (!t) return;
 				var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
 				var item = t.closest && t.closest("[data-nb-dropdown-item]");
-				if (trigger) {
-					e.preventDefault();
-					var dd = trigger.closest("[data-nb-dropdown]");
-					if (!dd) return;
-					var isOpen = dd.classList.contains("is-open");
-					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
-					if (!isOpen) openDropdown(dd);
-					return;
-				}
-				if (item) {
-					e.preventDefault();
-					var href = item.getAttribute("href") || "";
-					document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
-					if (href) window.location.href = href;
-					return;
-				}
+				if (trigger) { e.preventDefault(); var dd = trigger.closest("[data-nb-dropdown]"); if (!dd) return; var isOpen = dd.classList.contains("is-open"); document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (!isOpen) openDropdown(dd); return; }
+				if (item) { e.preventDefault(); var href = item.getAttribute("href") || ""; document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (href) window.location.href = href; return; }
 				document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
 			});
 		})();
 		</script>
-
 	</MainGridLayout>
 )}
 
 <style>
-	/* ===== 归档式时间线（与 ArchivePanel 一致） ===== */
 	.archive-panel { --tw: 2rem; --lc: var(--line-color, oklch(0.82 0 0)); --lh: oklch(0.15 0 0); --nc: var(--line-color, oklch(0.82 0 0)); --nh: oklch(0.15 0 0); --lw: 2.5px; position: relative; }
 	:root.dark .archive-panel { --lc: oklch(0.35 0 0); --lh: oklch(0.85 0 0); --nc: oklch(0.35 0 0); --nh: oklch(0.85 0 0); }
 	.ap-year-block { position: relative; margin-bottom: 2.5rem; }
@@ -497,91 +395,7 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 	.ap-post-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; text-decoration: none; color: inherit; transition: background 0.15s ease; }
 	.ap-post-link:hover { background: var(--btn-plain-bg-hover); }
 
-	/* 空状态 */
-	.nb-empty {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 3rem;
-		background: var(--card-bg);
-		border: 1.5px dashed var(--line-divider);
-		border-radius: 1rem;
-		text-align: center;
-	}
-
-	.nb-empty-icon {
-		font-size: 2.5rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.nb-empty p {
-		font-size: 0.875rem;
-		color: var(--content-meta);
-		margin: 0;
-	}
-
-	/* ===== 日记详情页 ===== */
-	.diary-detail-page { width: 100%; }
-	.diary-paper {
-		background: var(--page-bg); color: var(--deep-text);
-		padding: 2rem 0.75rem;
-	}
-	@media (min-width: 768px) {
-		.diary-paper { padding: 2rem 1.25rem; }
-	}
-
-	.diary-paper-back {
-		display: inline-flex; align-items: center; gap: 0.4rem;
-		font-size: 0.85rem; color: var(--content-meta); text-decoration: none;
-		margin-bottom: 2rem; transition: color 0.2s;
-	}
-	.diary-paper-back:hover { color: var(--primary); }
-
-	.diary-paper-title { font-size: 1.75rem; font-weight: 700; color: var(--deep-text); margin: 0 0 2rem; line-height: 1.4; }
-
-	.diary-paper-content { font-size: 1rem; line-height: 1.9; }
-	.diary-paper-content :global(p) { margin: 0 0 1.25rem; }
-	.diary-paper-content :global(blockquote) { border-left-color: var(--primary); }
-
-	.diary-paper-content :global(p:has(> img:only-child)) {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-	}
-	.diary-paper-content :global(p:has(> img:only-child):has(img:nth-child(2)):not(:has(img:nth-child(3)))) {
-		grid-template-columns: repeat(2, 1fr);
-	}
-	.diary-paper-content :global(p:has(> img:only-child):not(:has(img:nth-child(2)))) {
-		grid-template-columns: 280px;
-		justify-content: start;
-	}
-	.diary-paper-content :global(img) {
-		border-radius: 0.5rem;
-		max-width: 100%;
-		aspect-ratio: 1 / 1;
-		object-fit: cover;
-		cursor: zoom-in;
-	}
-	.diary-paper-content :global(p:has(> img:only-child)) img {
-		width: 100%;
-		height: 100%;
-	}
-
-	.diary-paper-footer {
-		display: flex; align-items: flex-end; justify-content: space-between;
-		margin-top: 3rem; padding-top: 2rem;
-		border-top: 1px solid var(--line-divider);
-	}
-	.diary-date-final {
-		font-size: 0.85rem; color: var(--content-meta); text-align: right;
-		font-style: italic;
-	}
-
-	.diary-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-	.diary-tag {
-		padding: 0.25rem 0.75rem; background: var(--btn-regular-bg-hover);
-		border-radius: 9999px; font-size: 0.75rem; color: var(--content-meta);
-	}
+	.nb-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; background: var(--card-bg); border: 1.5px dashed var(--line-divider); border-radius: 1rem; text-align: center; }
+	.nb-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+	.nb-empty p { font-size: 0.875rem; color: var(--content-meta); margin: 0; }
 </style>
-
