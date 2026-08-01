@@ -47,6 +47,11 @@ export default defineConfig({
 		experimentalLayout: "constrained",
 	},
 
+	// 禁用 Astro 开发工具栏，避免 dev-toolbar entrypoint 504 错误
+	devToolbar: {
+		enabled: false,
+	},
+
 	integrations: [
 		swup({
 			theme: false,
