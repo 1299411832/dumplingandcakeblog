@@ -16,6 +16,41 @@ const imageFiles = import.meta.glob<ImageMetadata>(
 	},
 );
 
+// 背景图专用 glob — 构建时优化，限制宽度避免加载全分辨率原图
+const bgDeskGlob = import.meta.glob<ImageMetadata>(
+	"../../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}",
+	{ eager: true, import: "default" },
+);
+const bgMobGlob = import.meta.glob<ImageMetadata>(
+	"../../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}",
+	{ eager: true, import: "default" },
+);
+
+const _bgDeskFirst = Object.values(bgDeskGlob)[0];
+const _bgMobFirst = Object.values(bgMobGlob)[0];
+
+const [optimizedBgDesktop, optimizedBgMobile] = await Promise.all([
+	_bgDeskFirst
+		? getImage({
+				src: _bgDeskFirst,
+				format: "webp",
+				width: 1920,
+				quality: 80,
+			}).then((r) => r.src)
+		: Promise.resolve(homeConfig.hero.backgroundImage),
+	_bgMobFirst
+		? getImage({
+				src: _bgMobFirst,
+				format: "webp",
+				width: 768,
+				quality: 80,
+			}).then((r) => r.src)
+		: Promise.resolve(
+				homeConfig.hero.backgroundImageMobile ||
+					homeConfig.hero.backgroundImage,
+			),
+]);
+
 async function optimizeHeroImage(image: ImageMetadata) {
 	const optimized = await getImage({
 		src: image,
@@ -100,9 +135,6 @@ const heroRightPanel = homeConfig.hero.rightPanel ?? {
 // 将 displayName 拆成逐字 span，用于逐字入场动画与 cqw 缩放
 const nameLetters = Array.from(homeConfig.displayName || "");
 
-const mobileBackground =
-	homeConfig.hero.backgroundImageMobile || homeConfig.hero.backgroundImage;
-
 const rainConfig = {
 	enabled: homeConfig.hero.rain?.enabled ?? true,
 	intensity: homeConfig.hero.rain?.intensity ?? 0.6,
@@ -122,8 +154,8 @@ const rainConfig = {
 >
 	<!-- 背景层：客户端随机选图 -->
 	<picture class="home-hero__video-picture">
-		<source media="(max-width: 768px)" srcset={mobileBackground} />
-		<img class="home-hero__video" src={homeConfig.hero.backgroundImage} alt="" />
+		<source media="(max-width: 768px)" srcset={optimizedBgMobile} />
+		<img class="home-hero__video" src={optimizedBgDesktop} alt="" />
 	</picture>
 
 	<!-- 全屏内容容器 -->
