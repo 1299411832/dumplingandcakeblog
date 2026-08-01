@@ -22,7 +22,11 @@ function normalizeBaseUrl(rawBaseUrl: string) {
 	}
 }
 
-async function getUmamiToken(baseUrl: string, username: string, password: string) {
+async function getUmamiToken(
+	baseUrl: string,
+	username: string,
+	password: string,
+) {
 	const response = await fetch(`${baseUrl}/api/auth/login`, {
 		method: "POST",
 		headers: {
@@ -31,9 +35,16 @@ async function getUmamiToken(baseUrl: string, username: string, password: string
 		},
 		body: JSON.stringify({ username, password }),
 	});
-	const data = await response.json().catch(() => ({})) as { token?: string; data?: { token?: string }; errmsg?: string; message?: string };
+	const data = (await response.json().catch(() => ({}))) as {
+		token?: string;
+		data?: { token?: string };
+		errmsg?: string;
+		message?: string;
+	};
 	if (!response.ok) {
-		throw new Error(data.errmsg || data.message || `Umami login failed (${response.status})`);
+		throw new Error(
+			data.errmsg || data.message || `Umami login failed (${response.status})`,
+		);
 	}
 	const token = data.token || data.data?.token;
 	if (!token) {
@@ -42,7 +53,11 @@ async function getUmamiToken(baseUrl: string, username: string, password: string
 	return token;
 }
 
-async function getUmamiStats(baseUrl: string, token: string, websiteId: string) {
+async function getUmamiStats(
+	baseUrl: string,
+	token: string,
+	websiteId: string,
+) {
 	const response = await fetch(
 		`${baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${Date.now()}`,
 		{
@@ -52,7 +67,7 @@ async function getUmamiStats(baseUrl: string, token: string, websiteId: string) 
 			},
 		},
 	);
-	const data = await response.json().catch(() => ({})) as {
+	const data = (await response.json().catch(() => ({}))) as {
 		visitors?: number;
 		pageviews?: number;
 		uv?: number;
@@ -61,7 +76,11 @@ async function getUmamiStats(baseUrl: string, token: string, websiteId: string) 
 		message?: string;
 	};
 	if (!response.ok) {
-		throw new Error(data.errmsg || data.message || `Umami stats request failed (${response.status})`);
+		throw new Error(
+			data.errmsg ||
+				data.message ||
+				`Umami stats request failed (${response.status})`,
+		);
 	}
 	return data;
 }
@@ -73,7 +92,10 @@ export async function GET() {
 	const websiteId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || "";
 
 	if (!rawBaseUrl || !username || !password || !websiteId) {
-		return json({ visitors: null, pageviews: null, error: "Missing Umami env vars" }, 503);
+		return json(
+			{ visitors: null, pageviews: null, error: "Missing Umami env vars" },
+			503,
+		);
 	}
 
 	try {
@@ -89,7 +111,10 @@ export async function GET() {
 			{
 				visitors: null,
 				pageviews: null,
-				error: error instanceof Error ? error.message : "Failed to fetch Umami stats",
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to fetch Umami stats",
 			},
 			500,
 		);

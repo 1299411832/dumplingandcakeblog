@@ -40,9 +40,7 @@ export function showBanner(): void {
  */
 export function initBannerResize(): void {
 	window.addEventListener("resize", () => {
-		let offset = Math.floor(
-			window.innerHeight * (BANNER_HEIGHT_EXTEND / 100),
-		);
+		let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
 		offset = offset - (offset % 4);
 		document.documentElement.style.setProperty(
 			"--banner-height-extend",

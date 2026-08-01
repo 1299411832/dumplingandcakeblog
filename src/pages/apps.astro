@@ -1,8 +1,8 @@
 ---
 import { getCollection } from "astro:content";
 import AppCard from "@components/features/AppCard.astro";
-import { Icon } from "astro-icon/components";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
 
 // 从 content/apps 目录读取应用数据，按权重排序
 const appsEntries = await getCollection("apps");

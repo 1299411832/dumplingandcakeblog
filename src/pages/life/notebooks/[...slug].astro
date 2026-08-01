@@ -8,7 +8,16 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 export async function getStaticPaths() {
 	const allEntries = await getCollection("notebooks");
-	const paths: { params: { slug: string }; props: { entry: any; entries?: any[]; sortedEntries?: any[]; item?: any; isNotebookIndex?: boolean } }[] = [];
+	const paths: {
+		params: { slug: string };
+		props: {
+			entry: any;
+			entries?: any[];
+			sortedEntries?: any[];
+			item?: any;
+			isNotebookIndex?: boolean;
+		};
+	}[] = [];
 
 	for (const entry of allEntries) {
 		const normalizedId = entry.id.replace(/\\/g, "/");
@@ -60,7 +69,10 @@ export async function getStaticPaths() {
 }
 
 const { entry, sortedEntries, item, isNotebookIndex } = Astro.props as {
-	entry: any; sortedEntries?: any[]; item?: any; isNotebookIndex: boolean;
+	entry: any;
+	sortedEntries?: any[];
+	item?: any;
+	isNotebookIndex: boolean;
 };
 const notebookContent = !isNotebookIndex && item ? await render(item) : null;
 const normalizedEntryId = entry.id.replace(/\\/g, "/");
@@ -71,16 +83,19 @@ const folderName = isNotebookRootMatch
 	? isNotebookRootMatch[1]
 	: normalizedEntryId.split("/")[0];
 
-const notebookCommentPath = !isNotebookIndex && item
-	? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
-	: "";
+const notebookCommentPath =
+	!isNotebookIndex && item
+		? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
+		: "";
 
 // 获取所有笔记本列表（面包屑下拉用）
 const allNotebooks = await getCollection("notebooks");
 const notebookList = allNotebooks
 	.filter((e) => {
 		const id = e.id.replace(/\\/g, "/");
-		return /\/(_index|_index\.md|_index\.json)$/.test(id) || /\/_index$/.test(id);
+		return (
+			/\/(_index|_index\.md|_index\.json)$/.test(id) || /\/_index$/.test(id)
+		);
 	})
 	.map((e) => {
 		const m = e.id.replace(/\\/g, "/").match(/^([^/]+)\//);
@@ -92,14 +107,28 @@ const notebookList = allNotebooks
 const heatmapPosts = isNotebookIndex
 	? (sortedEntries || []).map((e) => ({
 			id: e.id,
-			data: { title: e.data.name || e.id, published: e.data.date instanceof Date ? e.data.date : new Date(0) },
+			data: {
+				title: e.data.name || e.id,
+				published: e.data.date instanceof Date ? e.data.date : new Date(0),
+			},
 		}))
 	: [];
 
 // 预处理：按年月分组（归档式时间线用）
-interface ArchiveEntry { slug: string; day: string; name: string }
-interface ArchiveMonth { month: number; entries: ArchiveEntry[] }
-interface ArchiveYear { year: number; totalCount: number; months: ArchiveMonth[] }
+interface ArchiveEntry {
+	slug: string;
+	day: string;
+	name: string;
+}
+interface ArchiveMonth {
+	month: number;
+	entries: ArchiveEntry[];
+}
+interface ArchiveYear {
+	year: number;
+	totalCount: number;
+	months: ArchiveMonth[];
+}
 const archiveYears: ArchiveYear[] = [];
 if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 	const yearMap = new Map<number, Map<number, ArchiveEntry[]>>();
@@ -108,16 +137,27 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 		const y = d.getFullYear();
 		const m = d.getMonth() + 1;
 		const noteItemId = e.id.replace(/\\/g, "/");
-		const itemSlug = noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
+		const itemSlug =
+			noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
 		if (!yearMap.has(y)) yearMap.set(y, new Map());
 		const monthMap = yearMap.get(y)!;
 		if (!monthMap.has(m)) monthMap.set(m, []);
-		monthMap.get(m)!.push({ slug: itemSlug, day: String(d.getDate()).padStart(2, "0"), name: e.data.name || itemSlug });
+		monthMap
+			.get(m)!
+			.push({
+				slug: itemSlug,
+				day: String(d.getDate()).padStart(2, "0"),
+				name: e.data.name || itemSlug,
+			});
 	}
-	for (const [year, monthMap] of Array.from(yearMap.entries()).sort((a, b) => b[0] - a[0])) {
+	for (const [year, monthMap] of Array.from(yearMap.entries()).sort(
+		(a, b) => b[0] - a[0],
+	)) {
 		const months: ArchiveMonth[] = [];
 		let total = 0;
-		for (const [month, entries] of Array.from(monthMap.entries()).sort((a, b) => b[0] - a[0])) {
+		for (const [month, entries] of Array.from(monthMap.entries()).sort(
+			(a, b) => b[0] - a[0],
+		)) {
 			months.push({ month, entries });
 			total += entries.length;
 		}

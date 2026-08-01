@@ -19,8 +19,7 @@ export function updateMainGridCols(): void {
 	const isPostPage = isCurrentPagePost();
 	const sidebarPosition =
 		mainGrid.getAttribute("data-sidebar-position") || "left";
-	const tabletSidebar =
-		mainGrid.getAttribute("data-tablet-sidebar") || "left";
+	const tabletSidebar = mainGrid.getAttribute("data-tablet-sidebar") || "left";
 	const showBothSidebarsOnPostPage =
 		mainGrid.getAttribute("data-show-both-sidebars-on-post") === "true";
 

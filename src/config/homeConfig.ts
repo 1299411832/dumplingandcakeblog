@@ -4,8 +4,14 @@ import { siteConfig } from "./siteConfig";
 import { skillsConfig } from "./skillsConfig";
 
 // 构建时自动扫描背景图文件夹
-const _deskGlob = import.meta.glob("../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
-const _mobGlob = import.meta.glob("../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const _deskGlob = import.meta.glob(
+	"../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}",
+	{ eager: true, query: "?url", import: "default" },
+) as Record<string, string>;
+const _mobGlob = import.meta.glob(
+	"../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}",
+	{ eager: true, query: "?url", import: "default" },
+) as Record<string, string>;
 const _deskImgs = Object.values(_deskGlob);
 const _mobImgs = Object.values(_mobGlob);
 
@@ -29,8 +35,12 @@ export const homeConfig = {
 	bio: profileConfig.bio,
 
 	hero: {
-		backgroundImage: _deskImgs.length > 0 ? _deskImgs[0] : `${replicaRoot}/home/home.webp`,
-		backgroundImageMobile: _mobImgs.length > 0 ? _mobImgs[0] : `${replicaRoot}/home/home-mobile.webp`,
+		backgroundImage:
+			_deskImgs.length > 0 ? _deskImgs[0] : `${replicaRoot}/home/home.webp`,
+		backgroundImageMobile:
+			_mobImgs.length > 0
+				? _mobImgs[0]
+				: `${replicaRoot}/home/home-mobile.webp`,
 		backgroundImagePool: _deskImgs.length > 0 ? _deskImgs : [],
 		backgroundImageMobilePool: _mobImgs.length > 0 ? _mobImgs : [],
 		speechAccentImage: `${replicaRoot}/home/home2-1.webp`,
@@ -45,7 +55,10 @@ export const homeConfig = {
 			autoDelay: 1600,
 			intro: [
 				{ speaker: "host", text: "欸，来客人啦。欢迎来到团子和蛋糕的博客。" },
-				{ speaker: "host", text: `这里是 ${profileConfig.name} 的个人空间，技术、生活和喜欢的东西都会慢慢收进来。` },
+				{
+					speaker: "host",
+					text: `这里是 ${profileConfig.name} 的个人空间，技术、生活和喜欢的东西都会慢慢收进来。`,
+				},
 				{ speaker: "host", text: primaryBio },
 				{ speaker: "host", text: "想先了解哪一块？点下面的话题，我们慢慢逛。" },
 			],
@@ -60,7 +73,8 @@ export const homeConfig = {
 						},
 						{
 							speaker: "host",
-							text: profileConfig.occupation || "喜欢折腾技术，也认真记录生活。",
+							text:
+								profileConfig.occupation || "喜欢折腾技术，也认真记录生活。",
 						},
 						{
 							speaker: "host",
@@ -80,7 +94,10 @@ export const homeConfig = {
 							speaker: "host",
 							text: "首页也放了站点数据、文章导航和作品展示，慢慢滚动会有完整的视觉演出。",
 						},
-						{ speaker: "host", text: "别急着走，下面还有很多值得翻一翻的地方。" },
+						{
+							speaker: "host",
+							text: "别急着走，下面还有很多值得翻一翻的地方。",
+						},
 					],
 				},
 			],

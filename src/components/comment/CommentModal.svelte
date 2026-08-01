@@ -1,242 +1,257 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import CommentSidebarDesktop from "./CommentSidebarDesktop.svelte";
-	import CommentSidebarMobile from "./CommentSidebarMobile.svelte";
+import { onMount } from "svelte";
+import CommentSidebarDesktop from "./CommentSidebarDesktop.svelte";
+import CommentSidebarMobile from "./CommentSidebarMobile.svelte";
 
-	interface Props {
-		serverURL: string;
-		adminNicknames?: string[];
-	}
+interface Props {
+	serverURL: string;
+	adminNicknames?: string[];
+}
 
-	let { serverURL, adminNicknames = ["团子和蛋糕"] }: Props = $props();
+let { serverURL, adminNicknames = ["团子和蛋糕"] }: Props = $props();
 
-	interface Comment {
-		objectId: number;
-		comment: string;
-		nick: string;
-		mail?: string;
-		link?: string;
-		avatar?: string;
-		time: number;
-		addr?: string;
-		browser?: string;
-		os?: string;
-		pid?: number | null;
-		rid?: number | null;
-		children?: Comment[];
-		reply_user?: { nick: string; link?: string; avatar?: string };
-	}
+interface Comment {
+	objectId: number;
+	comment: string;
+	nick: string;
+	mail?: string;
+	link?: string;
+	avatar?: string;
+	time: number;
+	addr?: string;
+	browser?: string;
+	os?: string;
+	pid?: number | null;
+	rid?: number | null;
+	children?: Comment[];
+	reply_user?: { nick: string; link?: string; avatar?: string };
+}
 
-	let dialogEl: HTMLDialogElement | undefined = $state();
-	let messagesEl: HTMLDivElement | undefined = $state();
+let dialogEl: HTMLDialogElement | undefined = $state();
+let messagesEl: HTMLDivElement | undefined = $state();
 
-	let visible = $state(false);
-	let phase = $state<"loader" | "comments">("loader");
-	let currentMomentId = $state("");
-	let currentPath = $state("");
+let visible = $state(false);
+let phase = $state<"loader" | "comments">("loader");
+let currentMomentId = $state("");
+let currentPath = $state("");
 
-	let comments: Comment[] = $state([]);
-	let flatComments: Array<Comment & { depth: number }> = $derived.by(() => {
-		const result: Array<Comment & { depth: number }> = [];
-		function walk(list: Comment[], depth: number) {
-			// 按时间排序
-			const sorted = [...list].sort((a, b) => a.time - b.time);
-			for (const c of sorted) {
-				result.push({ ...c, depth });
-				if (c.children?.length) walk(c.children, depth + 1);
-			}
+let comments: Comment[] = $state([]);
+let flatComments: Array<Comment & { depth: number }> = $derived.by(() => {
+	const result: Array<Comment & { depth: number }> = [];
+	function walk(list: Comment[], depth: number) {
+		// 按时间排序
+		const sorted = [...list].sort((a, b) => a.time - b.time);
+		for (const c of sorted) {
+			result.push({ ...c, depth });
+			if (c.children?.length) walk(c.children, depth + 1);
 		}
-		walk(comments, 0);
-		return result;
+	}
+	walk(comments, 0);
+	return result;
+});
+
+// 去重评论者列表
+let commenters = $derived.by(() => {
+	const map = new Map<
+		string,
+		{ nick: string; avatar: string; link?: string; count: number }
+	>();
+	for (const c of flatComments) {
+		const existing = map.get(c.nick);
+		if (existing) {
+			existing.count++;
+		} else {
+			map.set(c.nick, {
+				nick: c.nick,
+				avatar: getAvatarSrc(c),
+				link: c.link,
+				count: 1,
+			});
+		}
+	}
+	return Array.from(map.values());
+});
+
+let sidebarOpen = $state(false);
+let loading = $state(false);
+let sending = $state(false);
+let commentText = $state("");
+let nickText = $state("");
+let mailText = $state("");
+let linkText = $state("");
+
+let timerDone = false;
+let dataLoaded = false;
+
+onMount(() => {
+	nickText = localStorage.getItem("comment-nick") || "";
+	mailText = localStorage.getItem("comment-mail") || "";
+	linkText = localStorage.getItem("comment-link") || "";
+	(window as any).__commentModal = { open };
+	return () => {
+		delete (window as any).__commentModal;
+	};
+});
+
+function tryShowComments() {
+	if (timerDone && dataLoaded) {
+		phase = "comments";
+		setTimeout(() => scrollToBottom(false), 100);
+	}
+}
+
+function scrollToBottom(smooth = true) {
+	if (!messagesEl) return;
+	messagesEl.scrollTo({
+		top: messagesEl.scrollHeight,
+		behavior: smooth ? "smooth" : "auto",
 	});
+}
 
-	// 去重评论者列表
-	let commenters = $derived.by(() => {
-		const map = new Map<string, { nick: string; avatar: string; link?: string; count: number }>();
-		for (const c of flatComments) {
-			const existing = map.get(c.nick);
-			if (existing) {
-				existing.count++;
-			} else {
-				map.set(c.nick, {
-					nick: c.nick,
-					avatar: getAvatarSrc(c),
-					link: c.link,
-					count: 1,
-				});
-			}
-		}
-		return Array.from(map.values());
-	});
-
-	let sidebarOpen = $state(false);
-	let loading = $state(false);
-	let sending = $state(false);
-	let commentText = $state("");
-	let nickText = $state("");
-	let mailText = $state("");
-	let linkText = $state("");
-
-	let timerDone = false;
-	let dataLoaded = false;
-
-	onMount(() => {
-		nickText = localStorage.getItem("comment-nick") || "";
-		mailText = localStorage.getItem("comment-mail") || "";
-		linkText = localStorage.getItem("comment-link") || "";
-		(window as any).__commentModal = { open };
-		return () => {
-			delete (window as any).__commentModal;
-		};
-	});
-
-	function tryShowComments() {
-		if (timerDone && dataLoaded) {
-			phase = "comments";
-			setTimeout(() => scrollToBottom(false), 100);
-		}
-	}
-
-	function scrollToBottom(smooth = true) {
-		if (!messagesEl) return;
-		messagesEl.scrollTo({
-			top: messagesEl.scrollHeight,
-			behavior: smooth ? "smooth" : "auto",
-		});
-	}
-
-	function formatDate(timestamp: number): string {
-		try {
-			const d = new Date(timestamp);
-			const now = new Date();
-			const diff = now.getTime() - d.getTime();
-			const minutes = Math.floor(diff / 60000);
-			const hours = Math.floor(diff / 3600000);
-			const days = Math.floor(diff / 86400000);
-			if (minutes < 1) return "刚刚";
-			if (minutes < 60) return `${minutes}分钟前`;
-			if (hours < 24) return `${hours}小时前`;
-			if (days < 30) return `${days}天前`;
-			return d.toLocaleDateString("zh-CN");
-		} catch {
-			return "";
-		}
-	}
-
-	function isAdmin(c: Comment): boolean {
-		return adminNicknames.includes(c.nick);
-	}
-
-	function getQuotePreview(c: Comment): string {
-		if (!c.pid) return "";
-		// 在 flatComments 中找到被回复的评论
-		const parent = flatComments.find((fc) => fc.objectId === c.pid);
-		if (!parent) return "";
-		// 提取纯文本预览（去掉 HTML 标签）
-		const text = parent.comment.replace(/<[^>]*>/g, "").trim();
-		return text.length > 60 ? text.slice(0, 60) + "..." : text;
-	}
-
-	function getAvatarSrc(c: Comment): string {
-		if (c.avatar) return c.avatar;
-		if (c.mail) {
-			let h = 0;
-			const m = c.mail.trim().toLowerCase();
-			for (let i = 0; i < m.length; i++) h = ((h << 5) - h + m.charCodeAt(i)) | 0;
-			return `https://gravatar.loli.net/avatar/${Math.abs(h).toString(16).padStart(8, "0")}?d=mm`;
-		}
+function formatDate(timestamp: number): string {
+	try {
+		const d = new Date(timestamp);
+		const now = new Date();
+		const diff = now.getTime() - d.getTime();
+		const minutes = Math.floor(diff / 60000);
+		const hours = Math.floor(diff / 3600000);
+		const days = Math.floor(diff / 86400000);
+		if (minutes < 1) return "刚刚";
+		if (minutes < 60) return `${minutes}分钟前`;
+		if (hours < 24) return `${hours}小时前`;
+		if (days < 30) return `${days}天前`;
+		return d.toLocaleDateString("zh-CN");
+	} catch {
 		return "";
 	}
+}
 
-	async function fetchComments() {
-		if (!serverURL || !currentPath) {
-			dataLoaded = true;
-			tryShowComments();
-			return;
-		}
-		loading = true;
-		try {
-			const res = await fetch(`${serverURL}/api/comment?path=${encodeURIComponent(currentPath)}&pageSize=100`);
-			const data = await res.json();
-			comments = data.data?.data || [];
-		} catch (err) {
-			console.error("[CommentModal] fetch error:", err);
-		} finally {
-			loading = false;
-			dataLoaded = true;
-			tryShowComments();
-		}
+function isAdmin(c: Comment): boolean {
+	return adminNicknames.includes(c.nick);
+}
+
+function getQuotePreview(c: Comment): string {
+	if (!c.pid) return "";
+	// 在 flatComments 中找到被回复的评论
+	const parent = flatComments.find((fc) => fc.objectId === c.pid);
+	if (!parent) return "";
+	// 提取纯文本预览（去掉 HTML 标签）
+	const text = parent.comment.replace(/<[^>]*>/g, "").trim();
+	return text.length > 60 ? text.slice(0, 60) + "..." : text;
+}
+
+function getAvatarSrc(c: Comment): string {
+	if (c.avatar) return c.avatar;
+	if (c.mail) {
+		let h = 0;
+		const m = c.mail.trim().toLowerCase();
+		for (let i = 0; i < m.length; i++) h = ((h << 5) - h + m.charCodeAt(i)) | 0;
+		return `https://gravatar.loli.net/avatar/${Math.abs(h).toString(16).padStart(8, "0")}?d=mm`;
 	}
+	return "";
+}
 
-	async function postComment() {
-		if (!commentText.trim() || !nickText.trim() || sending) return;
-		sending = true;
-		try {
-			localStorage.setItem("comment-nick", nickText);
-			if (mailText) localStorage.setItem("comment-mail", mailText);
-			if (linkText) localStorage.setItem("comment-link", linkText);
-			const body = {
-				comment: `<p>${commentText.replace(/\n/g, "</p><p>")}</p>`,
-				nick: nickText,
-				mail: mailText || "",
-				link: linkText || "",
-				url: currentPath,
-				ua: navigator.userAgent,
-			};
-			const res = await fetch(`${serverURL}/api/comment`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(body),
-			});
-			const data = await res.json();
-			if (data.data) {
-				comments = [...comments, data.data];
-				commentText = "";
-				setTimeout(() => scrollToBottom(), 100);
-			}
-		} catch (err) {
-			console.error("[CommentModal] post error:", err);
-		} finally {
-			sending = false;
-		}
+async function fetchComments() {
+	if (!serverURL || !currentPath) {
+		dataLoaded = true;
+		tryShowComments();
+		return;
 	}
-
-	function handleInputKeydown(e: KeyboardEvent) {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			postComment();
-		}
+	loading = true;
+	try {
+		const res = await fetch(
+			`${serverURL}/api/comment?path=${encodeURIComponent(currentPath)}&pageSize=100`,
+		);
+		const data = await res.json();
+		comments = data.data?.data || [];
+	} catch (err) {
+		console.error("[CommentModal] fetch error:", err);
+	} finally {
+		loading = false;
+		dataLoaded = true;
+		tryShowComments();
 	}
+}
 
-	export function open(momentId: string, commentPath: string) {
-		currentMomentId = momentId;
-		currentPath = commentPath;
-		phase = "loader";
-		comments = [];
-		commentText = "";
-		timerDone = false;
-		dataLoaded = false;
-		visible = true;
-		requestAnimationFrame(() => {
-			if (dialogEl && !dialogEl.open) dialogEl.showModal();
+async function postComment() {
+	if (!commentText.trim() || !nickText.trim() || sending) return;
+	sending = true;
+	try {
+		localStorage.setItem("comment-nick", nickText);
+		if (mailText) localStorage.setItem("comment-mail", mailText);
+		if (linkText) localStorage.setItem("comment-link", linkText);
+		const body = {
+			comment: `<p>${commentText.replace(/\n/g, "</p><p>")}</p>`,
+			nick: nickText,
+			mail: mailText || "",
+			link: linkText || "",
+			url: currentPath,
+			ua: navigator.userAgent,
+		};
+		const res = await fetch(`${serverURL}/api/comment`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
 		});
-		setTimeout(() => fetchComments(), 100);
-		setTimeout(() => { timerDone = true; tryShowComments(); }, 2000);
+		const data = await res.json();
+		if (data.data) {
+			comments = [...comments, data.data];
+			commentText = "";
+			setTimeout(() => scrollToBottom(), 100);
+		}
+	} catch (err) {
+		console.error("[CommentModal] post error:", err);
+	} finally {
+		sending = false;
 	}
+}
 
-	function toggleSidebar() {
-		sidebarOpen = !sidebarOpen;
+function handleInputKeydown(e: KeyboardEvent) {
+	if (e.key === "Enter" && !e.shiftKey) {
+		e.preventDefault();
+		postComment();
 	}
+}
 
-	function close() {
-		if (dialogEl) dialogEl.close();
-		visible = false;
-		phase = "loader";
-		sidebarOpen = false;
-	}
-	function handleDialogClose() { visible = false; phase = "loader"; }
-	function handleBackdropClick(e: MouseEvent) { if (e.target === dialogEl) close(); }
-	function handleDialogKeydown(e: KeyboardEvent) { if (e.key === "Escape") close(); }
+export function open(momentId: string, commentPath: string) {
+	currentMomentId = momentId;
+	currentPath = commentPath;
+	phase = "loader";
+	comments = [];
+	commentText = "";
+	timerDone = false;
+	dataLoaded = false;
+	visible = true;
+	requestAnimationFrame(() => {
+		if (dialogEl && !dialogEl.open) dialogEl.showModal();
+	});
+	setTimeout(() => fetchComments(), 100);
+	setTimeout(() => {
+		timerDone = true;
+		tryShowComments();
+	}, 2000);
+}
+
+function toggleSidebar() {
+	sidebarOpen = !sidebarOpen;
+}
+
+function close() {
+	if (dialogEl) dialogEl.close();
+	visible = false;
+	phase = "loader";
+	sidebarOpen = false;
+}
+function handleDialogClose() {
+	visible = false;
+	phase = "loader";
+}
+function handleBackdropClick(e: MouseEvent) {
+	if (e.target === dialogEl) close();
+}
+function handleDialogKeydown(e: KeyboardEvent) {
+	if (e.key === "Escape") close();
+}
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

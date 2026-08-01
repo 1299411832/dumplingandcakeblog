@@ -2,9 +2,9 @@
 import { getCollection, render } from "astro:content";
 import { Icon } from "astro-icon/components";
 import MomentCard from "@/components/moments/MomentCard.astro";
+import { commentConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
-import { commentConfig } from "@/config";
 
 // 生成静态路径
 export async function getStaticPaths() {

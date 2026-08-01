@@ -1,8 +1,8 @@
-import { pathsEqual, url } from "@/utils/url-utils";
-import { BANNER_HEIGHT_HOME } from "@/constants/constants";
 import { expressiveCodeConfig, siteConfig } from "@/config";
-import { updateSidebarComponentsVisibility } from "./sidebar-utils";
+import { BANNER_HEIGHT_HOME } from "@/constants/constants";
+import { pathsEqual, url } from "@/utils/url-utils";
 import { initCustomScrollbar } from "./scrollbar-utils";
+import { updateSidebarComponentsVisibility } from "./sidebar-utils";
 
 declare global {
 	interface Window {
@@ -24,7 +24,7 @@ export function initSwupLifecycle(): void {
 	const syncMainContentTop = (isHome: boolean) => {
 		// 目标是 absolute 定位的外层容器（main-content-wrapper 的祖先）
 		const outerWrapper = document.querySelector(
-			".no-banner-layout.absolute"
+			".no-banner-layout.absolute",
 		) as HTMLElement | null;
 		if (!outerWrapper) return;
 		outerWrapper.style.top = isHome ? "0" : mainContentTop;
@@ -35,10 +35,7 @@ export function initSwupLifecycle(): void {
 			"link:click",
 			(visit: any, { el }: { el: HTMLAnchorElement }) => {
 				// Remove the delay for the first time page load
-				document.documentElement.style.setProperty(
-					"--content-delay",
-					"0ms",
-				);
+				document.documentElement.style.setProperty("--content-delay", "0ms");
 
 				// Same-page links don't need transition protection
 				const targetHref = el.getAttribute("href") || "";
@@ -49,10 +46,7 @@ export function initSwupLifecycle(): void {
 						return targetHref;
 					}
 				})();
-				const isSamePage = pathsEqual(
-					targetPathname,
-					window.location.pathname,
-				);
+				const isSamePage = pathsEqual(targetPathname, window.location.pathname);
 				if (!isSamePage) {
 					// Add page transition protection to prevent navbar flicker
 					document.documentElement.classList.add("is-page-transitioning");
@@ -133,8 +127,9 @@ export function initSwupLifecycle(): void {
 				}
 
 				// 3. Update main content area positioning
-				const mainContentWrapper =
-					document.getElementById("main-content-wrapper");
+				const mainContentWrapper = document.getElementById(
+					"main-content-wrapper",
+				);
 				if (mainContentWrapper) {
 					mainContentWrapper.classList.remove(
 						"col-span-1",
@@ -145,10 +140,7 @@ export function initSwupLifecycle(): void {
 					if (isHome) {
 						mainContentWrapper.classList.add("col-span-1");
 					} else {
-						mainContentWrapper.classList.add(
-							"xl:col-start-2",
-							"xl:col-end-3",
-						);
+						mainContentWrapper.classList.add("xl:col-start-2", "xl:col-end-3");
 					}
 				}
 				syncMainContentTop(isHome);
@@ -199,9 +191,11 @@ export function initSwupLifecycle(): void {
 			initCustomScrollbar();
 
 			// Reinitialize icon loader
-			import("@/utils/icon-loader").then(({ initIconLoader }) => {
-				initIconLoader();
-			}).catch((e) => console.warn("[swup] icon-loader init failed:", e));
+			import("@/utils/icon-loader")
+				.then(({ initIconLoader }) => {
+					initIconLoader();
+				})
+				.catch((e) => console.warn("[swup] icon-loader init failed:", e));
 
 			// Reinitialize desktop TOC component for article pages only
 			const tocWrapper = document.getElementById("toc-wrapper");
@@ -219,14 +213,14 @@ export function initSwupLifecycle(): void {
 			// Reinitialize semifull mode scroll detection
 			const navElForSemifull = document.getElementById("navbar");
 			if (navElForSemifull) {
-				const transparentMode =
-					navElForSemifull.getAttribute("data-transparent-mode");
+				const transparentMode = navElForSemifull.getAttribute(
+					"data-transparent-mode",
+				);
 
 				if (transparentMode === "semifull") {
 					try {
 						if (
-							typeof (window as any).initSemifullScrollDetection ===
-							"function"
+							typeof (window as any).initSemifullScrollDetection === "function"
 						) {
 							(window as any).initSemifullScrollDetection();
 						}
@@ -240,134 +234,118 @@ export function initSwupLifecycle(): void {
 			window.dispatchEvent(new CustomEvent("swup:content:replaced"));
 		});
 
-		window.swup.hooks.on(
-			"visit:start",
-			(visit: { to: { url: string } }) => {
-				// Music page uses different layout structure - force full page load
-				const fromPath = window.location.pathname;
-				let toPath: string;
-				try {
-					toPath = new URL(visit.to.url, window.location.origin).pathname;
-				} catch {
-					toPath = visit.to.url || "";
-				}
-				const isMusicPage = (p: string) =>
-					p === "/music/" || p === "/music";
-				if (isMusicPage(fromPath) || isMusicPage(toPath)) {
-					(visit as any).abort();
-					(window as any).swup.loadPage(visit.to.url, {
-						animate: false,
-					});
-					return;
-				}
-
-				// Destroy any leftover lightbox DOM to prevent cross-page image bleed
-				const allLbs = document.querySelectorAll("#photo-lightbox");
-				allLbs.forEach(function (lb) {
-					const img = lb.querySelector(
-						"#lightbox-image, .lightbox-img",
-					);
-					if (img) {
-						(img as HTMLImageElement).removeAttribute("src");
-						(img as HTMLImageElement).src = "";
-					}
-					if (lb.parentNode) lb.parentNode.removeChild(lb);
+		window.swup.hooks.on("visit:start", (visit: { to: { url: string } }) => {
+			// Music page uses different layout structure - force full page load
+			const fromPath = window.location.pathname;
+			let toPath: string;
+			try {
+				toPath = new URL(visit.to.url, window.location.origin).pathname;
+			} catch {
+				toPath = visit.to.url || "";
+			}
+			const isMusicPage = (p: string) => p === "/music/" || p === "/music";
+			if (isMusicPage(fromPath) || isMusicPage(toPath)) {
+				(visit as any).abort();
+				(window as any).swup.loadPage(visit.to.url, {
+					animate: false,
 				});
-				document.body.style.overflow = "";
+				return;
+			}
 
-				// Start progress bar
-				const progressBar = document.getElementById("progress-bar");
-				if (progressBar) {
-					progressBar.classList.remove("finishing", "done");
-					// Force reflow so the animation restarts cleanly
-					void progressBar.offsetWidth;
-					progressBar.classList.add("loading");
+			// Destroy any leftover lightbox DOM to prevent cross-page image bleed
+			const allLbs = document.querySelectorAll("#photo-lightbox");
+			allLbs.forEach((lb) => {
+				const img = lb.querySelector("#lightbox-image, .lightbox-img");
+				if (img) {
+					(img as HTMLImageElement).removeAttribute("src");
+					(img as HTMLImageElement).src = "";
 				}
+				if (lb.parentNode) lb.parentNode.removeChild(lb);
+			});
+			document.body.style.overflow = "";
 
-				// Control mobile banner visibility with improved staging animation
-				const isMobile = window.innerWidth < 1024;
-				const isHomePage = pathsEqual(visit.to.url, url("/"));
+			// Start progress bar
+			const progressBar = document.getElementById("progress-bar");
+			if (progressBar) {
+				progressBar.classList.remove("finishing", "done");
+				// Force reflow so the animation restarts cleanly
+				void progressBar.offsetWidth;
+				progressBar.classList.add("loading");
+			}
 
-				// Disable post list container transition on mobile to prevent conflicts
-				if (isMobile) {
-					const postListContainer = document.getElementById(
-						"post-list-container",
-					);
-					if (postListContainer) {
-						postListContainer.style.transition = "none";
-					}
+			// Control mobile banner visibility with improved staging animation
+			const isMobile = window.innerWidth < 1024;
+			const isHomePage = pathsEqual(visit.to.url, url("/"));
+
+			// Disable post list container transition on mobile to prevent conflicts
+			if (isMobile) {
+				const postListContainer = document.getElementById(
+					"post-list-container",
+				);
+				if (postListContainer) {
+					postListContainer.style.transition = "none";
 				}
+			}
 
-				const wallpaperWrapper =
-					document.getElementById("wallpaper-wrapper");
-				const mainContentWrapper = document.querySelector(
-					".absolute.w-full.z-30",
-				) as HTMLElement | null;
+			const wallpaperWrapper = document.getElementById("wallpaper-wrapper");
+			const mainContentWrapper = document.querySelector(
+				".absolute.w-full.z-30",
+			) as HTMLElement | null;
 
-				if (isMobile && wallpaperWrapper && mainContentWrapper) {
-					// Cancel any in-flight banner animation from previous navigation
-					if (bannerAnimCtrl) bannerAnimCtrl.abort();
-					bannerAnimCtrl = new AbortController();
-					const sig = bannerAnimCtrl.signal;
+			if (isMobile && wallpaperWrapper && mainContentWrapper) {
+				// Cancel any in-flight banner animation from previous navigation
+				if (bannerAnimCtrl) bannerAnimCtrl.abort();
+				bannerAnimCtrl = new AbortController();
+				const sig = bannerAnimCtrl.signal;
 
-					if (isHomePage) {
-						// Home page: disable main content transition to prevent list shift
-						mainContentWrapper.style.transition = "none";
+				if (isHomePage) {
+					// Home page: disable main content transition to prevent list shift
+					mainContentWrapper.style.transition = "none";
 
-						// Show banner first, then remove hidden class for smooth appearance
-						wallpaperWrapper.style.display = "";
-						setTimeout(() => {
-							if (sig.aborted) return;
-							wallpaperWrapper.classList.remove(
-								"mobile-hide-banner",
-							);
-						}, 100);
-						setTimeout(() => {
-							if (sig.aborted) return;
-							mainContentWrapper.classList.remove(
-								"mobile-main-no-banner",
-							);
-							// Restore transition after position animation completes
-							setTimeout(() => {
-								if (sig.aborted) return;
-								mainContentWrapper.style.transition = "";
-							}, 50);
-						}, 150);
-					} else {
-						// Non-home: staged hide - banner first, then content shift
-						wallpaperWrapper.classList.add("mobile-hide-banner");
-						setTimeout(() => {
-							if (sig.aborted) return;
-							mainContentWrapper.classList.add(
-								"mobile-main-no-banner",
-							);
-						}, 100);
-					}
-				} else if (!isMobile && wallpaperWrapper) {
-					// Desktop: ensure banner is visible
+					// Show banner first, then remove hidden class for smooth appearance
 					wallpaperWrapper.style.display = "";
-					wallpaperWrapper.classList.remove("mobile-hide-banner");
-					if (mainContentWrapper) {
-						mainContentWrapper.classList.remove(
-							"mobile-main-no-banner",
-						);
-					}
+					setTimeout(() => {
+						if (sig.aborted) return;
+						wallpaperWrapper.classList.remove("mobile-hide-banner");
+					}, 100);
+					setTimeout(() => {
+						if (sig.aborted) return;
+						mainContentWrapper.classList.remove("mobile-main-no-banner");
+						// Restore transition after position animation completes
+						setTimeout(() => {
+							if (sig.aborted) return;
+							mainContentWrapper.style.transition = "";
+						}, 50);
+					}, 150);
+				} else {
+					// Non-home: staged hide - banner first, then content shift
+					wallpaperWrapper.classList.add("mobile-hide-banner");
+					setTimeout(() => {
+						if (sig.aborted) return;
+						mainContentWrapper.classList.add("mobile-main-no-banner");
+					}, 100);
 				}
+			} else if (!isMobile && wallpaperWrapper) {
+				// Desktop: ensure banner is visible
+				wallpaperWrapper.style.display = "";
+				wallpaperWrapper.classList.remove("mobile-hide-banner");
+				if (mainContentWrapper) {
+					mainContentWrapper.classList.remove("mobile-main-no-banner");
+				}
+			}
 
-				// Increase page height during transition to prevent scroll animation jump
-				const heightExtend =
-					document.getElementById("page-height-extend");
-				if (heightExtend) {
-					heightExtend.classList.remove("hidden");
-				}
+			// Increase page height during transition to prevent scroll animation jump
+			const heightExtend = document.getElementById("page-height-extend");
+			if (heightExtend) {
+				heightExtend.classList.remove("hidden");
+			}
 
-				// Hide TOC while scrolling back to top
-				const toc = document.getElementById("toc-wrapper");
-				if (toc) {
-					toc.classList.add("toc-not-ready");
-				}
-			},
-		);
+			// Hide TOC while scrolling back to top
+			const toc = document.getElementById("toc-wrapper");
+			if (toc) {
+				toc.classList.add("toc-not-ready");
+			}
+		});
 
 		window.swup.hooks.on("page:view", () => {
 			const isHome = pathsEqual(window.location.pathname, url("/"));
@@ -377,8 +355,7 @@ export function initSwupLifecycle(): void {
 			updateSidebarComponentsVisibility();
 
 			// Hide temp height element when transition is done
-			const heightExtend =
-				document.getElementById("page-height-extend");
+			const heightExtend = document.getElementById("page-height-extend");
 			if (heightExtend) {
 				heightExtend.classList.remove("hidden");
 			}
@@ -410,9 +387,7 @@ export function initSwupLifecycle(): void {
 			let isDark = false;
 
 			if (storedTheme === "system") {
-				isDark = window.matchMedia(
-					"(prefers-color-scheme: dark)",
-				).matches;
+				isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 			} else {
 				isDark = storedTheme === "dark";
 			}
@@ -420,29 +395,22 @@ export function initSwupLifecycle(): void {
 			const expectedTheme = isDark
 				? expressiveCodeConfig.darkTheme
 				: expressiveCodeConfig.lightTheme;
-			const currentTheme =
-				document.documentElement.getAttribute("data-theme");
+			const currentTheme = document.documentElement.getAttribute("data-theme");
 
 			// Silent update if theme doesn't match (no event to avoid reload)
 			if (currentTheme !== expectedTheme) {
-				document.documentElement.setAttribute(
-					"data-theme",
-					expectedTheme,
-				);
+				document.documentElement.setAttribute("data-theme", expectedTheme);
 			}
 
 			// Trigger comment system init and page-specific logic
 			setTimeout(() => {
 				if (document.getElementById("tcomment")) {
-					const pageLoadedEvent = new CustomEvent(
-						"firefly:page:loaded",
-						{
-							detail: {
-								path: window.location.pathname,
-								timestamp: Date.now(),
-							},
+					const pageLoadedEvent = new CustomEvent("firefly:page:loaded", {
+						detail: {
+							path: window.location.pathname,
+							timestamp: Date.now(),
 						},
-					);
+					});
 					document.dispatchEvent(pageLoadedEvent);
 					console.log(
 						"Layout: triggered firefly:page:loaded event, path:",
@@ -451,10 +419,9 @@ export function initSwupLifecycle(): void {
 				}
 
 				// Moments page infinite scroll
-				(function () {
+				(() => {
 					const feed = document.getElementById("moments-feed");
-					const sentinel =
-						document.getElementById("load-more-sentinel");
+					const sentinel = document.getElementById("load-more-sentinel");
 					if (!feed || !sentinel) return;
 
 					const BATCH = 5;
@@ -468,16 +435,12 @@ export function initSwupLifecycle(): void {
 					let done = false;
 
 					function items() {
-						return Array.from(
-							feed!.querySelectorAll(".wx-feed-item"),
-						);
+						return Array.from(feed!.querySelectorAll(".wx-feed-item"));
 					}
 					function show() {
 						const all = items();
 						for (let i = 0; i < all.length; i++) {
-							all[i].classList[
-								i < count ? "remove" : "add"
-							]("wx-feed-hidden");
+							all[i].classList[i < count ? "remove" : "add"]("wx-feed-hidden");
 						}
 					}
 					function check() {
@@ -488,7 +451,7 @@ export function initSwupLifecycle(): void {
 					function more() {
 						if (loading || done) return;
 						loading = true;
-						setTimeout(function () {
+						setTimeout(() => {
 							const all = items();
 							const end = Math.min(count + BATCH, all.length);
 							for (let i = count; i < end; i++) {
@@ -510,7 +473,7 @@ export function initSwupLifecycle(): void {
 							gs.observer = null;
 						}
 						gs.observer = new IntersectionObserver(
-							function (e: IntersectionObserverEntry[]) {
+							(e: IntersectionObserverEntry[]) => {
 								if (e[0].isIntersecting) more();
 							},
 							{ rootMargin: "200px" },
@@ -533,43 +496,37 @@ export function initSwupLifecycle(): void {
 			}, 300);
 		});
 
-		window.swup.hooks.on(
-			"visit:end",
-			(_visit: { to: { url: string } }) => {
-				// Finish progress bar
-				const progressBar = document.getElementById("progress-bar");
-				if (progressBar) {
-					progressBar.classList.remove("loading");
-					progressBar.classList.add("finishing");
+		window.swup.hooks.on("visit:end", (_visit: { to: { url: string } }) => {
+			// Finish progress bar
+			const progressBar = document.getElementById("progress-bar");
+			if (progressBar) {
+				progressBar.classList.remove("loading");
+				progressBar.classList.add("finishing");
+				setTimeout(() => {
+					progressBar.classList.remove("finishing");
+					progressBar.classList.add("done");
 					setTimeout(() => {
-						progressBar.classList.remove("finishing");
-						progressBar.classList.add("done");
-						setTimeout(() => {
-							progressBar.classList.remove("done");
-						}, 150);
-					}, 100);
+						progressBar.classList.remove("done");
+					}, 150);
+				}, 100);
+			}
+
+			setTimeout(() => {
+				const heightExtend = document.getElementById("page-height-extend");
+				if (heightExtend) {
+					heightExtend.classList.add("hidden");
 				}
 
-				setTimeout(() => {
-					const heightExtend =
-						document.getElementById("page-height-extend");
-					if (heightExtend) {
-						heightExtend.classList.add("hidden");
-					}
+				// Just make the transition looks better
+				const toc = document.getElementById("toc-wrapper");
+				if (toc) {
+					toc.classList.remove("toc-not-ready");
+				}
 
-					// Just make the transition looks better
-					const toc = document.getElementById("toc-wrapper");
-					if (toc) {
-						toc.classList.remove("toc-not-ready");
-					}
-
-					// Remove page transition protection, restore transition animations
-					document.documentElement.classList.remove(
-						"is-page-transitioning",
-					);
-				}, 100);
-			},
-		);
+				// Remove page transition protection, restore transition animations
+				document.documentElement.classList.remove("is-page-transitioning");
+			}, 100);
+		});
 	};
 
 	if (window?.swup?.hooks) {

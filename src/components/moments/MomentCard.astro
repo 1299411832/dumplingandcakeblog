@@ -82,8 +82,12 @@ const getGridCols = (count: number) => {
 };
 
 const allMedia = parseImages(images);
-const videosArray = allMedia.filter((item): item is string => typeof item === "string" && isVideoUrl(item));
-const imagesArray = allMedia.filter((item) => !(typeof item === "string" && isVideoUrl(item)));
+const videosArray = allMedia.filter(
+	(item): item is string => typeof item === "string" && isVideoUrl(item),
+);
+const imagesArray = allMedia.filter(
+	(item) => !(typeof item === "string" && isVideoUrl(item)),
+);
 const gridMax = 9;
 
 const getImgSrc = (img: string | ImageMetadata): string => {

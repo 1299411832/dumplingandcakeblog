@@ -76,7 +76,11 @@ const notebooksWithCovers = await Promise.all(
 			let coverSrc: string | null = null;
 			const rawCover = book.cover as string | undefined;
 			if (rawCover) {
-				if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("/")) {
+				if (
+					rawCover.startsWith("http://") ||
+					rawCover.startsWith("https://") ||
+					rawCover.startsWith("/")
+				) {
 					coverSrc = rawCover;
 				} else {
 					const imageKey = path
@@ -107,23 +111,50 @@ const sortedNotebooks = sortByDateDesc(notebooksWithCovers, "updatedAt");
 
 // 统计数据
 const totalNotebooks = sortedNotebooks.length;
-const totalEntries = sortedNotebooks.reduce((sum, b) => sum + (b?.entries || 0), 0);
-const latestUpdate = sortedNotebooks[0]?.updatedAt instanceof Date ? sortedNotebooks[0].updatedAt : null;
+const totalEntries = sortedNotebooks.reduce(
+	(sum, b) => sum + (b?.entries || 0),
+	0,
+);
+const latestUpdate =
+	sortedNotebooks[0]?.updatedAt instanceof Date
+		? sortedNotebooks[0].updatedAt
+		: null;
 const now = new Date();
-const isToday = latestUpdate && latestUpdate.toDateString() === now.toDateString();
-const isYesterday = latestUpdate && new Date(now.getTime() - 86400000).toDateString() === latestUpdate.toDateString();
-const latestText = isToday ? "今天" : isYesterday ? "昨天" : latestUpdate ? latestUpdate.toISOString().split("T")[0] : "暂无";
+const isToday =
+	latestUpdate && latestUpdate.toDateString() === now.toDateString();
+const isYesterday =
+	latestUpdate &&
+	new Date(now.getTime() - 86400000).toDateString() ===
+		latestUpdate.toDateString();
+const latestText = isToday
+	? "今天"
+	: isYesterday
+		? "昨天"
+		: latestUpdate
+			? latestUpdate.toISOString().split("T")[0]
+			: "暂无";
 
 // 随机取一条笔记
 const allEntriesRaw = await getCollection("notebooks");
 const allNotes = allEntriesRaw.filter((e) => {
 	const id = e.id.replace(/\\/g, "/");
-	return !id.match(/\/(_index|_index\.md|_index\.json)$/) && id !== "readme" && id !== "readme.md";
+	return (
+		!id.match(/\/(_index|_index\.md|_index\.json)$/) &&
+		id !== "readme" &&
+		id !== "readme.md"
+	);
 });
-const randomNote = allNotes.length > 0 ? allNotes[Math.floor(Math.random() * allNotes.length)] : null;
+const randomNote =
+	allNotes.length > 0
+		? allNotes[Math.floor(Math.random() * allNotes.length)]
+		: null;
 const randomNoteData = randomNote?.data;
-const randomNoteFolder = randomNote ? randomNote.id.replace(/\\/g, "/").split("/")[0] : "";
-const randomNotebook = sortedNotebooks.find((b) => b?.folderName === randomNoteFolder);
+const randomNoteFolder = randomNote
+	? randomNote.id.replace(/\\/g, "/").split("/")[0]
+	: "";
+const randomNotebook = sortedNotebooks.find(
+	(b) => b?.folderName === randomNoteFolder,
+);
 ---
 
 <MainGridLayout title="笔记本" description="成长日记、学习复盘、灵感随笔">

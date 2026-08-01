@@ -22,7 +22,8 @@ const fakeResult: SearchResult[] = [
 	{
 		url: formatUrl("/"),
 		meta: { title: "This Is a Fake Search Result" },
-		excerpt: "Because Pagefind cannot work in the <mark>dev</mark> environment.",
+		excerpt:
+			"Because Pagefind cannot work in the <mark>dev</mark> environment.",
 	},
 	{
 		url: formatUrl("/"),
@@ -118,8 +119,12 @@ onMount(() => {
 		if (window.pagefind) {
 			initializePagefind();
 		} else {
-			document.addEventListener("pagefindready", initializePagefind, { once: true });
-			document.addEventListener("pagefindloaderror", initializePagefind, { once: true });
+			document.addEventListener("pagefindready", initializePagefind, {
+				once: true,
+			});
+			document.addEventListener("pagefindloaderror", initializePagefind, {
+				once: true,
+			});
 		}
 	}
 

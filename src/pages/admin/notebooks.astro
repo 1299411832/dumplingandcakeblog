@@ -1,14 +1,14 @@
 ---
-import AdminLayout from "@/layouts/AdminLayout.astro";
 import { getCollection } from "astro:content";
 import { externalNotebooksConfig } from "@/config/externalNotebooksConfig";
+import AdminLayout from "@/layouts/AdminLayout.astro";
 
 const allEntries = await getCollection("notebooks");
 const notebookFolders = new Set<string>();
 for (const entry of allEntries) {
-  const normalizedId = entry.id.replace(/\\/g, "/");
-  const match = normalizedId.match(/^([^/]+)\//);
-  if (match && match[1] !== "readme") notebookFolders.add(match[1]);
+	const normalizedId = entry.id.replace(/\\/g, "/");
+	const match = normalizedId.match(/^([^/]+)\//);
+	if (match && match[1] !== "readme") notebookFolders.add(match[1]);
 }
 const notebookList = [...notebookFolders].sort();
 ---

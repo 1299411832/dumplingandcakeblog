@@ -9,7 +9,7 @@ export function initTabTitleInteraction(): void {
 	let originTitle = document.title;
 	let titleTime: ReturnType<typeof setTimeout>;
 
-	document.addEventListener("visibilitychange", function () {
+	document.addEventListener("visibilitychange", () => {
 		if (document.hidden) {
 			originTitle = document.title;
 			document.title =
@@ -17,7 +17,7 @@ export function initTabTitleInteraction(): void {
 			clearTimeout(titleTime);
 		} else {
 			document.title = "欢迎回来，这里是团子和蛋糕的博客";
-			titleTime = setTimeout(function () {
+			titleTime = setTimeout(() => {
 				document.title = originTitle;
 			}, 2000);
 		}

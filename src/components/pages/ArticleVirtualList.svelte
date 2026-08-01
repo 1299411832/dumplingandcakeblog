@@ -39,9 +39,24 @@ let currentPage = $state(1);
 let isMobile = $state(false);
 
 const categoryColorPalette = [
-	"#fbbf24", "#fb7185", "#34d399", "#60a5fa", "#a78bfa", "#f472b6",
-	"#2dd4bf", "#fb923c", "#22d3ee", "#818cf8", "#e879f9", "#a3e635",
-	"#f87171", "#a78bfa", "#06b6d4", "#f59e0b", "#f43f5e", "#10b981",
+	"#fbbf24",
+	"#fb7185",
+	"#34d399",
+	"#60a5fa",
+	"#a78bfa",
+	"#f472b6",
+	"#2dd4bf",
+	"#fb923c",
+	"#22d3ee",
+	"#818cf8",
+	"#e879f9",
+	"#a3e635",
+	"#f87171",
+	"#a78bfa",
+	"#06b6d4",
+	"#f59e0b",
+	"#f43f5e",
+	"#10b981",
 ];
 
 const categoryColors = $derived.by(() => {
@@ -72,7 +87,10 @@ const paginatedPosts = $derived(
 
 const columns = $derived(
 	(() => {
-		const cols = Array.from({ length: gridColumnCount }, () => [] as { post: ArticleListPost; index: number }[]);
+		const cols = Array.from(
+			{ length: gridColumnCount },
+			() => [] as { post: ArticleListPost; index: number }[],
+		);
 		paginatedPosts.forEach((post, idx) => {
 			const colIdx = idx % gridColumnCount;
 			cols[colIdx].push({
@@ -132,7 +150,11 @@ function handleImageError(event: Event, apiUrls: string[]) {
 		image.src = apiUrls[nextIndex];
 		return;
 	}
-	image.closest(".article-grid-card__image-wrapper, .article-list-row-card__bg-wrapper")?.classList.add("is-hidden");
+	image
+		.closest(
+			".article-grid-card__image-wrapper, .article-list-row-card__bg-wrapper",
+		)
+		?.classList.add("is-hidden");
 }
 
 function goToPage(page: number) {

@@ -3,18 +3,18 @@
 import { externalMomentsConfig } from "@/config/externalMomentsConfig";
 
 interface Props {
-  title: string;
-  activeItem: string;
+	title: string;
+	activeItem: string;
 }
 const { title, activeItem } = Astro.props;
 
 const navItems = [
-  { key: "dashboard", label: "仪表盘", icon: "◉", href: "/admin/dashboard/" },
-  { key: "moments", label: "说说", icon: "✎", href: "/admin/moments/" },
-  { key: "notebooks", label: "笔记", icon: "▤", href: "/admin/notebooks/" },
-  { key: "friends", label: "友链", icon: "⚭", href: "/admin/friends/" },
-  { key: "bangumi", label: "影视", icon: "▶", href: "/admin/bangumi/" },
-  { key: "places", label: "足迹", icon: "◎", href: "/admin/places/" },
+	{ key: "dashboard", label: "仪表盘", icon: "◉", href: "/admin/dashboard/" },
+	{ key: "moments", label: "说说", icon: "✎", href: "/admin/moments/" },
+	{ key: "notebooks", label: "笔记", icon: "▤", href: "/admin/notebooks/" },
+	{ key: "friends", label: "友链", icon: "⚭", href: "/admin/friends/" },
+	{ key: "bangumi", label: "影视", icon: "▶", href: "/admin/bangumi/" },
+	{ key: "places", label: "足迹", icon: "◎", href: "/admin/places/" },
 ];
 ---
 

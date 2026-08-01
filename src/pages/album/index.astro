@@ -38,14 +38,16 @@ const imgbedPreviewCache = new Map<string, string[]>();
 const imgbedAlbums = sortedAlbums.filter((a) => a.data.imgbedFolder);
 if (imgbedAlbums.length > 0) {
 	const results = await Promise.all(
-		imgbedAlbums.map((a) => fetchImgbedPreview(a.data.imgbedFolder!))
+		imgbedAlbums.map((a) => fetchImgbedPreview(a.data.imgbedFolder!)),
 	);
 	imgbedAlbums.forEach((a, i) => {
 		if (results[i].length > 0) imgbedPreviewCache.set(a.id, results[i]);
 	});
 }
 
-const allTags = [...new Set(sortedAlbums.flatMap((a) => a.data.tags || []))].sort();
+const allTags = [
+	...new Set(sortedAlbums.flatMap((a) => a.data.tags || [])),
+].sort();
 
 const totalPhotos = sortedAlbums.reduce(
 	(sum, album) => sum + (album.data.photos?.length || 0),

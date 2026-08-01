@@ -2,10 +2,7 @@
  * Set up a click-outside-to-close handler for a floating panel.
  * Skips the nav-menu-panel which has its own close logic.
  */
-export function setClickOutsideToClose(
-	panel: string,
-	ignores: string[],
-): void {
+export function setClickOutsideToClose(panel: string, ignores: string[]): void {
 	// Skip fullscreen nav menu - it has its own handling
 	if (panel === "nav-menu-panel") return;
 

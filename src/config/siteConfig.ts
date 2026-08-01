@@ -216,7 +216,9 @@ export const siteConfig: SiteConfig = {
 		// Umami Analytics
 		umamiAnalytics: {
 			websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || "",
-			scriptUrl: import.meta.env.PUBLIC_UMAMI_BASE ? `${import.meta.env.PUBLIC_UMAMI_BASE}/script.js` : "",
+			scriptUrl: import.meta.env.PUBLIC_UMAMI_BASE
+				? `${import.meta.env.PUBLIC_UMAMI_BASE}/script.js`
+				: "",
 		},
 	},
 

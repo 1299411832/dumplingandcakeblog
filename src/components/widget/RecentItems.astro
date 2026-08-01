@@ -39,56 +39,60 @@ const allItems = [
 		.sort((a, b) => b.data.published.getTime() - a.data.published.getTime())
 		.slice(0, 2)
 		.map((m) => {
-		let title = m.body || "";
-		title = title.replace(/[#*`]/g, "").trim();
-		if (title.length > 40) title = `${title.substring(0, 40)}...`;
-		if (!title) title = i18n(I18nKey.moments) || "日常动态";
-		let image = "";
-		if (Array.isArray(m.data.images) && m.data.images.length > 0) {
-			image =
-				typeof m.data.images[0] === "string"
-					? m.data.images[0]
-					: (m.data.images[0] as any).src;
-		} else if (typeof m.data.images === "string") {
-			image = m.data.images;
-		}
-		return {
-			type: "moment",
-			title,
-			date: m.data.published,
-			url: `/moments/#${m.id}`,
-			image,
-			id: m.id,
-		};
-	}),
+			let title = m.body || "";
+			title = title.replace(/[#*`]/g, "").trim();
+			if (title.length > 40) title = `${title.substring(0, 40)}...`;
+			if (!title) title = i18n(I18nKey.moments) || "日常动态";
+			let image = "";
+			if (Array.isArray(m.data.images) && m.data.images.length > 0) {
+				image =
+					typeof m.data.images[0] === "string"
+						? m.data.images[0]
+						: (m.data.images[0] as any).src;
+			} else if (typeof m.data.images === "string") {
+				image = m.data.images;
+			}
+			return {
+				type: "moment",
+				title,
+				date: m.data.published,
+				url: `/moments/#${m.id}`,
+				image,
+				id: m.id,
+			};
+		}),
 	...bangumi
-		.sort((a, b) => ((b.data.published || new Date(0)).getTime()) - ((a.data.published || new Date(0)).getTime()))
+		.sort(
+			(a, b) =>
+				(b.data.published || new Date(0)).getTime() -
+				(a.data.published || new Date(0)).getTime(),
+		)
 		.slice(0, 2)
 		.map((b) => {
-		let url = b.data.link || "";
-		if (!url) {
-			const slug = b.id
-				.replace(/\\/g, "/")
-				.replace(/\.(md|mdx|markdown)$/i, "");
-			url =
-				b.data.category === "book"
-					? `/books/${slug}/`
-					: b.data.category === "music"
-						? "/music/"
-						: "/movies-games/";
-		}
-		return {
-			type: "bangumi",
-			title: b.data.title,
-			date: b.data.published || new Date(0),
-			url,
-			image:
-				typeof b.data.image === "string"
-					? b.data.image
-					: (b.data.image as any).src,
-			id: b.id,
-		};
-	}),
+			let url = b.data.link || "";
+			if (!url) {
+				const slug = b.id
+					.replace(/\\/g, "/")
+					.replace(/\.(md|mdx|markdown)$/i, "");
+				url =
+					b.data.category === "book"
+						? `/books/${slug}/`
+						: b.data.category === "music"
+							? "/music/"
+							: "/movies-games/";
+			}
+			return {
+				type: "bangumi",
+				title: b.data.title,
+				date: b.data.published || new Date(0),
+				url,
+				image:
+					typeof b.data.image === "string"
+						? b.data.image
+						: (b.data.image as any).src,
+				id: b.id,
+			};
+		}),
 	...notebooksEntries
 		.filter((n) => !n.id.includes("_index"))
 		.sort(

@@ -38,20 +38,32 @@ const thisYearVisitCount = sortedPlaces.filter((p) =>
 ).length;
 
 // 预设标记颜色循环
-const MARKER_PRESETS = ['ocean', 'sunset', 'violet', 'forest', 'amber', 'citrus'];
+const MARKER_PRESETS = [
+	"ocean",
+	"sunset",
+	"violet",
+	"forest",
+	"amber",
+	"citrus",
+];
 
 // 将 MD 数据转换为 FootprintMap 所需的 JSON 格式
 const footprintLocations = sortedPlaces
 	.filter((p) => p.lat && p.lng) // 只有没有经纬度的地点才会显示在地图上
 	.map((p, i) => ({
-		name: [p.province, p.city].filter(Boolean).join(' · ') || '未命名地点',
+		name: [p.province, p.city].filter(Boolean).join(" · ") || "未命名地点",
 		coordinates: `${p.lng},${p.lat}`,
-		date: p.date instanceof Date ? p.date.toISOString().split('T')[0] : (typeof p.date === 'string' ? p.date : ''),
-		description: p.experience || '',
-		url: p.url || '',
-		urlLabel: p.urlLabel || '查看相关内容',
-		photos: (p.photos && p.photos.length > 0) ? p.photos : [],
-		categories: (p.tags && p.tags.length > 0) ? p.tags : ['去过'],
+		date:
+			p.date instanceof Date
+				? p.date.toISOString().split("T")[0]
+				: typeof p.date === "string"
+					? p.date
+					: "",
+		description: p.experience || "",
+		url: p.url || "",
+		urlLabel: p.urlLabel || "查看相关内容",
+		photos: p.photos && p.photos.length > 0 ? p.photos : [],
+		categories: p.tags && p.tags.length > 0 ? p.tags : ["去过"],
 		markerColor: MARKER_PRESETS[i % MARKER_PRESETS.length],
 		visitCount: p.visitCount || 1,
 	}));

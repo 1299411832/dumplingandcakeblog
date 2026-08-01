@@ -17,8 +17,13 @@ const isImgbed = !!album.data.imgbedFolder;
 
 const photos = (album.data.photos || []).map((photo: any, index: number) => {
 	let src, alt;
-	if (typeof photo === "string") { src = photo; alt = ""; }
-	else { src = photo.src || photo; alt = photo.alt || ""; }
+	if (typeof photo === "string") {
+		src = photo;
+		alt = "";
+	} else {
+		src = photo.src || photo;
+		alt = photo.alt || "";
+	}
 	return { src, alt, index };
 });
 

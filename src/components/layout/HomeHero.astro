@@ -51,10 +51,15 @@ const workAvatarEntries = Object.entries(imageFiles)
 	.sort(([a], [b]) => a.localeCompare(b));
 
 const workAvatarUrls = await Promise.all(
-	workAvatarEntries.map(async ([, loadImage]) => optimizeHeroImage(await loadImage())),
+	workAvatarEntries.map(async ([, loadImage]) =>
+		optimizeHeroImage(await loadImage()),
+	),
 );
 
-const offAvatarSources = ["assets/images/avatar.webp", "assets/images/avatar2.webp"];
+const offAvatarSources = [
+	"assets/images/avatar.webp",
+	"assets/images/avatar2.webp",
+];
 const offAvatarUrls = (
 	await Promise.all(offAvatarSources.map(async (src) => resolveHeroImage(src)))
 ).filter((src): src is string => Boolean(src));

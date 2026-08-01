@@ -1,16 +1,16 @@
 <script lang="ts">
-	interface Member {
-		nick: string;
-		avatar: string;
-		link?: string;
-		count: number;
-	}
+interface Member {
+	nick: string;
+	avatar: string;
+	link?: string;
+	count: number;
+}
 
-	interface Props {
-		commenters: Member[];
-	}
+interface Props {
+	commenters: Member[];
+}
 
-	let { commenters }: Props = $props();
+let { commenters }: Props = $props();
 </script>
 
 <aside class="sidebar">

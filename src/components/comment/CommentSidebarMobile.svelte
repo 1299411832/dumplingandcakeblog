@@ -1,18 +1,18 @@
 <script lang="ts">
-	interface Member {
-		nick: string;
-		avatar: string;
-		link?: string;
-		count: number;
-	}
+interface Member {
+	nick: string;
+	avatar: string;
+	link?: string;
+	count: number;
+}
 
-	interface Props {
-		commenters: Member[];
-		isOpen: boolean;
-		onClose: () => void;
-	}
+interface Props {
+	commenters: Member[];
+	isOpen: boolean;
+	onClose: () => void;
+}
 
-	let { commenters, isOpen, onClose }: Props = $props();
+let { commenters, isOpen, onClose }: Props = $props();
 </script>
 
 {#if isOpen}

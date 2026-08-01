@@ -730,7 +730,8 @@ async function sendMessage(
 		link: authUser?.url || profile.link.trim() || undefined,
 		body: target ? `@${target.nick} ${content}` : content,
 		createdAt: Date.now(),
-		isAdmin: authUser?.type === "administrator" || adminNicknames.has(senderNick),
+		isAdmin:
+			authUser?.type === "administrator" || adminNicknames.has(senderNick),
 		replyToId: target?.id,
 		replyToNick: target?.nick,
 		localState: "sending",

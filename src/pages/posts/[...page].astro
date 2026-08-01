@@ -1,18 +1,14 @@
 ---
-import type { GetStaticPaths } from "astro";
 import { render } from "astro:content";
 import * as path from "node:path";
-import type { ImageMetadata } from "astro";
+import type { GetStaticPaths, ImageMetadata } from "astro";
 import { Icon } from "astro-icon/components";
 import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@/utils/content-utils";
-import {
-	getApiUrlList,
-	processCoverImageSync,
-} from "@/utils/image-utils";
+import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
 import {
 	getCategoryUrl,
 	getFileDirFromPath,
@@ -45,7 +41,10 @@ const dateFormatter = new Intl.DateTimeFormat(
 );
 
 async function resolveArticleImage(entry: (typeof posts)[number]) {
-	const processedImage = processCoverImageSync(entry.data.image || "api", entry.id);
+	const processedImage = processCoverImageSync(
+		entry.data.image || "api",
+		entry.id,
+	);
 	const imageApiUrls = getApiUrlList(entry.data.image, entry.id);
 
 	if (!processedImage) {

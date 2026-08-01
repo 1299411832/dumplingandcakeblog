@@ -5,8 +5,8 @@ import { getCategoryList } from "@utils/content-utils";
 import { getCategoryUrl, url } from "@utils/url-utils";
 
 interface Props {
-  title?: string;
-  category?: string;
+	title?: string;
+	category?: string;
 }
 
 const { title, category } = Astro.props;
@@ -17,23 +17,23 @@ const categories = await getCategoryList();
 const categoryLabel = category || i18n(I18nKey.uncategorized);
 
 interface DropdownOption {
-  label: string;
-  value: string;
-  href: string;
+	label: string;
+	value: string;
+	href: string;
 }
 
 const dropdownOptions: DropdownOption[] = categories.map((c) => ({
-  label: `${c.name.trim()} (${c.count})`,
-  value: c.name.trim(),
-  href: c.url,
+	label: `${c.name.trim()} (${c.count})`,
+	value: c.name.trim(),
+	href: c.url,
 }));
 
 const currentDropdownValue = category
-  ? category.trim()
-  : i18n(I18nKey.uncategorized);
+	? category.trim()
+	: i18n(I18nKey.uncategorized);
 const currentDropdownOption =
-  dropdownOptions.find((o) => o.value === currentDropdownValue) ??
-  dropdownOptions[0];
+	dropdownOptions.find((o) => o.value === currentDropdownValue) ??
+	dropdownOptions[0];
 ---
 
 <nav class="cb" id="breadcrumb-nav" aria-label="Breadcrumb">

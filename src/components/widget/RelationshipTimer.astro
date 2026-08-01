@@ -7,7 +7,9 @@ const config = relationshipConfig;
 // 计算从起始日期到现在的总天数
 const startDate = new Date(config.startDate);
 const now = new Date();
-const totalDays = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+const totalDays = Math.floor(
+	(now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+);
 
 interface Props {
 	class?: string;

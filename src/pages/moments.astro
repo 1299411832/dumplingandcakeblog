@@ -2,11 +2,11 @@
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
+import CommentModal from "@/components/comment/CommentModal.svelte";
 import MomentCard from "@/components/moments/MomentCard.astro";
 import MomentsCover from "@/components/moments/MomentsCover.astro";
-import CommentModal from "@/components/comment/CommentModal.svelte";
-import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { commentConfig } from "@/config";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 const walineServerURL = commentConfig.waline?.serverURL || "";
 

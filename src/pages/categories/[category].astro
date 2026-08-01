@@ -1,20 +1,16 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import type { ImageMetadata } from "astro";
 import { getCollection, render } from "astro:content";
 import * as path from "node:path";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
-import type { GetStaticPaths } from "astro";
+import type { GetStaticPaths, ImageMetadata } from "astro";
 import { Icon } from "astro-icon/components";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
 import { getCategoryList } from "@/utils/content-utils";
-import {
-	getApiUrlList,
-	processCoverImageSync,
-} from "@/utils/image-utils";
+import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
 import {
 	getCategoryPageUrl,
 	getCategoryUrl,
@@ -30,7 +26,15 @@ export const getStaticPaths = (async () => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
-	const paths: { params: { category: string }; props: { categoryName: string; posts: any[]; totalPosts: number; tags: { name: string; count: number }[] } }[] = [];
+	const paths: {
+		params: { category: string };
+		props: {
+			categoryName: string;
+			posts: any[];
+			totalPosts: number;
+			tags: { name: string; count: number }[];
+		};
+	}[] = [];
 
 	for (const category of categories) {
 		// 过滤该分类下的文章
@@ -104,7 +108,10 @@ const dateFormatter = new Intl.DateTimeFormat(
 );
 
 async function resolveArticleImage(entry: CollectionEntry<"posts">) {
-	const processedImage = processCoverImageSync(entry.data.image || "api", entry.id);
+	const processedImage = processCoverImageSync(
+		entry.data.image || "api",
+		entry.id,
+	);
 	const imageApiUrls = getApiUrlList(entry.data.image, entry.id);
 
 	if (!processedImage) {
