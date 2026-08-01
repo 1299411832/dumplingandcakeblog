@@ -142,13 +142,11 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 		if (!yearMap.has(y)) yearMap.set(y, new Map());
 		const monthMap = yearMap.get(y)!;
 		if (!monthMap.has(m)) monthMap.set(m, []);
-		monthMap
-			.get(m)!
-			.push({
-				slug: itemSlug,
-				day: String(d.getDate()).padStart(2, "0"),
-				name: e.data.name || itemSlug,
-			});
+		monthMap.get(m)!.push({
+			slug: itemSlug,
+			day: String(d.getDate()).padStart(2, "0"),
+			name: e.data.name || itemSlug,
+		});
 	}
 	for (const [year, monthMap] of Array.from(yearMap.entries()).sort(
 		(a, b) => b[0] - a[0],
