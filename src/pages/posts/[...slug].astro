@@ -5,7 +5,6 @@ import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
 import KatexManager from "@components/features/KatexManager.astro";
 import License from "@components/misc/License.astro";
-import PostBreadcrumb from "@/components/layout/PostBreadcrumb.astro";
 import RelatedPosts from "@components/misc/RelatedPosts.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
@@ -19,6 +18,7 @@ import {
 import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import PostBreadcrumb from "@/components/layout/PostBreadcrumb.astro";
 import SharePoster from "@/components/misc/SharePoster.svelte";
 import { commentConfig } from "@/config";
 import { licenseConfig } from "@/config/licenseConfig";
@@ -223,6 +223,7 @@ const jsonLd = {
         )}
     </div>
   </div>
+</div>
 
   <!-- Layer 2: 简介卡（AI 摘要 UI） -->
   {

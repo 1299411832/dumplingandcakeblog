@@ -1,45 +1,69 @@
 ---
-import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
+import { Icon } from "astro-icon/components";
 import { commentConfig } from "@/config";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
 
 // 构建时获取文章数
 const allPosts = await getCollection("posts", ({ data }) => {
-  return import.meta.env.PROD ? data.draft !== true : true;
+	return import.meta.env.PROD ? data.draft !== true : true;
 });
 const postCount = allPosts.length;
 
 // 建站天数
-const startDate = new Date(siteConfig.siteStartDate);
+const startDate = new Date(siteConfig.siteStartDate || Date.now());
 const now = new Date();
-const siteDays = Math.max(1, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+const siteDays = Math.max(
+	1,
+	Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
+);
 
 // Waline serverURL（用于客户端获取评论数）
-const walineServerURL = commentConfig.type === "waline" ? (commentConfig.waline?.serverURL || "") : "";
+const walineServerURL =
+	commentConfig.type === "waline" ? commentConfig.waline?.serverURL || "" : "";
 
 // 菜单项 — 与 navBarConfig + link-presets 对齐
 const menuItems = [
-  { icon: "material-symbols:article-outline", label: "文章列表", url: "/posts/" },
-  { icon: "material-symbols:folder-open", label: "分类", url: "/categories/" },
-  { icon: "material-symbols:archive", label: "归档", url: "/archive/" },
-  { icon: "material-symbols:chat-bubble-outline", label: "说说", url: "/moments/" },
-  { icon: "material-symbols:photo-album-outline", label: "相册", url: "/album/" },
-  { icon: "material-symbols:chat", label: "留言板", url: "/guestbook/" },
-  { icon: "material-symbols:menu-book-outline", label: "笔记", url: "/life/notebooks/" },
-  { icon: "material-symbols:public", label: "朋友圈", url: "/circle/" },
-  { icon: "material-symbols:book-5", label: "书架", url: "/books/" },
-  { icon: "material-symbols:music-note", label: "音乐", url: "/music/" },
-  { icon: "material-symbols:movie", label: "影视", url: "/movies-games/" },
-  { icon: "material-symbols:location-on", label: "足迹", url: "/life/places/" },
-  { icon: "material-symbols:history", label: "更新日志", url: "/changelog/" },
-  { icon: "material-symbols:apps", label: "应用展示", url: "/apps/" },
-  { icon: "material-symbols:person", label: "关于", url: "/about/" },
-  { icon: "material-symbols:group", label: "友链", url: "/friends/" },
-  { icon: "material-symbols:favorite", label: "赞助", url: "/sponsor/" },
-  { icon: "material-symbols:public", label: "导航", url: "/projects/" },
-  { icon: "simple-icons:tencentqq", label: "QQ群", url: "https://qm.qq.com/q/FjkXxV9Hmo" },
+	{
+		icon: "material-symbols:article-outline",
+		label: "文章列表",
+		url: "/posts/",
+	},
+	{ icon: "material-symbols:folder-open", label: "分类", url: "/categories/" },
+	{ icon: "material-symbols:archive", label: "归档", url: "/archive/" },
+	{
+		icon: "material-symbols:chat-bubble-outline",
+		label: "说说",
+		url: "/moments/",
+	},
+	{
+		icon: "material-symbols:photo-album-outline",
+		label: "相册",
+		url: "/album/",
+	},
+	{ icon: "material-symbols:chat", label: "留言板", url: "/guestbook/" },
+	{
+		icon: "material-symbols:menu-book-outline",
+		label: "笔记",
+		url: "/life/notebooks/",
+	},
+	{ icon: "material-symbols:public", label: "朋友圈", url: "/circle/" },
+	{ icon: "material-symbols:book-5", label: "书架", url: "/books/" },
+	{ icon: "material-symbols:music-note", label: "音乐", url: "/music/" },
+	{ icon: "material-symbols:movie", label: "影视", url: "/movies-games/" },
+	{ icon: "material-symbols:location-on", label: "足迹", url: "/life/places/" },
+	{ icon: "material-symbols:history", label: "更新日志", url: "/changelog/" },
+	{ icon: "material-symbols:apps", label: "应用展示", url: "/apps/" },
+	{ icon: "material-symbols:person", label: "关于", url: "/about/" },
+	{ icon: "material-symbols:group", label: "友链", url: "/friends/" },
+	{ icon: "material-symbols:favorite", label: "赞助", url: "/sponsor/" },
+	{ icon: "material-symbols:public", label: "导航", url: "/projects/" },
+	{
+		icon: "simple-icons:tencentqq",
+		label: "QQ群",
+		url: "https://qm.qq.com/q/FjkXxV9Hmo",
+	},
 ];
 ---
 

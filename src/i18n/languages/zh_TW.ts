@@ -301,6 +301,7 @@ export const zh_TW: Translation = {
 	[Key.siteStatsVisitorSuffix]: " 位旅人，很高興與你相遇。",
 	[Key.siteStatsPageViewPrefix]: "小破站訪問量為 ",
 	[Key.siteStatsPageViewSuffix]: "",
+	[Key.siteStatsSource]: "來源",
 	[Key.siteStatsLoading]: "--",
 	[Key.siteHeatmap]: "更新熱力圖",
 	[Key.today]: "今天",

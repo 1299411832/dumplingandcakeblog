@@ -46,7 +46,8 @@ const contactItems = homeConfig.links.map((link) => ({
 }));
 const primaryContactItems = contactItems.filter((link) =>
 	primaryContactNames.has(link.name.toLowerCase()),
-);	const statsApiUrl = url("/api/home-stats.json");
+);
+const statsApiUrl = url("/api/home-stats.json");
 ---
 
 <section
@@ -150,10 +151,21 @@ const primaryContactItems = contactItems.filter((link) =>
 </section>
 
 <script>
-	import { gsap } from "gsap";	import { formatCompactNumber } from "@/utils/home-data-layer.js";
+	import { gsap } from "gsap";
+	import { formatCompactNumber } from "@/utils/home-data-layer.js";
 	import { waitForPageLoaderHidden } from "@/utils/page-loader-controller.js";
 
-	type Cleanup = () => void;	let cleanups: Cleanup[] = [];
+	interface GuideOpeningBlock {
+		element: HTMLElement;
+		collapseX: number;
+		collapseY: number;
+		entryX: number;
+		entryY: number;
+		rotation: number;
+	}
+
+	type Cleanup = () => void;
+	let cleanups: Cleanup[] = [];
 	let guideOpeningToken = 0;
 
 	function cleanupHomeDataLayer() {

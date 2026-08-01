@@ -25,7 +25,8 @@ export const en: Translation = {
 	[Key.tableOfContents]: "Table of Contents",
 	[Key.changelog]: "Changelog",
 	[Key.changelogTitle]: "Changelog",
-	[Key.changelogSubtitle]: "Feature iterations, bug fixes, and important changes",
+	[Key.changelogSubtitle]:
+		"Feature iterations, bug fixes, and important changes",
 	[Key.changelogAll]: "All",
 	[Key.changelogFeature]: "New Feature",
 	[Key.changelogImprovement]: "Improvement",
@@ -307,6 +308,7 @@ export const en: Translation = {
 	[Key.siteStatsVisitorSuffix]: "th visitor. Nice to meet you.",
 	[Key.siteStatsPageViewPrefix]: "Total views: ",
 	[Key.siteStatsPageViewSuffix]: "",
+	[Key.siteStatsSource]: "Source",
 	[Key.siteStatsLoading]: "--",
 	[Key.siteHeatmap]: "Activity Heatmap",
 	[Key.today]: "Today",

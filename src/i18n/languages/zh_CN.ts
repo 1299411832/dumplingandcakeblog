@@ -300,6 +300,7 @@ export const zh_CN: Translation = {
 	[Key.siteStatsVisitorSuffix]: " 位旅人，很高兴与你相遇。",
 	[Key.siteStatsPageViewPrefix]: "小破站访问量为 ",
 	[Key.siteStatsPageViewSuffix]: "",
+	[Key.siteStatsSource]: "来源",
 	[Key.siteStatsLoading]: "--",
 	[Key.siteHeatmap]: "更新热力图",
 	[Key.today]: "今天",

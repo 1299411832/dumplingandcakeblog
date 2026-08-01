@@ -26,7 +26,8 @@ export const ja: Translation = {
 	[Key.music]: "音楽",
 	[Key.changelog]: "更新履歴",
 	[Key.changelogTitle]: "更新履歴",
-	[Key.changelogSubtitle]: "ブログプロジェクトの機能追加、バグ修正、重要な変更の記録",
+	[Key.changelogSubtitle]:
+		"ブログプロジェクトの機能追加、バグ修正、重要な変更の記録",
 	[Key.changelogAll]: "すべて",
 	[Key.changelogFeature]: "新機能",
 	[Key.changelogImprovement]: "機能改善",
@@ -307,6 +308,7 @@ export const ja: Translation = {
 	[Key.siteStatsVisitorSuffix]: " 人目の訪問者です。はじめまして。",
 	[Key.siteStatsPageViewPrefix]: "総アクセス数: ",
 	[Key.siteStatsPageViewSuffix]: "",
+	[Key.siteStatsSource]: "ソース",
 	[Key.siteStatsLoading]: "--",
 	[Key.siteHeatmap]: "アクティビティヒートマップ",
 	[Key.today]: "今日",

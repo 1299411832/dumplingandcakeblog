@@ -294,6 +294,7 @@ enum I18nKey {
 	siteStatsVisitorSuffix = "siteStatsVisitorSuffix",
 	siteStatsPageViewPrefix = "siteStatsPageViewPrefix",
 	siteStatsPageViewSuffix = "siteStatsPageViewSuffix",
+	siteStatsSource = "siteStatsSource",
 	siteStatsLoading = "siteStatsLoading",
 	siteHeatmap = "siteHeatmap",
 	today = "today",

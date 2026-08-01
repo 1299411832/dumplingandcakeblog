@@ -26,7 +26,8 @@ export const ru: Translation = {
 	[Key.music]: "Музыка",
 	[Key.changelog]: "Журнал изменений",
 	[Key.changelogTitle]: "Журнал изменений",
-	[Key.changelogSubtitle]: "История функций, исправлений и важных изменений блога",
+	[Key.changelogSubtitle]:
+		"История функций, исправлений и важных изменений блога",
 	[Key.changelogAll]: "Все",
 	[Key.changelogFeature]: "Новые функции",
 	[Key.changelogImprovement]: "Улучшения",
@@ -309,6 +310,7 @@ export const ru: Translation = {
 	[Key.siteStatsVisitorSuffix]: "-й посетитель. Рады встрече.",
 	[Key.siteStatsPageViewPrefix]: "Всего просмотров: ",
 	[Key.siteStatsPageViewSuffix]: "",
+	[Key.siteStatsSource]: "Источник",
 	[Key.siteStatsLoading]: "--",
 	[Key.siteHeatmap]: "Тепловая карта активности",
 	[Key.today]: "Сегодня",
