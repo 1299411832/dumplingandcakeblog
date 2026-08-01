@@ -284,7 +284,7 @@ export default defineConfig({
 		define: {},
 		// 预构建依赖，避免动态导入时出现 504 (Outdated Optimize Dep)
 		optimizeDeps: {
-			include: ["@fancyapps/ui"],
+			include: ["@fancyapps/ui", "@swup/astro"],
 		},
 		resolve: {
 			alias: {
