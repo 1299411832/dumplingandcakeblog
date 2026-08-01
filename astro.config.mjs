@@ -282,6 +282,10 @@ export default defineConfig({
 			tailwindcss(),
 		],
 		define: {},
+		// 预构建依赖，避免动态导入时出现 504 (Outdated Optimize Dep)
+		optimizeDeps: {
+			include: ["@fancyapps/ui"],
+		},
 		resolve: {
 			alias: {
 				"@rehype-callouts-theme": `rehype-callouts/theme/${siteConfig.rehypeCallouts.theme}`,
