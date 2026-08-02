@@ -1,16 +1,6 @@
 ---
-import { getCollection } from "astro:content";
 import { externalNotebooksConfig } from "@/config/externalNotebooksConfig";
 import AdminLayout from "@/layouts/AdminLayout.astro";
-
-const allEntries = await getCollection("notebooks");
-const notebookFolders = new Set<string>();
-for (const entry of allEntries) {
-	const normalizedId = entry.id.replace(/\\/g, "/");
-	const match = normalizedId.match(/^([^/]+)\//);
-	if (match && match[1] !== "readme") notebookFolders.add(match[1]);
-}
-const notebookList = [...notebookFolders].sort();
 ---
 
 <AdminLayout title="笔记管理" activeItem="notebooks">
@@ -19,16 +9,8 @@ const notebookList = [...notebookFolders].sort();
     <div class="card-header"><span class="card-title">选择笔记本</span></div>
     <div class="card-body">
       <div class="d-flex flex-wrap gap-1" id="notebook-tabs">
-        {notebookList.map((name) => {
-          const hasGist = externalNotebooksConfig.notebookGists?.[name];
-          return (
-            <button class={`btn btn-sm notebook-tab ${hasGist ? "" : "btn-danger"}`} data-notebook={name}>
-              {hasGist ? "✓ " : "⚠ "}{name}
-            </button>
-          );
-        })}
+        <div class="text-center text-secondary" style="padding:12px;">加载中...</div>
       </div>
-      <p class="form-hint mt-1">⚠ = 未配置 Gist（首次保存自动创建） ✓ = 已配置</p>
     </div>
   </div>
 
@@ -108,45 +90,53 @@ const notebookList = [...notebookFolders].sort();
   </style>
 
   <script is:inline
-    data-gists={JSON.stringify(externalNotebooksConfig.notebookGists || {})}
     data-templates={JSON.stringify(externalNotebooksConfig.templates || [])}>
     (function() {
       var _script = document.currentScript;
-      var TOKEN = localStorage.getItem("gh_moments_token") || "";
-      var NOTEBOOK_GISTS = JSON.parse(_script.getAttribute("data-gists") || "{}");
       var TEMPLATES = JSON.parse(_script.getAttribute("data-templates") || "[]");
-      var FILE_NAME = "notebooks-entries.json";
-      var API = "https://api.github.com";
+      var API_BASE = "/api/admin/notebooks/";
       var currentNotebook = "", editingEntryId = null, allEntries = [];
+      var renderedNotebooks = []; // cache for tabs
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
 
-      var tabs = document.querySelectorAll(".notebook-tab");
-      tabs.forEach(function(tab) {
-        tab.addEventListener("click", function() {
-          tabs.forEach(function(t) { t.classList.remove("btn-primary"); });
-          tab.classList.add("btn-primary");
-          currentNotebook = tab.getAttribute("data-notebook");
-          $("target-notebook").textContent = currentNotebook;
-          $("list-title").textContent = currentNotebook + " 的笔记";
-          loadEntries();
-        });
-      });
-
-      function checkToken() {
-        if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); }
+      // 加载笔记本列表
+      function loadNotebookList() {
+        var tabs = $("notebook-tabs");
+        fetch(API_BASE, { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success || !data.data) { tabs.innerHTML = '<div class="text-center text-danger" style="padding:12px;">加载失败</div>'; return; }
+            renderedNotebooks = data.data;
+            tabs.innerHTML = "";
+            renderedNotebooks.forEach(function(name) {
+              var btn = document.createElement("button");
+              btn.className = "btn btn-sm notebook-tab";
+              btn.textContent = name;
+              btn.setAttribute("data-notebook", name);
+              btn.addEventListener("click", function() {
+                document.querySelectorAll(".notebook-tab").forEach(function(t) { t.classList.remove("btn-primary"); });
+                btn.classList.add("btn-primary");
+                currentNotebook = name;
+                $("target-notebook").textContent = currentNotebook;
+                $("list-title").textContent = currentNotebook + " 的笔记";
+                loadEntries();
+              });
+              tabs.appendChild(btn);
+            });
+          });
       }
 
       function loadEntries() {
         if (!currentNotebook) return;
-        var gistId = NOTEBOOK_GISTS[currentNotebook];
-        if (!gistId) { $("entries-list").innerHTML = '<div class="text-center text-tertiary" style="padding:24px;">⚠ 该笔记本未配置 Gist<br><span style="font-size:12px;">首次保存时自动创建</span></div>'; $("list-count").textContent = ""; return; }
         $("entries-list").innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
-        fetch(API + "/gists/" + gistId, { headers: { "Authorization": "Bearer " + TOKEN } })
-          .then(function(r) { return r.json(); }).then(function(gist) {
-            var file = gist.files[FILE_NAME]; allEntries = []; if (file) { try { allEntries = JSON.parse(file.content || "[]"); } catch(e) {} }
+        fetch(API_BASE + "?notebook=" + encodeURIComponent(currentNotebook), { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success) { $("entries-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
+            allEntries = data.data || [];
             renderEntries();
           }).catch(function() { $("entries-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
       }
@@ -154,14 +144,12 @@ const notebookList = [...notebookFolders].sort();
       function renderEntries() {
         var list = $("entries-list");
         if (!currentNotebook) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:24px;">请先选择笔记本</div>'; $("list-count").textContent = ""; return; }
-        var filtered = allEntries.filter(function(e) { return e.notebook === currentNotebook; });
-        filtered.sort(function(a, b) { return new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt); });
-        $("list-count").textContent = filtered.length + " 篇";
-        if (!filtered.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">该笔记本还没有远程笔记</div>'; return; }
+        $("list-count").textContent = allEntries.length + " 篇";
+        if (!allEntries.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">该笔记本还没有笔记</div>'; return; }
         list.innerHTML = "";
-        filtered.forEach(function(e) {
+        allEntries.forEach(function(e) {
           var d = document.createElement("div"); d.className = "list-row";
-          var date = e.date || (e.createdAt ? new Date(e.createdAt).toISOString().split("T")[0] : "");
+          var date = e.date || "";
           var preview = (e.content || "").replace(/[#*`>\-\[\]!]/g, "").replace(/\n/g, " ").slice(0, 80);
           d.innerHTML = '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(e.title || "无标题") + '</div><div class="text-tertiary" style="font-size:12px;">' + date + '</div>' + (preview ? '<div class="text-secondary text-truncate" style="font-size:13px;">' + esc(preview) + '</div>' : "") + '</div>' +
             '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editEntry(\'' + e.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteEntry(\'' + e.id + '\')">删除</button></div>';
@@ -216,35 +204,22 @@ const notebookList = [...notebookFolders].sort();
         var content = $("content-input").value.trim(); if (!content) { toast("请输入内容", "err"); return; }
         var title = $("entry-title").value.trim(), date = $("entry-date").value || new Date().toISOString().split("T")[0];
         var btn = $("submit-btn"), isEdit = !!editingEntryId; btn.disabled = true; btn.textContent = "保存中...";
-        var gistId = NOTEBOOK_GISTS[currentNotebook];
-        function doSave(gid) {
-          var fetchGist = gid ? fetch(API + "/gists/" + gid, { headers: { "Authorization": "Bearer " + TOKEN } }).then(function(r) { return r.json(); }) : Promise.resolve({ files: {} });
-          fetchGist.then(function(gist) {
-            var file = gist.files[FILE_NAME]; var entries = []; if (file) { try { entries = JSON.parse(file.content || "[]"); } catch(e) {} }
-            if (isEdit) { var idx = entries.findIndex(function(e) { return e.id === editingEntryId; }); if (idx !== -1) { entries[idx].title = title; entries[idx].date = date; entries[idx].content = content; entries[idx].updatedAt = new Date().toISOString(); } }
-            else { entries.push({ id: "nb-" + Date.now(), notebook: currentNotebook, title: title, date: date, content: content, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }); }
-            var method = gid ? "PATCH" : "POST";
-            var body = gid ? JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(entries, null, 2) } } }) : JSON.stringify({ description: "firefly-notebook:" + currentNotebook, public: false, files: { [FILE_NAME]: { content: JSON.stringify(entries, null, 2) } } });
-            return fetch(gid ? API + "/gists/" + gid : API + "/gists", { method: method, headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" }, body: body })
-              .then(function(r) { if (!r.ok) throw new Error("保存失败"); return r.json(); })
-              .then(function(result) {
-                if (!gid) { NOTEBOOK_GISTS[currentNotebook] = result.id; toast("已保存 ✓ 新 Gist ID: " + result.id + "，请填回配置文件", "ok"); tabs.forEach(function(t) { if (t.getAttribute("data-notebook") === currentNotebook) t.textContent = "✓ " + currentNotebook; }); }
-                else { toast(isEdit ? "已保存 ✓" : "保存成功 ✓", "ok"); }
-                allEntries = entries; cancelEdit(); renderEntries();
-              });
-          }).catch(function(e) { toast("保存失败: " + e.message, "err"); }).finally(function() { btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存笔记"; });
-        }
-        doSave(gistId);
+        var method = isEdit ? "PUT" : "POST";
+        var payload = { id: editingEntryId || undefined, notebook: currentNotebook, title: title, date: date, content: content };
+        fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) { toast(isEdit ? "已保存 ✓" : "保存成功 ✓", "ok"); cancelEdit(); loadEntries(); }
+            else { toast(data.error || "保存失败", "err"); }
+          }).catch(function(e) { toast("保存失败: " + e.message, "err"); })
+          .finally(function() { btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存笔记"; });
       }
       function deleteEntry(id) {
         if (!confirm("确定删除该笔记？")) return;
-        var gistId = NOTEBOOK_GISTS[currentNotebook]; if (!gistId) return;
-        fetch(API + "/gists/" + gistId, { headers: { "Authorization": "Bearer " + TOKEN } })
-          .then(function(r) { return r.json(); }).then(function(gist) {
-            var file = gist.files[FILE_NAME]; var entries = []; if (file) { try { entries = JSON.parse(file.content || "[]"); } catch(e) {} }
-            entries = entries.filter(function(e) { return e.id !== id; });
-            return fetch(API + "/gists/" + gistId, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(entries, null, 2) } } }) });
-          }).then(function(r) { if (!r.ok) throw new Error("删除失败"); allEntries = allEntries.filter(function(e) { return e.id !== id; }); toast("已删除", "ok"); renderEntries(); })
+        if (!currentNotebook) return;
+        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: id, notebook: currentNotebook }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadEntries(); } else { toast(data.error || "删除失败", "err"); } })
           .catch(function(e) { toast("删除失败", "err"); });
       }
 
@@ -255,7 +230,7 @@ const notebookList = [...notebookFolders].sort();
         if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }
         $("entry-date").value = new Date().toISOString().split("T")[0];
         $("content-input").addEventListener("input", updatePreview);
-        checkToken();
+        loadNotebookList();
       })();
     })();
   </script>

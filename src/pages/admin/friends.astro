@@ -1,5 +1,4 @@
 ---
-import { externalFriendsConfig } from "@/config/externalFriendsConfig";
 import AdminLayout from "@/layouts/AdminLayout.astro";
 ---
 
@@ -41,7 +40,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
     <!-- 右：列表 -->
     <div>
-      <div class="card" id="friends-section" style="display:none;">
+      <div class="card" id="friends-section">
         <div class="card-header">
           <span class="card-title">已添加的友链</span>
           <span class="text-tertiary" id="list-count" style="font-size:12px;"></span>
@@ -55,12 +54,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
-  <script is:inline data-gist={externalFriendsConfig.gistId || ""}>
+  <script is:inline>
     (function() {
-      var GIST_ID = document.currentScript.getAttribute("data-gist") || "";
-      var FILE_NAME = "friends.json";
-      var API = "https://api.github.com";
-      var TOKEN = localStorage.getItem("gh_moments_token") || "";
+      var API_BASE = "/api/admin/friends/";
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
@@ -94,38 +90,41 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         var data = parsePastedText($("paste-input").value || "");
         if (!data.title) { toast("请输入站点名称", "err"); return; }
         if (!data.siteurl) { toast("请输入站点链接", "err"); return; }
-        if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); return; }
         var btn = $("submit-btn"); btn.disabled = true; btn.textContent = "保存中...";
-        fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) {
-          var file = gist.files[FILE_NAME]; var friends = []; if (file) { try { friends = JSON.parse(file.content || "[]"); } catch(e) {} }
-          if (friends.some(function(f) { return f.siteurl === data.siteurl; })) { toast("该友链已存在", "err"); return; }
-          friends.push({ id: "friend-" + Date.now(), title: data.title, desc: data.desc || "", siteurl: data.siteurl, imgurl: data.imgurl || "", tags: [], weight: 0, enabled: true });
-          return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(friends, null, 2) } } }) });
-        }).then(function(r) { if (r && r.ok) { toast("添加成功 ✓", "ok"); clearForm(); loadFriends(); } else if (r) { toast("添加失败", "err"); } }).catch(function() { toast("网络错误", "err"); }).finally(function() { btn.disabled = false; btn.textContent = "添加友链"; });
+        fetch(API_BASE, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: data.title, desc: data.desc, siteurl: data.siteurl, imgurl: data.imgurl }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) { if (data.success) { toast("添加成功 ✓", "ok"); clearForm(); loadFriends(); } else { toast(data.error || "添加失败", "err"); } })
+          .catch(function() { toast("网络错误", "err"); })
+          .finally(function() { btn.disabled = false; btn.textContent = "添加友链"; });
       }
 
       function loadFriends() {
-        if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); return; }
         var list = $("friends-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
-        $("friends-section").style.display = "";
-        fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) {
-          var file = gist.files[FILE_NAME]; var friends = []; if (file) { try { friends = JSON.parse(file.content || "[]"); } catch(e) {} }
-          if (!friends.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有友链</div>'; $("list-count").textContent = ""; return; }
-          $("list-count").textContent = friends.length + " 个"; list.innerHTML = "";
-          friends.forEach(function(f) {
-            var d = document.createElement("div"); d.className = "list-row";
-            var avatarHtml = f.imgurl ? '<img src="' + esc(f.imgurl) + '" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">' : '<div style="width:36px;height:36px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-3);font-size:12px;">🔗</div>';
-            d.innerHTML = avatarHtml + '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(f.title) + '</div><div class="text-secondary text-truncate" style="font-size:13px;">' + esc(f.desc || f.siteurl) + '</div></div>' + '<button class="btn btn-ghost btn-sm btn-danger" onclick="deleteFriend(\'' + f.id + '\')">删除</button>';
-            list.appendChild(d);
-          });
-        }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
+        fetch(API_BASE, { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
+            var friends = data.data || [];
+            if (!friends.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有友链</div>'; $("list-count").textContent = ""; return; }
+            $("list-count").textContent = friends.length + " 个"; list.innerHTML = "";
+            friends.forEach(function(f) {
+              var d = document.createElement("div"); d.className = "list-row";
+              var avatarHtml = f.imgurl ? '<img src="' + esc(f.imgurl) + '" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">' : '<div style="width:36px;height:36px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-3);font-size:12px;">🔗</div>';
+              d.innerHTML = avatarHtml + '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(f.title) + '</div><div class="text-secondary text-truncate" style="font-size:13px;">' + esc(f.desc || f.siteurl) + '</div></div>' + '<button class="btn btn-ghost btn-sm btn-danger" onclick="deleteFriend(\'' + esc(f.siteurl) + '\')">删除</button>';
+              list.appendChild(d);
+            });
+          }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
       }
 
-      function deleteFriend(id) { if (!confirm("确定删除该友链？")) return; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var friends = []; try { friends = JSON.parse(file.content || "[]"); } catch(e) {} friends = friends.filter(function(f) { return f.id !== id; }); return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(friends, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast("已删除", "ok"); loadFriends(); } else if (r) { toast("删除失败", "err"); } }).catch(function() { toast("网络错误", "err"); }); }
+      function deleteFriend(siteurl) { if (!confirm("确定删除该友链？")) return;
+        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteurl: siteurl }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadFriends(); } else { toast(data.error || "删除失败", "err"); } })
+          .catch(function() { toast("网络错误", "err"); }); }
       function clearForm() { $("paste-input").value = ""; $("preview-area").classList.add("d-none"); }
 
       window.submitFriend = submitFriend; window.clearForm = clearForm; window.deleteFriend = deleteFriend;
-      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } setupPasteListener(); if (GIST_ID && TOKEN) loadFriends(); })();
+      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } setupPasteListener(); loadFriends(); })();
     })();
   </script>
 </AdminLayout>

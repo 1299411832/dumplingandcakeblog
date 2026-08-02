@@ -1,8 +1,7 @@
-// 外部友链数据源配置（基于 GitHub Gist，独立 Gist）
-// 请先在 https://gist.github.com/ 创建一个文件名为 friends.json 的 Gist
-// 然后将 Gist ID 填入下方（从 URL 中获取，例如 https://gist.github.com/user/abc123 中的 abc123）
+// 外部友链数据源配置（已废弃，保留兼容旧引用）
+// 所有数据现在通过 API 路由直接写入 Content Collection
 export const externalFriendsConfig = {
 	enable: true,
-	gistId: "a55519b0f88adac957889eddd6c1db53",
+	gistId: "",
 	fileName: "friends.json",
 };

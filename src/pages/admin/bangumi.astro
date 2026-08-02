@@ -1,5 +1,4 @@
 ---
-import { externalBangumiConfig } from "@/config/externalBangumiConfig";
 import AdminLayout from "@/layouts/AdminLayout.astro";
 ---
 
@@ -50,7 +49,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         </div>
         <div class="card-footer">
           <div class="d-flex gap-1">
-            <button class="btn btn-primary flex-1" id="submit-btn" onclick="submitBangumi()">保存到 Gist</button>
+            <button class="btn btn-primary flex-1" id="submit-btn" onclick="submitBangumi()">保存</button>
             <button class="btn" onclick="clearForm()">清空</button>
           </div>
         </div>
@@ -59,7 +58,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
     <!-- 右：列表 -->
     <div>
-      <div class="card" id="bangumi-section" style="display:none;">
+      <div class="card" id="bangumi-section">
         <div class="card-header">
           <span class="card-title">已添加的影视</span>
           <span id="list-count" class="text-tertiary" style="font-size:12px;"></span>
@@ -73,20 +72,17 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
-  <script is:inline data-gist={externalBangumiConfig.gistId || ""}>
+  <script is:inline>
     (function() {
-      var GIST_ID = document.currentScript.getAttribute("data-gist") || "";
-      var FILE_NAME = "bangumi.json";
-      var API = "https://api.github.com";
-      var TOKEN = localStorage.getItem("gh_moments_token") || "";
+      var API_BASE = "/api/admin/bangumi/";
       var TMDB_KEY = "8a9a0dd41f7b6fe6d4d20f6cc9bd26f2";
+      var searchResults = [], selectedIndex = -1;
+      var cachedItems = [];
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
-      function checkAndLoad() { if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); return; } if (!GIST_ID) { toast("未配置 Gist ID", "err"); return; } loadBangumiList(); }
 
-      var searchResults = [], selectedIndex = -1;
       function doSearch() { var query = $("search-input").value.trim(); if (!query) { toast("请输入搜索关键词", "err"); return; } $("search-btn").disabled = true; $("search-btn").textContent = "搜索中..."; $("search-results").innerHTML = '<div class="text-center text-secondary" style="padding:12px;"><span class="spinner"></span> 搜索中...</div>'; $("search-results").classList.remove("d-none"); searchResults = []; selectedIndex = -1; Promise.all([searchTMDB(query).catch(function() { return []; }), searchDouban(query).catch(function() { return []; }), searchBangumi(query).catch(function() { return []; })]).then(function(results) { searchResults = results[0].concat(results[1]).concat(results[2]); renderSearchResults(); }).finally(function() { $("search-btn").disabled = false; $("search-btn").textContent = "搜索"; }); }
       function searchTMDB(q) { return fetch("https://api.themoviedb.org/3/search/multi?api_key=" + TMDB_KEY + "&language=zh-CN&query=" + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(d) { return (d.results || []).filter(function(i) { return i.media_type === "movie" || i.media_type === "tv"; }).slice(0, 5).map(function(i) { return { title: i.title || i.name || "", year: (i.release_date || i.first_air_date || "").slice(0, 4), poster: i.poster_path ? "https://image.tmdb.org/t/p/w200" + i.poster_path : "", source: "TMDB", id: i.id, media_type: i.media_type }; }); }); }
       function searchDouban(q) { return fetch("https://movie.douban.com/j/subject_suggest?q=" + encodeURIComponent(q), { headers: { "Referer": "https://movie.douban.com/" } }).then(function(r) { return r.json(); }).then(function(d) { return d.filter(function(i) { return i.type === "movie" || i.type === "tv"; }).slice(0, 5).map(function(i) { return { title: i.title, year: i.year || "", poster: i.img || "", source: "豆瓣", id: i.id, sub_title: i.sub_title || "" }; }); }); }
@@ -95,16 +91,68 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       function selectResult(index) { selectedIndex = index; var item = searchResults[index]; document.querySelectorAll("#search-results .list-row").forEach(function(el) { el.style.outline = parseInt(el.getAttribute("data-index")) === index ? "1px solid var(--text-3)" : "none"; }); $("field-title").value = item.original_title || item.title || ""; $("field-name-cn").value = item.title || ""; $("field-image").value = item.poster || ""; if (item.source === "Bangumi") $("field-category").value = "anime"; else if (item.media_type === "tv") $("field-category").value = "tv"; else $("field-category").value = "movie"; if (item.source === "TMDB" && item.media_type) $("field-tags").value = item.media_type === "tv" ? "电视剧" : "电影"; $("preview-area").classList.remove("d-none"); $("preview-poster").src = item.poster || ""; $("preview-poster").style.display = item.poster ? "" : "none"; $("preview-title").textContent = item.title; $("preview-meta").textContent = (item.year || "") + " · " + item.source; $("form-area").classList.remove("d-none"); toast("已选择: " + item.title, "ok"); }
 
       var editingId = null;
-      function editBangumi(id) { fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var items = []; try { items = JSON.parse(file.content || "[]"); } catch(e) {} var item = items.find(function(x) { return x.id === id; }); if (!item) { toast("未找到", "err"); return; } editingId = id; $("field-title").value = item.title || ""; $("field-name-cn").value = item.name_cn || ""; $("field-category").value = item.category || "anime"; $("field-status").value = String(item.status || 2); $("field-score").value = String(item.score || 0); $("field-image").value = item.image || ""; $("field-tags").value = (item.tags || []).join(", "); $("field-comment").value = item.comment || ""; $("field-date").value = item.updated_at ? item.updated_at.slice(0, 10) : ""; $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none"); $("form-area").classList.remove("d-none"); if (item.image) { $("preview-area").classList.remove("d-none"); $("preview-poster").src = item.image; $("preview-poster").style.display = ""; $("preview-title").textContent = item.name_cn || item.title; $("preview-meta").textContent = "编辑中"; } $("field-title").focus(); $("field-title").scrollIntoView({ behavior: "smooth", block: "center" }); toast("正在编辑: " + (item.name_cn || item.title), "ok"); }).catch(function() { toast("加载失败", "err"); }); }
-      function cancelEdit() { editingId = null; $("submit-btn").textContent = "保存到 Gist"; $("edit-bar").classList.add("d-none"); clearForm(); }
-      function submitBangumi() { var title = $("field-title").value.trim(), nameCn = $("field-name-cn").value.trim(); if (!title && !nameCn) { toast("请填写标题", "err"); return; } var btn = $("submit-btn"), isEdit = !!editingId; btn.disabled = true; btn.textContent = "保存中..."; var dateVal = $("field-date").value.trim(); var entry = { id: editingId || ("ext-" + Date.now()), title: title || nameCn, name_cn: nameCn || title, category: $("field-category").value, status: parseInt($("field-status").value), score: parseInt($("field-score").value) || 0, image: $("field-image").value.trim(), tags: ($("field-tags").value || "").split(",").map(function(s) { return s.trim(); }).filter(Boolean), comment: $("field-comment").value.trim(), updated_at: dateVal ? new Date(dateVal).toISOString() : new Date().toISOString(), source: searchResults[selectedIndex] ? searchResults[selectedIndex].source : "手动" }; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var list = []; if (file) { try { list = JSON.parse(file.content || "[]"); } catch(e) {} } if (isEdit) { var idx = list.findIndex(function(x) { return x.id === editingId; }); if (idx !== -1) { list[idx] = entry; } else { list.push(entry); } } else { list.push(entry); } return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(list, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast(isEdit ? "已保存 ✓" : "保存成功 ✓", "ok"); cancelEdit(); loadBangumiList(); } else if (r) { toast("保存失败", "err"); } }).catch(function() { toast("网络错误", "err"); }).finally(function() { btn.disabled = false; if (!editingId) btn.textContent = "保存到 Gist"; }); }
-      function loadBangumiList() { var list = $("bangumi-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>'; $("bangumi-section").style.display = ""; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var items = []; if (file) { try { items = JSON.parse(file.content || "[]"); } catch(e) {} } if (!items.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; } $("list-count").textContent = items.length + " 部"; list.innerHTML = ""; var statusMap = { 1: "想看", 2: "看过", 3: "在看", 4: "搁置", 5: "抛弃" }; items.forEach(function(item) { var d = document.createElement("div"); d.className = "list-row"; var posterHtml = item.image ? '<img src="' + esc(item.image) + '" alt="" style="width:32px;height:44px;object-fit:cover;border-radius:2px;flex-shrink:0;">' : '<div style="width:32px;height:44px;background:var(--hover);border-radius:2px;flex-shrink:0;"></div>'; d.innerHTML = posterHtml + '<div class="flex-1 min-w-0"><div class="fw-500 text-truncate" style="font-size:13px;">' + esc(item.name_cn || item.title) + '</div><div class="text-secondary" style="font-size:12px;">' + esc(statusMap[item.status] || "") + (item.score ? " · " + item.score + "分" : "") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editBangumi(\'' + item.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteBangumi(\'' + item.id + '\')">删除</button></div>'; list.appendChild(d); }); }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; }); }
-      function deleteBangumi(id) { if (!confirm("确定删除？")) return; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var items = []; try { items = JSON.parse(file.content || "[]"); } catch(e) {} items = items.filter(function(item) { return item.id !== id; }); return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(items, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast("已删除", "ok"); loadBangumiList(); } else if (r) { toast("删除失败", "err"); } }).catch(function() { toast("网络错误", "err"); }); }
+      function editBangumi(title) {
+        var item = cachedItems.find(function(x) { return (x.title || x.name_cn) === title || x.title === title || x.name_cn === title; });
+        if (!item) { toast("未找到", "err"); return; }
+        editingId = (item.title || item.name_cn);
+        $("field-title").value = item.title || ""; $("field-name-cn").value = item.name_cn || "";
+        $("field-category").value = item.category || "anime"; $("field-status").value = String(item.status || 2);
+        $("field-score").value = String(item.score || 0); $("field-image").value = item.image || "";
+        $("field-tags").value = (item.tags || []).join(", "); $("field-comment").value = item.comment || "";
+        $("field-date").value = item.updated_at ? item.updated_at.slice(0, 10) : (item.published || "");
+        $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none"); $("form-area").classList.remove("d-none");
+        if (item.image) { $("preview-area").classList.remove("d-none"); $("preview-poster").src = item.image; $("preview-poster").style.display = ""; $("preview-title").textContent = item.name_cn || item.title; $("preview-meta").textContent = "编辑中"; }
+        $("field-title").focus(); $("field-title").scrollIntoView({ behavior: "smooth", block: "center" });
+        toast("正在编辑: " + (item.name_cn || item.title), "ok");
+      }
+      function cancelEdit() { editingId = null; $("submit-btn").textContent = "保存"; $("edit-bar").classList.add("d-none"); clearForm(); }
+      function submitBangumi() {
+        var title = $("field-title").value.trim(), nameCn = $("field-name-cn").value.trim();
+        if (!title && !nameCn) { toast("请填写标题", "err"); return; }
+        var btn = $("submit-btn"), isEdit = !!editingId; btn.disabled = true; btn.textContent = "保存中...";
+        var dateVal = $("field-date").value.trim();
+        var entry = { title: title || nameCn, name_cn: nameCn || title, category: $("field-category").value, status: parseInt($("field-status").value), score: parseInt($("field-score").value) || 0, image: $("field-image").value.trim(), tags: ($("field-tags").value || "").split(",").map(function(s) { return s.trim(); }).filter(Boolean), comment: $("field-comment").value.trim(), updated_at: dateVal || new Date().toISOString() };
+        var method = isEdit ? "PUT" : "POST";
+        fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) { toast(isEdit ? "已保存 ✓" : "保存成功 ✓", "ok"); cancelEdit(); loadBangumiList(); }
+            else { toast(data.error || "保存失败", "err"); }
+          }).catch(function() { toast("网络错误", "err"); })
+          .finally(function() { btn.disabled = false; if (!editingId) btn.textContent = "保存"; });
+      }
+      function loadBangumiList() {
+        var list = $("bangumi-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
+        $("bangumi-section").style.display = "";
+        fetch(API_BASE, { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
+            var items = data.data || []; cachedItems = items;
+            if (!items.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; }
+            $("list-count").textContent = items.length + " 部"; list.innerHTML = "";
+            var statusMap = { 1: "想看", 2: "看过", 3: "在看", 4: "搁置", 5: "抛弃" };
+            items.forEach(function(item) {
+              var d = document.createElement("div"); d.className = "list-row";
+              var posterHtml = item.image ? '<img src="' + esc(item.image) + '" alt="" style="width:32px;height:44px;object-fit:cover;border-radius:2px;flex-shrink:0;">' : '<div style="width:32px;height:44px;background:var(--hover);border-radius:2px;flex-shrink:0;"></div>';
+              var displayTitle = item.name_cn || item.title;
+              d.innerHTML = posterHtml + '<div class="flex-1 min-w-0"><div class="fw-500 text-truncate" style="font-size:13px;">' + esc(displayTitle) + '</div><div class="text-secondary" style="font-size:12px;">' + esc(statusMap[item.status] || "") + (item.score ? " · " + item.score + "分" : "") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editBangumi(\'' + esc(displayTitle) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteBangumi(\'' + esc(displayTitle) + '\')">删除</button></div>';
+              list.appendChild(d);
+            });
+          }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
+      }
+      function deleteBangumi(title) {
+        if (!confirm("确定删除？")) return;
+        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: title }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadBangumiList(); } else { toast(data.error || "删除失败", "err"); } })
+          .catch(function() { toast("网络错误", "err"); });
+      }
       function clearForm() { $("search-input").value = ""; $("search-results").classList.add("d-none"); $("search-results").innerHTML = ""; $("preview-area").classList.add("d-none"); $("form-area").classList.add("d-none"); $("field-title").value = ""; $("field-name-cn").value = ""; $("field-category").value = "anime"; $("field-status").value = "2"; $("field-score").value = "0"; $("field-image").value = ""; $("field-tags").value = ""; $("field-comment").value = ""; $("field-date").value = ""; searchResults = []; selectedIndex = -1; }
       $("search-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); doSearch(); } });
 
       window.doSearch = doSearch; window.submitBangumi = submitBangumi; window.editBangumi = editBangumi; window.cancelEdit = cancelEdit; window.deleteBangumi = deleteBangumi; window.clearForm = clearForm;
-      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } checkAndLoad(); })();
+      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } loadBangumiList(); })();
     })();
   </script>
 </AdminLayout>

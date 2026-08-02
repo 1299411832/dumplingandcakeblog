@@ -1,25 +1,10 @@
-// 外部笔记数据源配置（基于 GitHub Gist，完全免费）
-// 每个笔记本有独立的 Gist 仓库，避免单个 Gist 空间不足
-// 与说说后端共用同一套认证机制
+// 笔记管理配置
+// 所有笔记数据通过 /api/admin/notebooks 直接写入 Content Collection
 
 export const externalNotebooksConfig = {
-	// 是否启用外部笔记数据源
 	enable: true,
 
-	// 每个笔记本对应的 Gist ID
-	// 在 https://gist.github.com 创建 Secret Gist，文件名 notebooks-entries.json，内容 []
-	// 创建后把 Gist ID 填在对应笔记本名后面
-	notebookGists: {
-		每日总结: "85e22c520b3ea86d80d0a2f7f5154a67",
-		日记本: "04da78da60cd6363041605ee65f56bdb",
-		日常随笔: "a3707e728f5797612a0b8a9560035686",
-		喜马拉雅: "f189e7928f9d5e98700eb17c0b5853fa",
-		我和宝宝的日常: "5cabb89043f03efa0099f828505fd9ea",
-		记录100件事: "05da9de9c20e47f14849a4937b715d65",
-	} as Record<string, string>,
-
 	// 笔记模板（Admin 页面快速选择）
-	// {name} 会被替换为今天的日期，如 2026-06-11
 	templates: [
 		{
 			id: "daily",
@@ -72,11 +57,4 @@ export const externalNotebooksConfig = {
 		title: string;
 		content: string;
 	}>,
-
-	// 后台登录密码的 SHA-256 哈希（与说说后台共用同一密码）
-	adminPasswordHash:
-		"284d9a101beeb8fbf979d029b25fa49f859739904bfc3a918ecba1c00001b0af",
-
-	// GitHub Token（优先从环境变量 GITHUB_TOKEN 读取）
-	githubToken: process.env.GITHUB_TOKEN || "",
 };

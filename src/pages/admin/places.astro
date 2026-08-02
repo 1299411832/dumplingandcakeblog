@@ -88,8 +88,6 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
   <script is:inline
-    data-gist-id={externalPlacesConfig.gistId || ""}
-    data-file-name={externalPlacesConfig.fileName || "places"}
     data-amap-key={import.meta.env.PUBLIC_AMAP_KEY_PLACES || ""}
     data-imgbed-url={externalPlacesConfig.imageBedUrl || ""}
     data-imgbed-code={externalPlacesConfig.imageBedAuthCode || ""}
@@ -98,34 +96,30 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     (function() {
       var _script = document.currentScript;
       var AMAP_KEY = _script.getAttribute("data-amap-key") || "";
-      var GIST_ID = _script.getAttribute("data-gist-id") || "";
-      var FILE_NAME = _script.getAttribute("data-file-name") || "places";
-      var TOKEN = localStorage.getItem("gh_moments_token") || "";
-      var API = "https://api.github.com";
+      var API_BASE = "/api/admin/places/";
+      var cachedPlaces = [];
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
-      function checkAndLoad() { if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); return; } loadPlacesList(); }
 
       var editingId = null;
-      async function fetchGistEntries() { if (!TOKEN || !GIST_ID) return []; var gist = await fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN } }).then(function(r) { return r.json(); }); var file = gist.files[FILE_NAME]; if (!file) return []; var entries = []; try { entries = JSON.parse(file.content || "[]"); } catch(e) { return []; } return entries; }
-      async function saveToGist(data, editId) { if (!TOKEN || !GIST_ID) { toast("请先设置 Token", "err"); return false; } try { var existing = await fetchGistEntries(); var entry = { id: editId || ("p-" + Date.now()), province: data.province || "", city: data.city || "", lat: data.lat || "", lng: data.lng || "", experience: data.experience || "", visitCount: data.visitCount || 1, date: data.date || new Date().toISOString().split("T")[0], tags: data.tags && data.tags.length > 0 ? data.tags : ["去过"], markerColor: data.markerColor || ["sunset", "ocean", "forest", "lavender", "sunshine", "rose"][existing.length % 6], url: data.url || "", urlLabel: data.urlLabel || "", photos: data.photos || [] }; if (editId) { var idx = existing.findIndex(function(e) { return e.id === editId; }); if (idx !== -1) { existing[idx] = entry; } else { existing.push(entry); } } else { existing.push(entry); } await fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(existing, null, 2) } } }) }); return true; } catch (e) { toast("保存失败: " + e.message, "err"); return false; } }
-      async function deleteFromGist(entryId) { if (!TOKEN || !GIST_ID) return false; try { var existing = await fetchGistEntries(); existing = existing.filter(function(e) { return e.id !== entryId; }); await fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(existing, null, 2) } } }) }); return true; } catch (e) { return false; } }
 
+      // Tags
       var tags = [];
       function renderTags() { var container = $("tags-input"), inputWrap = $("tag-input-wrap"); container.innerHTML = ""; tags.forEach(function(tag, i) { var d = document.createElement("span"); d.style.cssText = "display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--hover);border-radius:4px;font-size:12px;"; d.innerHTML = esc(tag) + ' <span style="cursor:pointer;color:var(--text-3);" onclick="removeTag(' + i + ')">×</span>'; container.appendChild(d); }); container.appendChild(inputWrap); $("tag-input").value = ""; }
       function addTag() { var val = $("tag-input").value.trim(); if (val && !tags.includes(val)) { tags.push(val); renderTags(); } $("tag-input").value = ""; }
       function removeTag(index) { tags.splice(index, 1); renderTags(); }
       $("tag-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); addTag(); } });
 
+      // Photos
       var photos = [];
       function renderPhotos() { var container = $("photos-list"); container.innerHTML = ""; photos.forEach(function(url, i) { var d = document.createElement("div"); d.style.cssText = "position:relative;width:56px;height:56px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;"; d.innerHTML = '<img src="' + esc(url) + '" alt="" style="width:100%;height:100%;object-fit:cover;">' + '<button onclick="removePhoto(' + i + ')" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:10px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;">×</button>'; container.appendChild(d); }); }
       function addPhoto() { var val = $("photo-input").value.trim(); if (val) { photos.push(val); renderPhotos(); $("photo-input").value = ""; } }
       function removePhoto(index) { photos.splice(index, 1); renderPhotos(); }
       $("photo-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); addPhoto(); } });
 
-      // ---- 图床上传（带查重） ----
+      // ---- 图床上传 ----
       var IMGBED_URL = _script.getAttribute("data-imgbed-url") || "";
       var IMGBED_CODE = _script.getAttribute("data-imgbed-code") || "";
       var IMGBED_FOLDER = _script.getAttribute("data-imgbed-folder") || "";
@@ -146,7 +140,6 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       async function checkFileExists(filename) {
         if (!IMGBED_TOKEN) return null;
         try {
-          // search 参数必须配合 dir 才能搜到文件
           var params = ["search=" + encodeURIComponent(filename), "count=10"];
           if (IMGBED_FOLDER) params.push("dir=" + encodeURIComponent(IMGBED_FOLDER));
           var url = IMGBED_URL + "/api/manage/list?" + params.join("&");
@@ -156,14 +149,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           if (data.files && data.files.length > 0) {
             for (var i = 0; i < data.files.length; i++) {
               var file = data.files[i];
-              // 优先用 metadata.FileName（原始文件名），因为 name 字段可能带时间戳前缀
               var serverName = (file.metadata && file.metadata.FileName) || (file.name || "").split("/").pop();
-              if (serverName === filename) {
-                return IMGBED_URL + "/file/" + file.name;
-              }
+              if (serverName === filename) { return IMGBED_URL + "/file/" + file.name; }
             }
           }
-        } catch (e) { /* 静默失败，走上传流程 */ }
+        } catch (e) { /* 静默失败 */ }
         return null;
       }
 
@@ -177,20 +167,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         for (var i = 0; i < files.length; i++) {
           var file = files[i];
           try {
-            // 查重：检查图床是否已有同名文件
             var existingUrl = await checkFileExists(file.name);
-            if (existingUrl) {
-              photos.push(existingUrl);
-              reused++;
-            } else {
-              var url = await uploadSinglePlaceImage(file);
-              photos.push(url);
-              ok++;
-            }
+            if (existingUrl) { photos.push(existingUrl); reused++; }
+            else { var url = await uploadSinglePlaceImage(file); photos.push(url); ok++; }
             renderPhotos();
-          } catch (err) {
-            toast(file.name + ": " + err.message, "err");
-          }
+          } catch (err) { toast(file.name + ": " + err.message, "err"); }
           done++;
           status.textContent = "处理中 " + done + "/" + files.length;
         }
@@ -229,22 +210,24 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         });
       }
 
+      // Coordinates
       async function fetchCoordinates() { var province = $("field-province").value.trim(), city = $("field-city").value.trim(), addr = $("field-address").value.trim(); if (!province && !city && !addr) { toast("请先填写地址", "err"); return; } var fullAddress = [province, city, addr].filter(Boolean).join(" "); var btn = document.querySelector('[onclick="fetchCoordinates()"]'); var origHtml = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>'; try { var resp = await fetch("https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY); var data = await resp.json(); var lng = "", lat = "", rp = "", rc = ""; if (data.status === "1" && data.geocodes && data.geocodes.length > 0) { var loc = data.geocodes[0].location.split(","); lng = loc[0]; lat = loc[1]; rp = data.geocodes[0].province || ""; rc = data.geocodes[0].city || ""; } else { var poiResp = await fetch("https://restapi.amap.com/v3/place/text?keywords=" + encodeURIComponent(fullAddress) + "&key=" + AMAP_KEY + "&offset=1"); var poiData = await poiResp.json(); if (poiData.status === "1" && poiData.pois && poiData.pois.length > 0) { var pl = poiData.pois[0].location.split(","); lng = pl[0]; lat = pl[1]; } } if (lng && lat) { $("field-lng").value = lng; $("field-lat").value = lat; if (!province && rp) $("field-province").value = rp; if (addr) $("field-city").value = addr; else if (!city && rc) $("field-city").value = rc; toast("坐标获取成功 ✓", "ok"); updatePreview(); } else { toast("未找到该地点", "err"); } } catch (e) { toast("获取失败: " + e.message, "err"); } finally { btn.disabled = false; btn.innerHTML = origHtml; } }
 
       function updatePreview() { var name = [$("field-province").value.trim(), $("field-city").value.trim()].filter(Boolean).join(" · "); var card = $("preview-card"); if (name) { card.classList.remove("d-none"); $("preview-name").textContent = name; var m = []; if ($("field-date").value) m.push($("field-date").value); if ($("field-count").value) m.push("到访 " + $("field-count").value + " 次"); if ($("field-lat").value && $("field-lng").value) m.push("已获取坐标"); $("preview-meta").textContent = m.join(" · "); } else { card.classList.add("d-none"); } }
       ["field-province", "field-city", "field-date", "field-count", "field-lat", "field-lng"].forEach(function(id) { $(id).addEventListener("input", updatePreview); });
 
-      async function submitPlace() { var province = $("field-province").value.trim(), city = $("field-city").value.trim(); var lat = $("field-lat").value.trim(), lng = $("field-lng").value.trim(); if (!province && !city) { toast("请填写省份或城市", "err"); return; } if (!lat || !lng) { toast("请获取或填写经纬度", "err"); return; } if (!TOKEN || !GIST_ID) { toast("请先设置 Token", "err"); return; } var btn = $("submit-btn"); btn.disabled = true; btn.textContent = "保存中..."; var success = await saveToGist({ province: province, city: city, lat: lat, lng: lng, date: $("field-date").value || new Date().toISOString().split("T")[0], experience: $("field-experience").value.trim(), tags: tags, url: $("field-url").value.trim(), urlLabel: $("field-url-label").value.trim(), photos: photos, visitCount: parseInt($("field-count").value) || 1 }, editingId); if (success) { toast(editingId ? "已更新 ✓" : "保存成功 ✓", "ok"); clearForm(); loadPlacesList(); } btn.disabled = false; btn.textContent = "保存"; }
+      // ── API 操作 ──
+      async function submitPlace() { var province = $("field-province").value.trim(), city = $("field-city").value.trim(); var lat = $("field-lat").value.trim(), lng = $("field-lng").value.trim(); if (!province && !city) { toast("请填写省份或城市", "err"); return; } if (!lat || !lng) { toast("请获取或填写经纬度", "err"); return; } var btn = $("submit-btn"); btn.disabled = true; btn.textContent = "保存中..."; var isEdit = !!editingId; var payload = { id: editingId || undefined, province: province, city: city, lat: lat, lng: lng, date: $("field-date").value || new Date().toISOString().split("T")[0], experience: $("field-experience").value.trim(), tags: tags, url: $("field-url").value.trim(), urlLabel: $("field-url-label").value.trim(), photos: photos, visitCount: parseInt($("field-count").value) || 1 }; var method = isEdit ? "PUT" : "POST"; try { var resp = await fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); var data = await resp.json(); if (data.success) { toast(isEdit ? "已更新 ✓" : "保存成功 ✓", "ok"); clearForm(); loadPlacesList(); } else { toast(data.error || "保存失败", "err"); } } catch (e) { toast("网络错误", "err"); } btn.disabled = false; btn.textContent = "保存"; }
 
-      async function loadPlacesList() { var list = $("places-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>'; if (!TOKEN || !GIST_ID) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:24px;">请先设置 Token</div>'; $("list-count").textContent = ""; return; } try { var entries = await fetchGistEntries(); if (!entries || !entries.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有足迹数据</div>'; $("list-count").textContent = ""; return; } entries.sort(function(a, b) { return new Date(b.date) - new Date(a.date); }); $("list-count").textContent = entries.length + " 个"; list.innerHTML = ""; entries.forEach(function(item) { var d = document.createElement("div"); d.className = "list-row"; var name = [item.province, item.city].filter(Boolean).join(" · ") || "未命名"; var mp = [item.date]; if (item.visitCount) mp.push("到访 " + item.visitCount + " 次"); if (!item.lat || !item.lng) mp.push("缺少坐标"); if (item.tags && item.tags.length) mp.push(item.tags.join(", ")); d.innerHTML = '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:13px;">' + esc(name) + '</div>' + (item.experience ? '<div class="text-secondary text-truncate" style="font-size:12px;">' + esc(item.experience) + '</div>' : '') + '<div class="text-tertiary" style="font-size:11px;">' + mp.join(" · ") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editPlace(\'' + esc(item.id) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deletePlace(\'' + esc(item.id) + '\')">删除</button></div>'; list.appendChild(d); }); } catch (e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; } }
+      async function loadPlacesList() { var list = $("places-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>'; try { var resp = await fetch(API_BASE, { credentials: "include" }); var data = await resp.json(); if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; } var entries = data.data || []; cachedPlaces = entries; if (!entries || !entries.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有足迹数据</div>'; $("list-count").textContent = ""; return; } $("list-count").textContent = entries.length + " 个"; list.innerHTML = ""; entries.forEach(function(item) { var d = document.createElement("div"); d.className = "list-row"; var name = [item.province, item.city].filter(Boolean).join(" · ") || "未命名"; var mp = [item.date]; if (item.visitCount) mp.push("到访 " + item.visitCount + " 次"); if (!item.lat || !item.lng) mp.push("缺少坐标"); if (item.tags && item.tags.length) mp.push(item.tags.join(", ")); d.innerHTML = '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:13px;">' + esc(name) + '</div>' + (item.experience ? '<div class="text-secondary text-truncate" style="font-size:12px;">' + esc(item.experience) + '</div>' : '') + '<div class="text-tertiary" style="font-size:11px;">' + mp.join(" · ") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editPlace(\'' + esc(item.id) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deletePlace(\'' + esc(item.id) + '\')">删除</button></div>'; list.appendChild(d); }); } catch (e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; } }
 
-      async function editPlace(entryId) { try { var entries = await fetchGistEntries(); var item = entries.find(function(e) { return e.id === entryId; }); if (!item) { toast("未找到", "err"); return; } editingId = entryId; $("field-province").value = item.province || ""; $("field-city").value = item.city || ""; $("field-address").value = ""; $("field-lng").value = item.lng || ""; $("field-lat").value = item.lat || ""; $("field-date").value = item.date || ""; $("field-count").value = item.visitCount || 1; $("field-experience").value = item.experience || ""; $("field-url").value = item.url || ""; $("field-url-label").value = item.urlLabel || ""; tags = item.tags || []; photos = item.photos || []; renderTags(); renderPhotos(); updatePreview(); $("submit-btn").textContent = "保存修改"; toast("正在编辑: " + ([item.province, item.city].filter(Boolean).join(" · ") || "未命名"), "ok"); window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) { toast("加载失败", "err"); } }
-      async function deletePlace(entryId) { if (!confirm("确定删除这个足迹？")) return; var success = await deleteFromGist(entryId); if (success) { if (editingId === entryId) clearForm(); toast("已删除", "ok"); loadPlacesList(); } else { toast("删除失败", "err"); } }
+      async function editPlace(entryId) { var item = cachedPlaces.find(function(e) { return e.id === entryId; }); if (!item) { toast("未找到", "err"); return; } editingId = entryId; $("field-province").value = item.province || ""; $("field-city").value = item.city || ""; $("field-address").value = ""; $("field-lng").value = item.lng || ""; $("field-lat").value = item.lat || ""; $("field-date").value = item.date || ""; $("field-count").value = item.visitCount || 1; $("field-experience").value = item.experience || ""; $("field-url").value = item.url || ""; $("field-url-label").value = item.urlLabel || ""; tags = item.tags || []; photos = item.photos || []; renderTags(); renderPhotos(); updatePreview(); $("submit-btn").textContent = "保存修改"; toast("正在编辑: " + ([item.province, item.city].filter(Boolean).join(" · ") || "未命名"), "ok"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+      async function deletePlace(entryId) { if (!confirm("确定删除这个足迹？")) return; try { var resp = await fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entryId }) }); var data = await resp.json(); if (data.success) { if (editingId === entryId) clearForm(); toast("已删除", "ok"); loadPlacesList(); } else { toast(data.error || "删除失败", "err"); } } catch (e) { toast("删除失败", "err"); } }
       function clearForm() { editingId = null; $("field-province").value = ""; $("field-city").value = ""; $("field-address").value = ""; $("field-lat").value = ""; $("field-lng").value = ""; $("field-date").value = new Date().toISOString().split("T")[0]; $("field-count").value = "1"; $("field-experience").value = ""; $("field-url").value = ""; $("field-url-label").value = ""; $("photo-input").value = ""; tags = []; photos = []; renderTags(); renderPhotos(); $("preview-card").classList.add("d-none"); $("submit-btn").textContent = "保存"; }
 
       window.fetchCoordinates = fetchCoordinates; window.submitPlace = submitPlace; window.addTag = addTag; window.removeTag = removeTag; window.addPhoto = addPhoto; window.removePhoto = removePhoto; window.triggerPlaceUpload = triggerPlaceUpload; window.editPlace = editPlace; window.deletePlace = deletePlace; window.clearForm = clearForm;
 
-      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } $("field-date").value = new Date().toISOString().split("T")[0]; checkAndLoad(); })();
+      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } $("field-date").value = new Date().toISOString().split("T")[0]; loadPlacesList(); })();
     })();
   </script>
 </AdminLayout>

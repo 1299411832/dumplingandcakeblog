@@ -561,7 +561,60 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 
 ---
 
-## 18. Git 提交规范
+## 18. 自建 API 后端（Admin 数据写入）
+
+### 18.1 架构
+
+Admin 页面不再通过 GitHub Gist 读写数据。所有动态内容通过自建 API 路由直接操作 Content Collection：
+
+```
+Admin 页面 → fetch("/api/admin/xxx", { credentials: "include" })
+  → API 路由 (src/pages/api/admin/*.ts)
+    → DEV: fs 直接写文件
+    → Vercel: GitHub Contents API 提交到仓库
+      → src/content/*.md
+```
+
+### 18.2 API 路由
+
+| 路由 | 方法 | 功能 |
+|------|------|------|
+| `/api/admin/auth` | POST/DELETE | 登录/登出，签发 JWT cookie |
+| `/api/admin/moments` | GET/POST/PUT/DELETE | 说说 CRUD → `src/content/moments/` |
+| `/api/admin/notebooks` | GET/POST/PUT/DELETE | 笔记 CRUD → `src/content/life/notebooks/` |
+| `/api/admin/friends` | GET/POST/PUT/DELETE | 友链 CRUD → `src/content/friends/` |
+| `/api/admin/bangumi` | GET/POST/PUT/DELETE | 影视 CRUD → `src/content/bangumi/` |
+| `/api/admin/places` | GET/POST/PUT/DELETE | 足迹 CRUD → `src/content/life/places/` |
+
+### 18.3 认证
+
+- 登录：POST `/api/admin/auth` → SHA-256 验证密码 → 签发 JWT 写入 httpOnly cookie
+- 所有 API 路由调用 `requireAuth(cookies)` 验证
+- JWT Secret：环境变量 `ADMIN_JWT_SECRET`（Vercel 必须设置）
+- 密码哈希：环境变量 `PUBLIC_ADMIN_PASSWORD_HASH`
+- Token 有效期 24h
+
+### 18.4 内容写入
+
+核心模块在 `src/utils/admin/`：
+- `auth.ts` — JWT 签发/验证/cookie 操作
+- `content-writer.ts` — 文件系统抽象（DEV: fs, Vercel: GitHub API）
+- `frontmatter.ts` — YAML frontmatter 序列化/解析
+
+Vercel 环境需要以下 env var：
+- `GITHUB_TOKEN`（repo scope）
+- `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `GITHUB_REPO_BRANCH`
+
+### 18.5 添加新 Admin 功能的操作清单
+
+1. 在 `src/pages/api/admin/` 新建路由文件
+2. 将 `requireAuth(cookies, getJwtSecret())` 放在每个 handler 入口
+3. 使用 `src/utils/admin/content-writer.ts` 的 write/read/delete 函数
+4. 在 Admin 页面用 `fetch(url, { credentials: "include" })` 调用
+
+---
+
+## 19. Git 提交规范
 
 ```
 <type>(<scope>): <description>

@@ -87,25 +87,20 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
   <script is:inline
-    data-gist={externalMomentsConfig.gistId || ""}
-    data-file={externalMomentsConfig.fileName || "moments.json"}
     data-imgbed-url={externalMomentsConfig.imageBedUrl || ""}
     data-imgbed-code={externalMomentsConfig.imageBedAuthCode || ""}
     data-imgbed-folder={externalMomentsConfig.imageBedFolder || ""}
     data-imgbed-token={externalMomentsConfig.imageBedApiToken || ""}>
     (function() {
       var _script = document.currentScript;
-      var TOKEN = localStorage.getItem("gh_moments_token") || "";
-      var GIST_ID = _script.getAttribute("data-gist") || "";
-      var FILE_NAME = _script.getAttribute("data-file") || "moments.json";
-      var API = "https://api.github.com";
+      var API_BASE = "/api/admin/moments/";
+      var cachedMoments = [];
 
       function $(id) { return document.getElementById(id); }
       function getImages() { try { return JSON.parse(localStorage.getItem("moment_imgs") || "[]"); } catch(e) { return []; } }
       function setImages(v) { localStorage.setItem("moment_imgs", JSON.stringify(v)); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
-      function checkAndLoad() { if (!TOKEN) { toast("请先在仪表盘设置 Token", "err"); return; } if (!GIST_ID) { toast("未配置 Gist ID", "err"); return; } loadMoments(); }
 
       function addImage() { var url = $("image-input").value.trim(); if (!url) return; var imgs = getImages(); imgs.push(url); setImages(imgs); $("image-input").value = ""; renderImgs(); toast("已添加第 " + imgs.length + " 张图片", "ok"); }
       function removeImage(i) { var imgs = getImages(); imgs.splice(i, 1); setImages(imgs); renderImgs(); }
@@ -217,21 +212,87 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
       function fetchLocation() { var statusEl = $("geo-status"), btn = $("geo-btn"); if (!navigator.geolocation) { statusEl.textContent = "浏览器不支持定位"; statusEl.classList.remove("d-none"); return; } statusEl.textContent = "正在定位..."; statusEl.classList.remove("d-none"); statusEl.style.color = "var(--text-3)"; btn.disabled = true; navigator.geolocation.getCurrentPosition(function(pos) { var lat = pos.coords.latitude, lng = pos.coords.longitude; statusEl.textContent = "正在解析地址..."; fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + lat + "&longitude=" + lng + "&localityLanguage=zh").then(function(r) { return r.json(); }).then(function(data) { var parts = []; if (data.city) parts.push(data.city); else if (data.locality) parts.push(data.locality); if (data.principalSubdivision) parts.push(data.principalSubdivision); var loc = parts.join("-") || data.locality || data.countryName || (lat.toFixed(4) + ", " + lng.toFixed(4)); $("location-input").value = loc; statusEl.textContent = "✓ " + loc; statusEl.style.color = "var(--success)"; btn.disabled = false; }).catch(function() { fetch("https://ipapi.co/json/").then(function(r) { return r.json(); }).then(function(ip) { var loc = [ip.city, ip.region].filter(Boolean).join("-") || (lat.toFixed(4) + ", " + lng.toFixed(4)); $("location-input").value = loc; statusEl.textContent = "✓ " + loc; statusEl.style.color = "var(--success)"; btn.disabled = false; }).catch(function() { $("location-input").value = lat.toFixed(4) + ", " + lng.toFixed(4); statusEl.textContent = "已获取坐标"; statusEl.style.color = "var(--text-3)"; btn.disabled = false; }); }); }, function(err) { var msg = { 1: "定位权限被拒绝", 2: "无法获取位置", 3: "定位超时" }[err.code] || "定位失败"; statusEl.textContent = msg; statusEl.style.color = "var(--danger)"; btn.disabled = false; }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }); }
 
-      function loadMoments() { var list = $("moments-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>'; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; if (!file) { showEmpty(); return; } var moments = JSON.parse(file.content || "[]"); if (!moments.length) { showEmpty(); return; } moments.sort(function(a, b) { return new Date(b.published) - new Date(a.published); }); $("list-count").textContent = moments.length + " 条"; list.innerHTML = ""; moments.forEach(function(m) { var d = document.createElement("div"); d.className = "list-row"; var date = new Date(m.published); var ds = date.toLocaleDateString("zh-CN") + " " + date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }); var text = (m.content || "").slice(0, 100) + ((m.content || "").length > 100 ? "..." : ""); var imgs = (m.images || []); var imgHtml = imgs.length ? '<div class="d-flex gap-1 mt-1">' + imgs.slice(0, 3).map(function(u) { return '<img src="' + u + '" alt="" style="width:32px;height:32px;object-fit:cover;border:1px solid var(--border);border-radius:2px;">'; }).join("") + (imgs.length > 3 ? '<span class="text-tertiary" style="font-size:11px;align-self:center;">+' + (imgs.length - 3) + '</span>' : "") + '</div>' : ""; var tags = (m.tags || []); var tagHtml = tags.length ? '<span class="text-tertiary" style="font-size:11px;">· #' + tags.join(" #") + '</span>' : ""; d.innerHTML = '<div class="flex-1 min-w-0"><div style="font-size:13px;line-height:1.5;word-break:break-word;">' + esc(text) + '</div>' + imgHtml + '<div class="d-flex align-items-center gap-1 mt-1" style="font-size:11px;color:var(--text-3);"><span>' + ds + '</span>' + tagHtml + '</div></div>' + '<div class="d-flex gap-1" style="flex-shrink:0;"><button class="btn btn-ghost btn-sm" onclick="editMoment(\'' + m.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteMoment(\'' + m.id + '\')">删除</button></div>'; list.appendChild(d); }); }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; }); }
+      // ── 数据加载（从本地 API）──
+      function loadMoments() {
+        var list = $("moments-list");
+        list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
+        fetch(API_BASE, { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
+            var moments = data.data || [];
+            cachedMoments = moments;
+            if (!moments.length) { showEmpty(); return; }
+            $("list-count").textContent = moments.length + " 条";
+            list.innerHTML = "";
+            moments.forEach(function(m) {
+              var d = document.createElement("div"); d.className = "list-row";
+              var date = new Date(m.published);
+              var ds = date.toLocaleDateString("zh-CN") + " " + date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+              var text = (m.content || "").slice(0, 100) + ((m.content || "").length > 100 ? "..." : "");
+              var imgs = Array.isArray(m.images) ? m.images : (m.images ? [m.images] : []);
+              var imgHtml = imgs.length ? '<div class="d-flex gap-1 mt-1">' + imgs.slice(0, 3).map(function(u) { return '<img src="' + u + '" alt="" style="width:32px;height:32px;object-fit:cover;border:1px solid var(--border);border-radius:2px;">'; }).join("") + (imgs.length > 3 ? '<span class="text-tertiary" style="font-size:11px;align-self:center;">+' + (imgs.length - 3) + '</span>' : "") + '</div>' : "";
+              var tags = Array.isArray(m.tags) ? m.tags : (m.tags ? [m.tags] : []);
+              var tagHtml = tags.length ? '<span class="text-tertiary" style="font-size:11px;">· #' + tags.join(" #") + '</span>' : "";
+              d.innerHTML = '<div class="flex-1 min-w-0"><div style="font-size:13px;line-height:1.5;word-break:break-word;">' + esc(text) + '</div>' + imgHtml + '<div class="d-flex align-items-center gap-1 mt-1" style="font-size:11px;color:var(--text-3);"><span>' + ds + '</span>' + tagHtml + '</div></div>' + '<div class="d-flex gap-1" style="flex-shrink:0;"><button class="btn btn-ghost btn-sm" onclick="editMoment(\'' + m.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteMoment(\'' + m.id + '\')">删除</button></div>';
+              list.appendChild(d);
+            });
+          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: ' + esc(e.message || "未知错误") + '</div>'; if (typeof console !== "undefined") console.error(e); });
+      }
       function showEmpty() { $("moments-list").innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有说说</div>'; $("list-count").textContent = ""; }
 
       function toggleCustomTime() { var panel = $("custom-time-panel"); if ($("custom-time-toggle").checked) { panel.classList.remove("d-none"); } else { panel.classList.add("d-none"); $("time-input").value = ""; } }
       function getPublishedTime() { if ($("custom-time-toggle").checked) { var custom = $("time-input").value; if (custom) { var str = custom.replace("T", " "); if (str.length === 16) str += ":00"; return str; } } var now = new Date(); var pad = function(n) { return String(n).padStart(2, "0"); }; return now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()); }
 
       var editingId = null;
-      function editMoment(id) { fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; try { moments = JSON.parse(file.content || "[]"); } catch(e) {} var m = moments.find(function(x) { return x.id === id; }); if (!m) { toast("未找到", "err"); return; } editingId = id; $("content-input").value = m.content || ""; $("tags-input").value = (m.tags || []).join(", "); $("location-input").value = m.location || ""; $("pinned-input").checked = !!m.pinned; setImages(m.images || []); renderImgs(); if (m.published) { $("custom-time-toggle").checked = true; $("custom-time-panel").classList.remove("d-none"); var d = new Date(m.published); var pad = function(n) { return String(n).padStart(2, "0"); }; $("time-input").value = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); } $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none"); $("content-input").focus(); $("content-input").scrollIntoView({ behavior: "smooth", block: "center" }); toast("正在编辑", "ok"); }).catch(function() { toast("加载失败", "err"); }); }
+      function editMoment(id) {
+        var m = cachedMoments.find(function(x) { return x.id === id; });
+        if (!m) { toast("未找到", "err"); return; }
+        editingId = id;
+        $("content-input").value = m.content || "";
+        $("tags-input").value = (Array.isArray(m.tags) ? m.tags : (m.tags ? [m.tags] : [])).join(", ");
+        $("location-input").value = m.location || "";
+        $("pinned-input").checked = !!m.pinned;
+        setImages(m.images || []); renderImgs();
+        if (m.published) {
+          $("custom-time-toggle").checked = true; $("custom-time-panel").classList.remove("d-none");
+          var d = new Date(m.published);
+          var pad = function(n) { return String(n).padStart(2, "0"); };
+          $("time-input").value = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+        }
+        $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none");
+        $("content-input").focus(); $("content-input").scrollIntoView({ behavior: "smooth", block: "center" });
+        toast("正在编辑", "ok");
+      }
       function cancelEdit() { editingId = null; $("content-input").value = ""; $("tags-input").value = "日常"; $("location-input").value = ""; $("pinned-input").checked = false; $("time-input").value = ""; $("custom-time-toggle").checked = false; $("custom-time-panel").classList.add("d-none"); setImages([]); renderImgs(); $("submit-btn").textContent = "发布"; $("edit-bar").classList.add("d-none"); }
-      function submitMoment() { var content = $("content-input").value.trim(); if (!content) { toast("请输入内容", "err"); return; } var images = getImages(), tags = $("tags-input").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean); var location = $("location-input").value.trim(), pinned = $("pinned-input").checked; var published = getPublishedTime(), btn = $("submit-btn"), isEdit = !!editingId; btn.disabled = true; btn.textContent = "保存中..."; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; if (file) { try { moments = JSON.parse(file.content || "[]"); } catch(e) {} } if (isEdit) { var idx = moments.findIndex(function(x) { return x.id === editingId; }); if (idx === -1) throw new Error("未找到"); moments[idx] = { id: editingId, content: content, published: published, images: images, tags: tags, location: location, pinned: pinned, author: moments[idx].author, avatar: moments[idx].avatar }; } else { moments.push({ id: "ext-" + Date.now(), content: content, published: published, images: images, tags: tags, location: location, pinned: pinned }); } return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(moments, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast(isEdit ? "已保存 ✓" : "发布成功 ✓", "ok"); cancelEdit(); loadMoments(); } else if (r) { toast("保存失败", "err"); } }).catch(function() { toast("网络错误", "err"); }).finally(function() { btn.disabled = false; if (!editingId) btn.textContent = "发布"; }); }
-      function deleteMoment(id) { if (!confirm("确定删除？")) return; fetch(API + "/gists/" + GIST_ID, { headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" } }).then(function(r) { return r.json(); }).then(function(gist) { var file = gist.files[FILE_NAME]; var moments = []; try { moments = JSON.parse(file.content || "[]"); } catch(e) {} moments = moments.filter(function(m) { return m.id !== id; }); return fetch(API + "/gists/" + GIST_ID, { method: "PATCH", headers: { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ files: { [FILE_NAME]: { content: JSON.stringify(moments, null, 2) } } }) }); }).then(function(r) { if (r && r.ok) { toast("已删除", "ok"); loadMoments(); } else { toast("删除失败", "err"); } }).catch(function() { toast("网络错误", "err"); }); }
+      function submitMoment() {
+        var content = $("content-input").value.trim();
+        if (!content) { toast("请输入内容", "err"); return; }
+        var images = getImages(), tags = $("tags-input").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+        var location = $("location-input").value.trim(), pinned = $("pinned-input").checked;
+        var published = getPublishedTime(), btn = $("submit-btn"), isEdit = !!editingId;
+        btn.disabled = true; btn.textContent = "保存中...";
+        var method = isEdit ? "PUT" : "POST";
+        var payload = { id: editingId || undefined, content: content, published: published, images: images, tags: tags, location: location, pinned: pinned };
+        fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) { toast(isEdit ? "已保存 ✓" : "发布成功 ✓", "ok"); cancelEdit(); loadMoments(); }
+            else { toast(data.error || "保存失败", "err"); }
+          }).catch(function() { toast("网络错误", "err"); })
+          .finally(function() { btn.disabled = false; if (!editingId) btn.textContent = "发布"; });
+      }
+      function deleteMoment(id) {
+        if (!confirm("确定删除？")) return;
+        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: id }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadMoments(); } else { toast(data.error || "删除失败", "err"); } })
+          .catch(function() { toast("网络错误", "err"); });
+      }
 
       window.addImage = addImage; window.removeImage = removeImage; window.toggleBatchImages = toggleBatchImages; window.applyBatchImages = applyBatchImages; window.triggerUpload = triggerUpload; window.fetchLocation = fetchLocation; window.toggleCustomTime = toggleCustomTime; window.submitMoment = submitMoment; window.editMoment = editMoment; window.cancelEdit = cancelEdit; window.deleteMoment = deleteMoment;
 
-      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } renderImgs(); checkAndLoad(); })();
+      (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } renderImgs(); loadMoments(); })();
     })();
   </script>
 </AdminLayout>

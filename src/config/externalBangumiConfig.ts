@@ -1,7 +1,7 @@
-// 外部影视数据源配置（基于 GitHub Gist）
-// 请先在 https://gist.github.com/ 创建一个文件名为 bangumi.json 的 Gist
+// 外部影视数据源配置（已废弃，保留兼容旧引用）
+// 所有数据现在通过 API 路由直接写入 Content Collection
 export const externalBangumiConfig = {
 	enable: true,
-	gistId: "6045e8306c907fbe7962f507c45dc1dc",
+	gistId: "",
 	fileName: "bangumi.json",
 };
