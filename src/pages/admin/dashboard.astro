@@ -4,44 +4,69 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 ---
 
 <AdminLayout title="仪表盘" activeItem="dashboard">
-  <!-- 状态概览 -->
-  <div class="card" style="margin-bottom:24px;">
-    <div class="card-header"><span class="card-title">系统状态</span></div>
-    <div class="card-body">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <span id="status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0;"></span>
-        <span style="font-size:14px;font-weight:500;">已登录</span>
-      </div>
-      <p class="form-hint">所有功能通过统一 API 读写 Content Collection，保存即生效。</p>
-    </div>
+  <!-- 统计卡片 -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:24px;" id="stats-grid">
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-posts">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">文章</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-moments">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">说说</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-notebooks">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">笔记</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-bangumi">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">影视</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-friends">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">友链</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:16px 12px;"><div style="font-size:28px;font-weight:700;" id="stat-places">-</div><div class="text-tertiary" style="font-size:12px;margin-top:4px;">足迹</div></div></div>
   </div>
 
   <!-- 快捷入口 -->
   <div class="card">
     <div class="card-header"><span class="card-title">快捷入口</span></div>
     <div class="card-body">
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
-        <a href="/admin/moments/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;">
-          <span style="font-size:20px;">✎</span>
-          <span>发布说说</span>
-        </a>
-        <a href="/admin/notebooks/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;">
-          <span style="font-size:20px;">▤</span>
-          <span>写笔记</span>
-        </a>
-        <a href="/admin/bangumi/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;">
-          <span style="font-size:20px;">▶</span>
-          <span>添加影视</span>
-        </a>
-        <a href="/admin/places/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;">
-          <span style="font-size:20px;">◎</span>
-          <span>记录足迹</span>
-        </a>
-        <a href="/admin/friends/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;">
-          <span style="font-size:20px;">⚭</span>
-          <span>管理友链</span>
-        </a>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
+        <a href="/admin/posts/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">📝</span><span>文章</span></a>
+        <a href="/admin/moments/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">✎</span><span>说说</span></a>
+        <a href="/admin/notebooks/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">▤</span><span>笔记</span></a>
+        <a href="/admin/media/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">🖼</span><span>媒体库</span></a>
+        <a href="/admin/bangumi/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">▶</span><span>影视</span></a>
+        <a href="/admin/places/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">◎</span><span>足迹</span></a>
+        <a href="/admin/friends/" class="btn" data-no-swup style="flex-direction:column;padding:14px 10px;height:auto;text-align:center;"><span style="font-size:20px;">⚭</span><span>友链</span></a>
       </div>
     </div>
   </div>
+
+  <script is:inline>
+    (function() {
+      var endpoints = [
+        { id: "posts", url: "/api/admin/posts/" },
+        { id: "moments", url: "/api/admin/moments/" },
+        { id: "bangumi", url: "/api/admin/bangumi/" },
+        { id: "friends", url: "/api/admin/friends/" },
+        { id: "places", url: "/api/admin/places/" },
+      ];
+
+      // 笔记需要特殊处理：先获取笔记本列表，再逐个统计
+      function fetchNotebookCount() {
+        fetch("/api/admin/notebooks/", { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var dirs = data.data || [];
+            if (!dirs.length) { document.getElementById("stat-notebooks").textContent = "0"; return; }
+            var total = 0, done = 0;
+            dirs.forEach(function(nb) {
+              fetch("/api/admin/notebooks/?notebook=" + encodeURIComponent(nb), { credentials: "include" })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { total += (d.data || []).length; done++; if (done === dirs.length) document.getElementById("stat-notebooks").textContent = total; })
+                .catch(function() { done++; if (done === dirs.length) document.getElementById("stat-notebooks").textContent = total; });
+            });
+          });
+      }
+
+      endpoints.forEach(function(ep) {
+        fetch(ep.url, { credentials: "include" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            document.getElementById("stat-" + ep.id).textContent = (data.data || []).length;
+          }).catch(function() {
+            document.getElementById("stat-" + ep.id).textContent = "?";
+          });
+      });
+      fetchNotebookCount();
+    })();
+  </script>
 </AdminLayout>
