@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "check": "astro check",
-    "build": "node scripts/pre-build-edgeone.mjs && node scripts/generate-icons/index.js && astro build && pagefind --site dist && node scripts/post-build-edgeone.mjs",
+    "build": "node scripts/pre-build-edgeone.mjs && node scripts/generate-icons/index.js && astro build && pagefind --site dist; node scripts/post-build-edgeone.mjs",
     "build:vercel": "node scripts/generate-icons/index.js && astro build --config astro.config.vercel.mjs && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
@@ -106,7 +106,7 @@
     "postcss-nesting": "^13.0.2",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.22.4",
-    "vercel": "^54.14.0"
+    "vercel": "^54.21.1"
   },
   "packageManager": "pnpm@9.14.4"
 }

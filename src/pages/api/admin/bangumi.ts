@@ -2,6 +2,7 @@
  * /api/admin/bangumi — 影视/书籍/音乐/游戏 CRUD
  */
 import type { APIRoute } from "astro";
+export const prerender = false;
 
 
 

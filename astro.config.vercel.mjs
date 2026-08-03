@@ -17,8 +17,8 @@ import { expressiveCodeConfig, siteConfig } from "./src/config";
 
 export default defineConfig({
   site: siteConfig.site_url,
-  adapter: vercel(),
-  base: "/",
+  output: "server",
+  adapter: vercel(),  base: "/",
   trailingSlash: "always",
   devToolbar: { enabled: false },
   image: { experimentalLayout: "constrained" },

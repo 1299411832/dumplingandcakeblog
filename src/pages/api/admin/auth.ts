@@ -3,6 +3,7 @@
  * DELETE /api/admin/auth — 登出
  */
 import type { APIRoute } from "astro";
+export const prerender = false;
 
 import {
 	clearAuthCookie,

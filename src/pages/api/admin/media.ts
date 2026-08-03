@@ -4,6 +4,7 @@
  * ?source=local → public/assets/ziyuan 本地文件
  */
 import type { APIRoute } from "astro";
+export const prerender = false;
 
 import fs from "node:fs";
 import path from "node:path";

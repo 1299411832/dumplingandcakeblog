@@ -53,3 +53,4 @@ src/.claudian
 src/.trash
 src/notes
 
+.env*

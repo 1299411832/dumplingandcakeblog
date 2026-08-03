@@ -2,6 +2,7 @@
  * /api/admin/notebooks — 笔记 CRUD
  */
 import type { APIRoute } from "astro";
+export const prerender = false;
 
 
 
