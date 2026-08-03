@@ -96,7 +96,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     (function() {
       var _script = document.currentScript;
       var AMAP_KEY = _script.getAttribute("data-amap-key") || "";
-      var API_BASE = "/api/admin/places/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/places/";
       var cachedPlaces = [];
 
       function $(id) { return document.getElementById(id); }

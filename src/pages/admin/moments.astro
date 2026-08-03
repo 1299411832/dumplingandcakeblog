@@ -93,7 +93,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     data-imgbed-token={externalMomentsConfig.imageBedApiToken || ""}>
     (function() {
       var _script = document.currentScript;
-      var API_BASE = "/api/admin/moments/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/moments/";
       var cachedMoments = [];
 
       function $(id) { return document.getElementById(id); }

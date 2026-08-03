@@ -76,7 +76,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     data-imgbed-folder={externalMomentsConfig.imageBedFolder || ""}>
     (function() {
       var _script = document.currentScript;
-      var API_BASE = "/api/admin/media/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/media/";
       var IMGBED_URL = (_script.getAttribute("data-imgbed-url") || "").replace(/\/+$/, "");
       var currentDir = _script.getAttribute("data-imgbed-folder") || "";
       var currentSource = "local";

@@ -94,7 +94,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     (function() {
       var _script = document.currentScript;
       var TEMPLATES = JSON.parse(_script.getAttribute("data-templates") || "[]");
-      var API_BASE = "/api/admin/notebooks/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/notebooks/";
       var currentNotebook = "", editingEntryId = null, allEntries = [];
       var renderedNotebooks = []; // cache for tabs
 

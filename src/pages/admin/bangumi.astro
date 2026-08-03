@@ -74,7 +74,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <script is:inline>
     (function() {
-      var API_BASE = "/api/admin/bangumi/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/bangumi/";
       var TMDB_KEY = "8a9a0dd41f7b6fe6d4d20f6cc9bd26f2";
       var searchResults = [], selectedIndex = -1;
       var cachedItems = [];

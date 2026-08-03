@@ -3,6 +3,7 @@
  */
 import type { APIRoute } from "astro";
 import { getJwtSecret, requireAuth } from "@/utils/admin/auth";
+export const prerender = false;
 import {
   deleteContentFile,
   readContentDirRecursive,

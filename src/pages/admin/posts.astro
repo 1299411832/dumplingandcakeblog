@@ -21,7 +21,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <script is:inline>
     (function() {
-      var API_BASE = "/api/admin/posts/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/posts/";
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }

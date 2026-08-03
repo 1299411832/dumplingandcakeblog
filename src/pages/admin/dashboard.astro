@@ -32,17 +32,18 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <script is:inline>
     (function() {
+      var base = (window.__API_BASE || "");
       var endpoints = [
-        { id: "posts", url: "/api/admin/posts/" },
-        { id: "moments", url: "/api/admin/moments/" },
-        { id: "bangumi", url: "/api/admin/bangumi/" },
-        { id: "friends", url: "/api/admin/friends/" },
-        { id: "places", url: "/api/admin/places/" },
+        { id: "posts", url: base + "/api/admin/posts/" },
+        { id: "moments", url: base + "/api/admin/moments/" },
+        { id: "bangumi", url: base + "/api/admin/bangumi/" },
+        { id: "friends", url: base + "/api/admin/friends/" },
+        { id: "places", url: base + "/api/admin/places/" },
       ];
 
       // 笔记需要特殊处理：先获取笔记本列表，再逐个统计
       function fetchNotebookCount() {
-        fetch("/api/admin/notebooks/", { credentials: "include" })
+        fetch(base + "/api/admin/notebooks/", { credentials: "include" })
           .then(function(r) { return r.json(); })
           .then(function(data) {
             var dirs = data.data || [];

@@ -395,6 +395,7 @@ const navItems = [
   </div>
 
   <script is:inline>
+    window.__API_BASE = "";
     if (sessionStorage.getItem("admin_auth") !== "1") {
       window.location.href = "/admin/";
     }

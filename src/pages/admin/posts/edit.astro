@@ -263,7 +263,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script is:inline>
     (function() {
-      var API_BASE = "/api/admin/posts/";
+      var API_BASE = (window.__API_BASE || "") + "/api/admin/posts/";
       var editingPath = null, allCats = [], tagList = [];
 
       function $(id) { return document.getElementById(id); }

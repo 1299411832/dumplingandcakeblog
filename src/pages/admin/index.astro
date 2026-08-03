@@ -502,7 +502,7 @@
       btn.disabled = true;
       btn.textContent = "登录中...";
       try {
-        var resp = await fetch("/api/admin/auth/", {
+        var resp = await fetch((window.__API_BASE || "") + "/api/admin/auth/", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
