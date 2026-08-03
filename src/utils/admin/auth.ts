@@ -1,51 +1,30 @@
 /**
  * 后台管理 JWT 认证工具
- * 使用 Web Crypto API 实现 HMAC-SHA256 JWT 签发和验证
+ * 使用 Node.js crypto 模块实现 HMAC-SHA256 JWT 签发和验证
  * Token 通过 httpOnly cookie 传递，有效期 24h
  */
 import type { AstroCookies } from "astro";
+import { createHmac } from "node:crypto";
 
 const TOKEN_EXPIRY_SECONDS = 24 * 60 * 60; // 24h
 const COOKIE_NAME = "admin_token";
 
 // ─── 编码工具 ───────────────────────────────────────
 
-function base64urlEncode(buffer: ArrayBuffer): string {
-	const bytes = new Uint8Array(buffer);
-	let binary = "";
-	for (let i = 0; i < bytes.length; i++) {
-		binary += String.fromCharCode(bytes[i]);
-	}
-	return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function base64urlEncode(str: string): string {
+	return Buffer.from(str).toString("base64url");
 }
 
-function base64urlDecode(str: string): Uint8Array {
-	str = str.replace(/-/g, "+").replace(/_/g, "/");
-	while (str.length % 4) str += "=";
-	const binary = atob(str);
-	const bytes = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i++) {
-		bytes[i] = binary.charCodeAt(i);
-	}
-	return bytes;
+function base64urlDecode(str: string): string {
+	return Buffer.from(str, "base64url").toString("utf-8");
 }
 
 const encoder = new TextEncoder();
 
-// ─── HMAC-SHA256 ────────────────────────────────────
+// ─── HMAC-SHA256（Node.js 原生）────────────────────
 
-async function hmacSha256(key: CryptoKey, data: string): Promise<ArrayBuffer> {
-	return crypto.subtle.sign("HMAC", key, encoder.encode(data));
-}
-
-async function importKey(secret: string): Promise<CryptoKey> {
-	return crypto.subtle.importKey(
-		"raw",
-		encoder.encode(secret),
-		{ name: "HMAC", hash: "SHA-256" },
-		false,
-		["sign", "verify"],
-	);
+function hmacSha256Hex(secret: string, data: string): string {
+	return createHmac("sha256", secret).update(data).digest("hex");
 }
 
 // ─── Token 操作 ─────────────────────────────────────
@@ -55,9 +34,7 @@ export interface TokenPayload {
 	exp: number;
 }
 
-export async function signToken(
-	secret: string,
-): Promise<string> {
+export function signToken(secret: string): string {
 	const now = Math.floor(Date.now() / 1000);
 	const header = { alg: "HS256", typ: "JWT" };
 	const payload: TokenPayload = {
@@ -65,39 +42,31 @@ export async function signToken(
 		exp: now + TOKEN_EXPIRY_SECONDS,
 	};
 
-	const headerB64 = base64urlEncode(encoder.encode(JSON.stringify(header)));
-	const payloadB64 = base64urlEncode(encoder.encode(JSON.stringify(payload)));
+	const headerB64 = base64urlEncode(JSON.stringify(header));
+	const payloadB64 = base64urlEncode(JSON.stringify(payload));
 	const signingInput = `${headerB64}.${payloadB64}`;
-
-	const key = await importKey(secret);
-	const signature = await hmacSha256(key, signingInput);
-	const signatureB64 = base64urlEncode(signature);
+	const sigHex = hmacSha256Hex(secret, signingInput);
+	const signatureB64 = Buffer.from(sigHex, "hex").toString("base64url");
 
 	return `${signingInput}.${signatureB64}`;
 }
 
-export async function verifyToken(
+export function verifyToken(
 	token: string,
 	secret: string,
-): Promise<TokenPayload | null> {
+): TokenPayload | null {
 	try {
 		const parts = token.split(".");
 		if (parts.length !== 3) return null;
 
 		const [headerB64, payloadB64, signatureB64] = parts;
 		const signingInput = `${headerB64}.${payloadB64}`;
+		const sigHex = hmacSha256Hex(secret, signingInput);
+		const expectedB64 = Buffer.from(sigHex, "hex").toString("base64url");
 
-		const key = await importKey(secret);
-		const expectedSig = base64urlEncode(await hmacSha256(key, signingInput));
+		if (signatureB64 !== expectedB64) return null;
 
-		// 常量时间比较签名
-		if (expectedSig !== signatureB64) return null;
-
-		// 解析 payload
-		const payloadBytes = base64urlDecode(payloadB64);
-		const payload = JSON.parse(new TextDecoder().decode(payloadBytes)) as TokenPayload;
-
-		// 检查过期
+		const payload = JSON.parse(base64urlDecode(payloadB64)) as TokenPayload;
 		const now = Math.floor(Date.now() / 1000);
 		if (payload.exp < now) return null;
 
@@ -130,7 +99,7 @@ export async function getAuthFromCookies(
 	if (!secret) return { authed: false };
 	const token = cookies.get(COOKIE_NAME)?.value;
 	if (!token) return { authed: false };
-	const payload = await verifyToken(token, secret);
+	const payload = verifyToken(token, secret);
 	return { authed: payload !== null };
 }
 
