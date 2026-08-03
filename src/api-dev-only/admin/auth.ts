@@ -5,6 +5,7 @@
 import type { APIRoute } from "astro";
 import {
 	clearAuthCookie,
+	getAuthFromCookies,
 	getJwtSecret,
 	setAuthCookie,
 	signToken,
