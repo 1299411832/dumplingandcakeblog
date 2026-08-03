@@ -4,10 +4,11 @@
  * ?source=local → public/assets/ziyuan 本地文件
  */
 import type { APIRoute } from "astro";
+
 import fs from "node:fs";
 import path from "node:path";
 import { getJwtSecret, requireAuth } from "@/utils/admin/auth";
-export const prerender = false;
+
 
 
 
