@@ -12,7 +12,7 @@
 | 框架 | Astro 6.4.6 + Svelte 5 + Tailwind CSS v4 |
 | 包管理 | pnpm 9.14.4 (ESM, `preinstall` 强制) |
 | 运行时 | Node.js >= 22 |
-| 部署 | Vercel（主）+ GitHub Pages（CI） |
+| 部署 | EdgeOne Pages（主）+ GitHub Pages（CI） |
 | 线上 | https://blog.tsh520.cn/ |
 | 来源 | Fork 自 CuteLeaf/Firefly ← saicaca/fuwari，已深度定制为独立演化 |
 

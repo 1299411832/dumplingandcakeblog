@@ -2,7 +2,7 @@
  * Content Collection 文件读写抽象层
  *
  * DEV 模式：直接操作文件系统 (src/content/)
- * Vercel 生产：通过 GitHub Contents API 提交到仓库
+ * EdgeOne 生产：通过 GitHub Contents API 提交到仓库
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -26,9 +26,9 @@ export function isDev(): boolean {
 
 function getGitHubConfig() {
 	const token = import.meta.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN || "";
-	const owner = import.meta.env.GITHUB_REPO_OWNER || process.env.GITHUB_REPO_OWNER || "";
-	const repo = import.meta.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO_NAME || "";
-	const branch = import.meta.env.GITHUB_REPO_BRANCH || process.env.GITHUB_REPO_BRANCH || "main";
+	const owner = "tianshihao2003";
+	const repo = "dumplingandcakeblog";
+	const branch = "main";
 	return { token, owner, repo, branch };
 }
 
@@ -195,7 +195,7 @@ export async function readContentDir(dirRelPath: string): Promise<ReadResult> {
 		}
 	}
 
-	// Vercel: 通过 GitHub API 获取目录内容
+	// EdgeOne: 通过 GitHub API 获取目录内容
 	const { owner, repo, branch } = getGitHubConfig();
 	const url = `/repos/${owner}/${repo}/contents/${encodeURI(dirRelPath)}?ref=${branch}`;
 	const resp = await githubApi(url);
@@ -273,7 +273,7 @@ export async function writeContentFile(
 		}
 	}
 
-	// Vercel: 检查是否已存在（更新需要 sha）
+	// EdgeOne: 检查是否已存在（更新需要 sha）
 	const existing = await githubGetFile(fileRelPath);
 	const message = existing
 		? `admin: update ${path.basename(fileRelPath)}`
@@ -301,7 +301,7 @@ export async function deleteContentFile(
 		}
 	}
 
-	// Vercel: 先获取 sha
+	// EdgeOne: 先获取 sha
 	const existing = await githubGetFile(fileRelPath);
 	if (!existing) {
 		return { success: false, error: "文件不存在" };
@@ -355,7 +355,7 @@ export async function readContentDirRecursive(
 		}
 	}
 
-	// Vercel: 递归获取（Bangumi 目录结构较浅，两层即可）
+	// EdgeOne: 递归获取（Bangumi 目录结构较浅，两层即可）
 	const { owner, repo, branch } = getGitHubConfig();
 	const files: FileInfo[] = [];
 
@@ -406,7 +406,7 @@ export async function readSubdirs(dirRelPath: string): Promise<string[]> {
 		}
 	}
 
-	// Vercel
+	// EdgeOne
 	const { owner, repo, branch } = getGitHubConfig();
 	const url = `/repos/${owner}/${repo}/contents/${encodeURI(dirRelPath)}?ref=${branch}`;
 	const resp = await githubApi(url);

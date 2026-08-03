@@ -12,7 +12,7 @@
 | 框架 | Astro 6.4.6 + Svelte 5 + Tailwind CSS v4 |
 | 包管理 | pnpm 9.14.4 (ESM, `preinstall` 强制) |
 | 运行时 | Node.js >= 22 |
-| 部署 | Vercel（主）+ GitHub Pages（CI） |
+| 部署 | EdgeOne Pages（主）+ GitHub Pages（CI） |
 | 线上 | https://blog.tsh520.cn/ |
 | 来源 | Fork 自 CuteLeaf/Firefly ← saicaca/fuwari，已深度定制为独立演化 |
 
@@ -571,7 +571,7 @@ Admin 页面不再通过 GitHub Gist 读写数据。所有动态内容通过自�
 Admin 页面 → fetch("/api/admin/xxx", { credentials: "include" })
   → API 路由 (src/pages/api/admin/*.ts)
     → DEV: fs 直接写文件
-    → Vercel: GitHub Contents API 提交到仓库
+    → EdgeOne: GitHub Contents API 提交到仓库
       → src/content/*.md
 ```
 
@@ -590,7 +590,7 @@ Admin 页面 → fetch("/api/admin/xxx", { credentials: "include" })
 
 - 登录：POST `/api/admin/auth` → SHA-256 验证密码 → 签发 JWT 写入 httpOnly cookie
 - 所有 API 路由调用 `requireAuth(cookies)` 验证
-- JWT Secret：环境变量 `ADMIN_JWT_SECRET`（Vercel 必须设置）
+- JWT Secret：环境变量 `ADMIN_JWT_SECRET`（EdgeOne 必须设置）
 - 密码哈希：环境变量 `PUBLIC_ADMIN_PASSWORD_HASH`
 - Token 有效期 24h
 
@@ -598,10 +598,10 @@ Admin 页面 → fetch("/api/admin/xxx", { credentials: "include" })
 
 核心模块在 `src/utils/admin/`：
 - `auth.ts` — JWT 签发/验证/cookie 操作
-- `content-writer.ts` — 文件系统抽象（DEV: fs, Vercel: GitHub API）
+- `content-writer.ts` — 文件系统抽象（DEV: fs, EdgeOne: GitHub API）
 - `frontmatter.ts` — YAML frontmatter 序列化/解析
 
-Vercel 环境需要以下 env var：
+EdgeOne 环境需要以下 env var：
 - `GITHUB_TOKEN`（repo scope）
 - `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `GITHUB_REPO_BRANCH`
 

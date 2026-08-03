@@ -12,7 +12,7 @@ description: 敏感信息迁移到环境变量、跑马灯优化、首页背景�
 - 支持的环境变量：高德地图 Key、Umami 统计、Waline 评论、后台密码哈希
 - `.env` 已加入 `.gitignore`，不会上传到 GitHub
 - 创建 `.env.example` 模板文件
-- 部署平台（Vercel/EdgeOne/GitHub Pages）设置对应环境变量即可
+- 部署平台（EdgeOne Pages/GitHub Pages）设置对应环境变量即可
 
 ## 跑马灯优化
 
