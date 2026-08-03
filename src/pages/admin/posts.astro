@@ -2,275 +2,85 @@
 import AdminLayout from "@/layouts/AdminLayout.astro";
 ---
 
-<AdminLayout title="文章管理" activeItem="posts">
-  <div class="content-split">
-    <!-- 左：编辑器 -->
-    <div>
-      <div class="card">
-        <div class="card-header"><span class="card-title" id="editor-title">写文章</span></div>
-        <div class="card-body">
-          <div class="form-group"><label class="form-label">标题</label><input type="text" class="form-input" id="field-title" placeholder="文章标题" /></div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">分类</label>
-              <div style="display:flex;gap:4px;">
-                <select class="form-input" id="field-category" style="flex:1;">
-                  <option value="">选择分类...</option>
-                </select>
-                <input type="text" class="form-input" id="field-category-new" placeholder="或输入新分类" style="flex:1;" />
-              </div>
-            </div>
-            <div class="form-group"><label class="form-label">日期</label><input type="date" class="form-input" id="field-date" /></div>
-          </div>
-          <div class="form-group"><label class="form-label">标签（逗号分隔）</label><input type="text" class="form-input" id="field-tags" placeholder="标签1, 标签2" /></div>
-          <div class="form-group"><label class="form-label">描述</label><input type="text" class="form-input" id="field-desc" placeholder="简短描述（可选）" /></div>
-          <div class="form-group"><label class="form-label">封面图 URL</label><input type="text" class="form-input" id="field-image" placeholder="https://..." /></div>
-          <div class="form-group" style="display:flex;gap:16px;align-items:center;">
-            <label class="form-check"><input type="checkbox" id="field-draft" /><span>草稿</span></label>
-            <label class="form-check"><input type="checkbox" id="field-pinned" /><span>置顶</span></label>
-          </div>
-          <div class="form-group">
-            <label class="form-label">正文（Markdown）</label>
-            <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-              <div style="display:flex;gap:2px;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--hover);">
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('**','**')" type="button"><strong>B</strong></button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('*','*')" type="button"><em>I</em></button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('`','`')" type="button">&lt;&gt;</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('\n```\n','\n```\n')" type="button">{ }</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('[','](url)')" type="button">🔗</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('![alt](',')')" type="button">🖼</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('> ','')" type="button">❝</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('- ','')" type="button">☰</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('## ','')" type="button">H2</button>
-                <button class="btn btn-ghost btn-sm" onclick="insertMd('### ','')" type="button">H3</button>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr;min-height:320px;">
-                <textarea class="form-input border-0" id="content-input" style="min-height:320px;resize:vertical;font-family:'JetBrains Mono','Fira Code',monospace;font-size:13px;line-height:1.8;border-radius:0;" placeholder="用 Markdown 写文章..."></textarea>
-                <div class="border-top" id="preview-pane" style="min-height:200px;padding:12px;overflow-y:auto;font-size:13px;line-height:1.8;">
-                  <div class="text-center text-tertiary" style="padding:24px;">输入内容后预览</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer">
-          <div class="d-flex gap-1">
-            <button class="btn btn-primary flex-1" id="submit-btn" onclick="submitPost()">发布文章</button>
-            <button class="btn" onclick="clearForm()">清空</button>
-          </div>
-          <div class="d-none mt-2" id="edit-bar"><button class="btn w-100" onclick="cancelEdit()">取消编辑</button></div>
-        </div>
-      </div>
+<AdminLayout title="文章列表" activeItem="posts">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <select class="form-input" id="filter-category" onchange="loadPosts()" style="width:auto;font-size:13px;padding:6px 10px;">
+        <option value="">全部分类</option>
+      </select>
+      <span class="text-tertiary" id="list-count" style="font-size:12px;"></span>
     </div>
+    <a href="/admin/posts/edit/" class="btn btn-primary" data-no-swup>+ 写文章</a>
+  </div>
 
-    <!-- 右：列表 -->
-    <div>
-      <div class="card mb-3">
-        <div class="card-header"><span class="card-title">筛选</span></div>
-        <div class="card-body" style="padding:10px 16px;">
-          <select class="form-input" id="filter-category" onchange="loadPosts()" style="font-size:13px;">
-            <option value="">全部分类</option>
-          </select>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">文章列表</span>
-          <span class="text-tertiary" id="list-count" style="font-size:12px;"></span>
-        </div>
-        <div id="posts-list">
-          <div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>
-        </div>
-      </div>
-    </div>
+  <div id="posts-list">
+    <div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span></div>
   </div>
 
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
-  <style>
-    @media (min-width: 768px) {
-      #editor-title + .card-body .form-group:last-child > div > div:last-child {
-        display: grid; grid-template-columns: 1fr 1fr;
-      }
-      #editor-title + .card-body .form-group:last-child > div > div:last-child > div:last-child {
-        border-top: none; border-left: 1px solid var(--border);
-      }
-    }
-    #preview-pane h1, #preview-pane h2, #preview-pane h3 { margin: 1em 0 0.5em; }
-    #preview-pane h1 { font-size: 1.25rem; } #preview-pane h2 { font-size: 1.1rem; } #preview-pane h3 { font-size: 1rem; }
-    #preview-pane p { margin: 0 0 0.75em; }
-    #preview-pane ul, #preview-pane ol { margin: 0 0 0.75em; padding-left: 1.5em; }
-    #preview-pane li { margin-bottom: 0.25em; }
-    #preview-pane blockquote { border-left: 2px solid var(--text-3); padding-left: 1em; margin: 0 0 0.75em; color: var(--text-2); }
-    #preview-pane code { font-family: 'JetBrains Mono', monospace; background: var(--hover); padding: 0.1em 0.3em; font-size: 0.9em; }
-    #preview-pane pre { background: var(--hover); padding: 0.75em; margin: 0 0 0.75em; overflow-x: auto; }
-    #preview-pane pre code { background: none; padding: 0; }
-    #preview-pane img { max-width: 100%; }
-    #preview-pane a { color: var(--text); text-decoration: underline; }
-    #preview-pane hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
-  </style>
-
   <script is:inline>
     (function() {
       var API_BASE = "/api/admin/posts/";
-      var cachedPosts = [];
-      var editingPath = null;
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
 
-      // ── 分类加载 ──
       function loadCategories() {
         fetch(API_BASE + "?action=categories", { credentials: "include" })
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (!data.success) return;
-            var cats = data.data || [];
-            var sel = $("field-category");
-            var filter = $("filter-category");
-            cats.forEach(function(c) {
-              var opt = document.createElement("option"); opt.value = c; opt.textContent = c; sel.appendChild(opt);
-              var opt2 = document.createElement("option"); opt2.value = c; opt2.textContent = c; filter.appendChild(opt2);
+            (data.data || []).forEach(function(c) {
+              var opt = document.createElement("option"); opt.value = c; opt.textContent = c;
+              $("filter-category").appendChild(opt);
             });
           });
       }
 
-      // ── 文章列表 ──
       function loadPosts() {
         var list = $("posts-list");
-        list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
+        list.innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span></div>';
         var cat = $("filter-category").value;
         var url = API_BASE + (cat ? "?category=" + encodeURIComponent(cat) : "");
         fetch(url, { credentials: "include" })
           .then(function(r) { return r.json(); })
           .then(function(data) {
-            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
-            cachedPosts = data.data || [];
-            if (!cachedPosts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
-            $("list-count").textContent = cachedPosts.length + " 篇"; list.innerHTML = "";
-            cachedPosts.forEach(function(p) {
-              var d = document.createElement("div"); d.className = "list-row";
+            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error) + '</div>'; return; }
+            var posts = data.data || [];
+            if (!posts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
+            $("list-count").textContent = "共 " + posts.length + " 篇";
+            list.innerHTML = '<div class="card"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+              '<thead><tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-2);font-size:12px;font-weight:500;">' +
+              '<th style="padding:10px 16px;">标题</th><th style="padding:10px 16px;width:100px;">分类</th><th style="padding:10px 16px;width:120px;">日期</th><th style="padding:10px 16px;width:40px;"></th><th style="padding:10px 16px;width:40px;"></th></tr></thead><tbody id="posts-tbody"></tbody></table></div></div>';
+            var tbody = document.getElementById("posts-tbody");
+            posts.forEach(function(p) {
               var date = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "";
-              var tags = Array.isArray(p.tags) ? p.tags : (p.tags ? [p.tags] : []);
-              var tagHtml = tags.length ? '<span class="text-tertiary" style="font-size:11px;">#' + tags.join(" #") + '</span>' : "";
-              d.innerHTML = '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:13px;">' + esc(p.title) + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">[草稿]</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">[顶]</span>' : '') + '</div><div class="text-secondary" style="font-size:12px;">' + esc(p.category || "") + ' · ' + date + '</div>' + tagHtml + '</div>' +
-                '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editPost(\'' + esc(p.filePath) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deletePost(\'' + esc(p.filePath) + '\')">删除</button></div>';
-              list.appendChild(d);
+              var tr = document.createElement("tr");
+              tr.style.cssText = "border-bottom:1px solid var(--border);";
+              tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p.filePath) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
+                '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category) + '</td>' +
+                '<td style="padding:10px 16px;color:var(--text-3);font-size:12px;">' + date + '</td>' +
+                '<td style="padding:10px 6px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p.filePath) + '" data-no-swup class="btn btn-ghost btn-sm">编辑</a></td>' +
+                '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p.filePath) + '\')" style="color:var(--danger);">删除</button></td>';
+              tbody.appendChild(tr);
             });
-          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: ' + esc(e.message || "") + '</div>'; });
+          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
       }
 
-      // ── Markdown 预览 ──
-      var previewTimer = null;
-      function updatePreview() { clearTimeout(previewTimer); previewTimer = setTimeout(function() {
-        var md = $("content-input").value; var pane = $("preview-pane");
-        if (!md) { pane.innerHTML = '<div class="text-center text-tertiary" style="padding:24px;">输入内容后预览</div>'; } else { pane.innerHTML = renderMarkdown(md); }
-      }, 200); }
-      function renderMarkdown(md) {
-        if (!md) return ""; var html = md;
-        html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(m, l, c) { return '<pre><code>' + esc(c) + '</code></pre>'; });
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>'); html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>'); html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">'); html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-        html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>'); html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>'); html = html.replace(/^---$/gm, '<hr>');
-        html = html.replace(/\n\n/g, '</p><p>'); html = html.replace(/\n/g, '<br>'); html = '<p>' + html + '</p>';
-        html = html.replace(/<p>\s*<\/p>/g, ''); html = html.replace(/<p>\s*(<h[1-6]>)/g, '$1'); html = html.replace(/(<\/h[1-6]>)\s*<\/p>/g, '$1');
-        html = html.replace(/<p>\s*(<pre>)/g, '$1'); html = html.replace(/(<\/pre>)\s*<\/p>/g, '$1');
-        html = html.replace(/<p>\s*(<ul>)/g, '$1'); html = html.replace(/(<\/ul>)\s*<\/p>/g, '$1');
-        html = html.replace(/<p>\s*(<blockquote>)/g, '$1'); html = html.replace(/(<\/blockquote>)\s*<\/p>/g, '$1');
-        html = html.replace(/<p>\s*(<hr>)/g, '$1'); html = html.replace(/(<hr>)\s*<\/p>/g, '$1');
-        return html;
-      }
-      function insertMd(before, after) {
-        var ta = $("content-input"); var start = ta.selectionStart, end = ta.selectionEnd;
-        var text = ta.value, selected = text.substring(start, end) || "文本";
-        ta.value = text.substring(0, start) + before + selected + after + text.substring(end);
-        ta.focus(); ta.selectionStart = start + before.length; ta.selectionEnd = start + before.length + selected.length; updatePreview();
-      }
-
-      // ── 编辑 / 清空 ──
-      function editPost(filePath) {
-        var p = cachedPosts.find(function(x) { return x.filePath === filePath; });
-        if (!p) { toast("未找到", "err"); return; }
-        editingPath = filePath;
-        $("field-title").value = p.title || "";
-        $("field-category").value = p.category || "";
-        $("field-category-new").value = "";
-        $("field-date").value = p.published ? new Date(p.published).toISOString().split("T")[0] : "";
-        $("field-tags").value = (Array.isArray(p.tags) ? p.tags : []).join(", ");
-        $("field-desc").value = p.description || "";
-        $("field-image").value = p.image || "";
-        $("field-draft").checked = !!p.draft;
-        $("field-pinned").checked = !!p.pinned;
-        // 需要从 API 获取完整内容（列表不返回 body）
-        $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none");
-        $("editor-title").textContent = "编辑文章";
-        $("content-input").value = ""; // 实际内容需重新加载
-        updatePreview();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        toast("正在编辑: " + p.title, "ok");
-      }
-      function cancelEdit() {
-        editingPath = null; clearForm();
-        $("submit-btn").textContent = "发布文章"; $("edit-bar").classList.add("d-none");
-        $("editor-title").textContent = "写文章";
-      }
-      function clearForm() {
-        $("field-title").value = ""; $("field-category").value = ""; $("field-category-new").value = "";
-        $("field-date").value = new Date().toISOString().split("T")[0];
-        $("field-tags").value = ""; $("field-desc").value = ""; $("field-image").value = "";
-        $("field-draft").checked = false; $("field-pinned").checked = false;
-        $("content-input").value = ""; updatePreview();
-      }
-
-      // ── CRUD ──
-      function submitPost() {
-        var title = $("field-title").value.trim();
-        if (!title) { toast("请输入标题", "err"); return; }
-        var cat = $("field-category-new").value.trim() || $("field-category").value;
-        if (!cat) { toast("请选择或输入分类", "err"); return; }
-        var content = $("content-input").value.trim();
-        if (!content) { toast("请输入正文", "err"); return; }
-        var btn = $("submit-btn"), isEdit = !!editingPath;
-        btn.disabled = true; btn.textContent = "保存中...";
-        var tags = $("field-tags").value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
-        var payload = {
-          filePath: editingPath || undefined,
-          title: title, category: cat, content: content,
-          published: $("field-date").value || new Date().toISOString().split("T")[0],
-          description: $("field-desc").value.trim(),
-          image: $("field-image").value.trim(),
-          tags: tags,
-          draft: $("field-draft").checked,
-          pinned: $("field-pinned").checked
-        };
-        var method = isEdit ? "PUT" : "POST";
-        fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.success) { toast(isEdit ? "已保存 ✓" : "发布成功 ✓", "ok"); cancelEdit(); loadPosts(); loadCategories(); }
-            else { toast(data.error || "保存失败", "err"); }
-          }).catch(function(e) { toast("网络错误: " + e.message, "err"); })
-          .finally(function() { btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "发布文章"; });
-      }
       function deletePost(filePath) {
-        if (!confirm("确定删除该文章？此操作不可撤销。")) return;
+        if (!confirm("确定删除该文章？")) return;
         fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filePath: filePath }) })
           .then(function(r) { return r.json(); })
           .then(function(data) { if (data.success) { toast("已删除", "ok"); loadPosts(); } else { toast(data.error || "删除失败", "err"); } })
-          .catch(function(e) { toast("删除失败", "err"); });
+          .catch(function() { toast("删除失败", "err"); });
       }
 
-      window.insertMd = insertMd; window.submitPost = submitPost; window.deletePost = deletePost;
-      window.editPost = editPost; window.cancelEdit = cancelEdit; window.clearForm = clearForm;
+      window.deletePost = deletePost; window.loadPosts = loadPosts;
 
       (function() {
         if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }
-        $("field-date").value = new Date().toISOString().split("T")[0];
-        $("content-input").addEventListener("input", updatePreview);
         loadCategories(); loadPosts();
       })();
     })();

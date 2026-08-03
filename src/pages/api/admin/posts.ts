@@ -43,13 +43,15 @@ function fmToPost(fm: Record<string, unknown>, body: string, filePath: string) {
     category: (fm.category as string) || "",
     pinned: fm.pinned === true,
     order: (fm.order as number) || 0,
-    filePath,
+    content: body,
+    filePath: filePath.replace(/\\/g, "/"),
   };
 }
 
 // 从文件路径推导分类
 function categoryFromPath(filePath: string): string {
-  const rel = filePath.replace(COLLECTION_DIR + "/", "");
+  const norm = filePath.replace(/\\/g, "/");
+  const rel = norm.replace(COLLECTION_DIR + "/", "");
   const parts = rel.split("/");
   if (parts.length > 1) return parts[0];
   return "";
@@ -80,7 +82,10 @@ export const GET: APIRoute = async ({ request, cookies }) => {
   }
 
   let posts = result.data
-    .filter((f) => !f.filePath.includes("/assets/") && !f.filePath.includes("/images/"))
+    .filter((f) => {
+      const np = f.filePath.replace(/\\/g, "/");
+      return !np.includes("/assets/") && !np.includes("/images/");
+    })
     .map((f) => fmToPost(f.frontmatter, f.body, f.filePath));
 
   // 按分类筛选
