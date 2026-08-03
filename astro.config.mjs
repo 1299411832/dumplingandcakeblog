@@ -30,7 +30,6 @@ import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import mdx from "@astrojs/mdx";
-import vercel from "@astrojs/vercel";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeExternalLinks from "./src/plugins/rehype-external-links.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
@@ -38,7 +37,6 @@ import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.site_url,
-	adapter: vercel(),
 
 	base: "/",
 	trailingSlash: "always",
@@ -88,7 +86,7 @@ export default defineConfig({
 				"fa7-brands": ["*"],
 				"fa7-regular": ["*"],
 				"fa7-solid": ["*"],
-				"simple-icons": ["*"], 
+				"simple-icons": ["*"],
 				mdi: ["*"],
 			},
 		}),

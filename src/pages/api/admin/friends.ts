@@ -2,7 +2,7 @@
  * /api/admin/friends — 友链 CRUD
  */
 import type { APIRoute } from "astro";
-export const prerender = false;
+
 
 import { getJwtSecret, requireAuth } from "@/utils/admin/auth";
 import {

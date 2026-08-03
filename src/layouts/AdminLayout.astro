@@ -1,6 +1,5 @@
 ---
 // 后台管理统一布局
-import { externalMomentsConfig } from "@/config/externalMomentsConfig";
 
 interface Props {
 	title: string;
@@ -395,7 +394,7 @@ const navItems = [
     </div>
   </div>
 
-  <script is:inline data-hash={externalMomentsConfig.adminPasswordHash || ""}>
+  <script is:inline>
     if (sessionStorage.getItem("admin_auth") !== "1") {
       window.location.href = "/admin/";
     }

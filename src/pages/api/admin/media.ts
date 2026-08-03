@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getJwtSecret, requireAuth } from "@/utils/admin/auth";
 
-export const prerender = false;
+
 
 const LOCAL_BASE = "public/assets/ziyuan";
 const LOCAL_URL_PREFIX = "/assets/ziyuan";

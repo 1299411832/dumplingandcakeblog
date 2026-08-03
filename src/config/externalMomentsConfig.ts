@@ -13,12 +13,6 @@ export const externalMomentsConfig = {
 	defaultAuthor: "团子",
 	defaultAvatar: "/assets/ziyuan/tx.webp",
 
-	// 后台登录密码的 SHA-256 哈希（从环境变量读取）
-	adminPasswordHash: import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || "",
-
-	// GitHub Token（已废弃，由服务端环境变量读取）
-	githubToken: process.env.GITHUB_TOKEN || "",
-
 	// CloudFlare ImgBed 图床配置（用于说说图片上传）
 	imageBedUrl: import.meta.env.PUBLIC_IMAGEBED_URL || "",
 	imageBedAuthCode: import.meta.env.PUBLIC_IMAGEBED_AUTH_CODE || "",

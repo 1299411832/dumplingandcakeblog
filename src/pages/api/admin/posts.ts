@@ -10,7 +10,7 @@ import {
   writeContentFile,
 } from "@/utils/admin/content-writer";
 
-export const prerender = false;
+
 const COLLECTION_DIR = "src/content/posts";
 
 function json(body: Record<string, unknown>, status = 200): Response {
