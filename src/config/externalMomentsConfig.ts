@@ -1,5 +1,5 @@
-// 说说管理配置（图床设置保留，其他已迁移到 API）
-// 所有说说数据通过 /api/admin/moments 直接写入 Content Collection
+// 说说管理配置（图床设置保留）
+// 说说数据由后台页面读取 /data/moments.json，写入通过 GitHub API
 
 export const externalMomentsConfig = {
 	// 是否启用外部说说数据源（已废弃，保留兼容）

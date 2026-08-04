@@ -406,7 +406,8 @@
     </div>
   </div>
 
-  <script is:inline>
+  <script is:inline data-hash={import.meta.env.PUBLIC_ADMIN_PASSWORD_HASH || ""}>
+    var _passwordHash = document.currentScript.getAttribute("data-hash") || "";
     var stage = $("stage");
     var pwdInput = $("login-pwd");
     var showPwd = false;
@@ -494,32 +495,33 @@
       }
     });
 
+    async function sha256(str) {
+      var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
+    }
+
     async function doLogin() {
       var input = pwdInput.value;
       if (!input) { $("login-error").textContent = "请输入密码"; return; }
+      var expectedHash = _passwordHash;
+      if (!expectedHash) { $("login-error").textContent = "未配置密码"; return; }
       clearStageClasses();
       var btn = document.querySelector(".btn-primary");
       btn.disabled = true;
       btn.textContent = "登录中...";
       try {
-        var resp = await fetch((window.__API_BASE || "") + "/api/admin/auth/", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: input })
-        });
-        var data = await resp.json();
-        if (data.success) {
+        var hash = await sha256(input);
+        if (hash === expectedHash) {
           $("login-error").textContent = "";
           sessionStorage.setItem("admin_auth", "1");
           window.location.href = "/admin/dashboard/";
         } else {
-          $("login-error").textContent = data.error || "密码错误";
+          $("login-error").textContent = "密码错误";
           pwdInput.value = "";
           pwdInput.focus();
         }
-      } catch (e) {
-        $("login-error").textContent = "网络错误: " + (e.message || "请检查 dev server 是否正常运行");
+      } catch(e) {
+        $("login-error").textContent = "错误: " + e.message;
       } finally {
         btn.disabled = false;
         btn.textContent = "进入后台";

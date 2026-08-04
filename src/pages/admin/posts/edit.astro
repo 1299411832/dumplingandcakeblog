@@ -261,9 +261,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
   <div class="toast-wrap"><div class="toast-m" id="toast-el"></div></div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/js/gh-client.js" is:inline></script>
   <script is:inline>
     (function() {
-      var API_BASE = (window.__API_BASE || "") + "/api/admin/posts/";
+      var COLLECTION = "src/content/posts";
+      var allCatsCache = [];
       var editingPath = null, allCats = [], tagList = [];
 
       function $(id) { return document.getElementById(id); }
@@ -536,9 +538,17 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
       // ── 分类 ──
       function loadCats() {
-        fetch(API_BASE + "?action=categories", { credentials: "include" })
+        // 从 /data/posts.json 提取分类
+        fetch("/data/posts.json")
           .then(function(r) { return r.json(); })
-          .then(function(d) { if (d.success) { allCats = d.data || []; renderCats(); } });
+          .then(function(entries) {
+            var cats = new Set(entries.map(function(e) {
+              var parts = e.path.split("/");
+              return parts.length > 3 ? parts[3] : "";
+            }).filter(Boolean));
+            allCats = Array.from(cats).sort();
+            renderCats();
+          }).catch(function() { allCats = []; renderCats(); });
       }
       function renderCats() {
         var s = $("field-category"), cur = s.value;
@@ -567,30 +577,29 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         editingPath = filePath;
         $("topbar-title").textContent = "编辑文章";
         $("btn-publish").textContent = "更新";
-        fetch(API_BASE, { credentials: "include" })
+        fetch("/data/posts.json")
           .then(function(r) { return r.json(); })
-          .then(function(d) {
-            if (!d.success) return;
-            var p = (d.data||[]).find(function(x) { return x.filePath === filePath; });
-            if (!p) return;
-            $("field-title").value = p.title || "";
-            $("field-date").value = p.published ? new Date(p.published).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
-            $("pub-date-display").textContent = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "立即发布";
-            tagList = Array.isArray(p.tags) ? [...p.tags] : (p.tags ? [p.tags] : []); renderTags();
-            $("field-desc").value = p.description || "";
-            $("field-image").value = p.image || ""; $("field-image").dispatchEvent(new Event("input"));
-            $("field-pinned").checked = !!p.pinned;
-            $("pub-status").textContent = p.draft ? "草稿" : "已发布";
-            $("pub-status").style.color = p.draft ? "var(--text-3)" : "var(--success)";
-            $("field-draft").value = p.draft ? "1" : "0";
-            $("field-category").value = p.category || "";
-            // 设置正文：如果 marked.js 已加载就用它渲染，否则先显示纯文本再等
-            var content = p.content || "";
+          .then(function(entries) {
+            var p = entries.find(function(x) { return x.path === filePath; });
+            if (!p) { toast("文章不存在", "err"); return; }
+            var fm = p.frontmatter || {};
+            $("field-title").value = fm.title || "";
+            $("field-date").value = fm.published ? new Date(fm.published).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+            $("pub-date-display").textContent = fm.published ? new Date(fm.published).toLocaleDateString("zh-CN") : "立即发布";
+            tagList = Array.isArray(fm.tags) ? [...fm.tags] : (fm.tags ? [fm.tags] : []); renderTags();
+            $("field-desc").value = fm.description || "";
+            $("field-image").value = fm.image || ""; $("field-image").dispatchEvent(new Event("input"));
+            $("field-pinned").checked = !!fm.pinned;
+            $("pub-status").textContent = fm.draft ? "草稿" : "已发布";
+            $("pub-status").style.color = fm.draft ? "var(--text-3)" : "var(--success)";
+            $("field-draft").value = fm.draft ? "1" : "0";
+            $("field-category").value = fm.category || "";
+            // 设置正文：marked.js 渲染
+            var content = p.body || "";
             if (typeof marked !== "undefined") {
               $("field-body").innerHTML = marked.parse(content);
             } else {
               $("field-body").textContent = content;
-              // 每 100ms 轮询，marked 加载完立刻重新渲染
               var pollMarked = setInterval(function() {
                 if (typeof marked !== "undefined") {
                   clearInterval(pollMarked);
@@ -599,32 +608,45 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
               }, 100);
               setTimeout(function() { clearInterval(pollMarked); }, 10000);
             }
-          });
+          })
+          .catch(function(e) { toast("加载失败: " + e.message, "err"); });
       }
 
       // ── 保存 ──
-      function submitPost() {
+      async function submitPost() {
         var title = $("field-title").value.trim();
         if (!title) { toast("请输入标题","err"); return; }
         var cat = $("field-category").value || $("field-cat-new").value.trim();
         if (!cat) { toast("请选择分类","err"); return; }
         var markdown = htmlToMarkdown($("field-body"));
         if (!markdown.trim()) { toast("请输入正文","err"); return; }
+        if (!GitHubAPI.isReady()) { toast("请先在仪表盘设置 GitHub Token", "err"); return; }
         var isEdit = !!editingPath;
         var btn = $("btn-publish"); btn.disabled = true; btn.textContent = "保存中...";
-        var payload = {
-          filePath: editingPath || undefined, title: title, category: cat, content: markdown,
+        var fm = {
+          title: title, category: cat, content: markdown,
           published: $("field-date").value || new Date().toISOString().split("T")[0],
           description: $("field-desc").value.trim(), image: $("field-image").value.trim(),
           tags: tagList, draft: $("field-draft").value === "1", pinned: $("field-pinned").checked
         };
-        fetch(API_BASE, { method: isEdit ? "PUT" : "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) })
-          .then(function(r) { return r.json(); })
-          .then(function(d) {
-            if (d.success) { toast("已保存","ok"); if (!isEdit) window.location.href = "/admin/posts/"; }
-            else { toast(d.error || "保存失败","err"); }
-          }).catch(function() { toast("网络错误","err"); })
-          .finally(function() { btn.disabled = false; btn.textContent = isEdit ? "更新" : "发布"; });
+        // frontmatter 里不含 content，body 单独存
+        var fmOut = { title, category: cat, published: fm.published, description: fm.description, image: fm.image, tags: fm.tags, draft: fm.draft, pinned: fm.pinned };
+        try {
+          var api = GitHubAPI.get();
+          if (isEdit && editingPath) {
+            var meta = await api.getFile(editingPath);
+            await api.saveFile(editingPath, FrontmatterUtil.stringify(fmOut, markdown), meta ? meta.sha : undefined);
+            toast("已保存","ok");
+          } else {
+            var safe = title.replace(/[<>:"/\\|?*\x00-\x1f]/g, "").replace(/\s+/g, "-").substring(0, 100) || "untitled";
+            var filePath = COLLECTION + "/" + cat + "/" + safe + ".md";
+            await api.saveFile(filePath, FrontmatterUtil.stringify(fmOut, markdown));
+            toast("已发布","ok");
+            window.location.href = "/admin/posts/";
+            return;
+          }
+        } catch(e) { toast("保存失败: " + e.message, "err"); }
+        btn.disabled = false; btn.textContent = isEdit ? "更新" : "发布";
       }
 
       // ── 暴露到全局 ──

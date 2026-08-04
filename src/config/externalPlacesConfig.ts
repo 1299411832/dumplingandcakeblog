@@ -1,5 +1,5 @@
 // 足迹管理配置（图床设置保留）
-// 所有足迹数据通过 /api/admin/places 直接写入 Content Collection
+// 足迹数据由后台页面读取 /data/places.json，写入通过 GitHub API
 
 export const externalPlacesConfig = {
 	enable: true,

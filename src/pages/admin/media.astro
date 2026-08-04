@@ -4,42 +4,18 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 ---
 
 <AdminLayout title="媒体库" activeItem="media">
-  <!-- 来源切换 -->
-  <div class="card mb-3">
-    <div class="card-body" style="padding:6px 8px;">
-      <div style="display:flex;gap:4px;" id="source-tabs">
-        <button class="btn btn-sm btn-primary" data-source="imgbed" onclick="switchSource('imgbed')">☁ 图床</button>
-        <button class="btn btn-sm" data-source="local" onclick="switchSource('local')">📁 本地素材</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 工具栏 -->
   <div class="card mb-3">
     <div class="card-body" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;">
-      <span class="text-tertiary" id="dir-label" style="font-size:12px;white-space:nowrap;">目录:</span>
+      <span class="text-tertiary" style="font-size:12px;white-space:nowrap;">目录:</span>
       <select class="form-input" id="dir-select" onchange="changeDir()" style="width:auto;min-width:140px;font-size:13px;">
         <option value="">加载中...</option>
       </select>
       <button class="btn btn-sm" onclick="loadFiles()" title="刷新">↻</button>
       <span style="flex:1;"></span>
-      <span id="action-buttons-imgbed">
-        <button class="btn btn-primary btn-sm" onclick="triggerUpload()" id="upload-btn">📤 上传</button>
-        <input type="file" id="file-input" accept="image/png,image/jpeg,image/gif,image/webp" multiple style="display:none;" />
-        <span class="text-tertiary" id="delete-count" style="font-size:12px;display:none;">
-          <button class="btn btn-danger btn-sm" onclick="deleteSelected()">删除选中 (<span id="sel-count">0</span>)</button>
-        </span>
-      </span>
-    </div>
-  </div>
-
-  <!-- 上传进度 -->
-  <div class="card mb-3 d-none" id="upload-progress-card">
-    <div class="card-body" style="padding:10px 16px;">
-      <div class="d-flex align-items-center gap-2">
-        <span class="spinner" style="width:14px;height:14px;"></span>
-        <span id="upload-progress-text" style="font-size:13px;">上传中...</span>
-      </div>
+      <button class="btn btn-primary btn-sm" onclick="triggerUpload()" id="upload-btn">📤 上传</button>
+      <input type="file" id="file-input" accept="image/png,image/jpeg,image/gif,image/webp" multiple style="display:none;" />
+      <span class="text-tertiary" id="upload-status" style="font-size:12px;"></span>
     </div>
   </div>
 
@@ -73,41 +49,18 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <script is:inline
     data-imgbed-url={externalMomentsConfig.imageBedUrl || ""}
-    data-imgbed-folder={externalMomentsConfig.imageBedFolder || ""}>
+    data-imgbed-code={externalMomentsConfig.imageBedAuthCode || ""}
+    data-imgbed-folder={externalMomentsConfig.imageBedFolder || ""}
+    data-imgbed-token={externalMomentsConfig.imageBedApiToken || ""}>
     (function() {
       var _script = document.currentScript;
-      var API_BASE = (window.__API_BASE || "") + "/api/admin/media/";
       var IMGBED_URL = (_script.getAttribute("data-imgbed-url") || "").replace(/\/+$/, "");
-      var currentDir = _script.getAttribute("data-imgbed-folder") || "";
-      var currentSource = "local";
-
-      // 初始化：本地素材 tab 高亮
-      (function initTabs() {
-        $("source-tabs").querySelectorAll("button").forEach(function(b) {
-          b.classList.toggle("btn-primary", b.getAttribute("data-source") === "local");
-        });
-        $("action-buttons-imgbed").style.display = "none";
-        currentDir = ""; // 本地根目录
-      })();
-
-      // ── 来源切换 ──
-      function switchSource(source) {
-        currentSource = source;
-        currentDir = source === "imgbed" ? (_script.getAttribute("data-imgbed-folder") || "") : "";
-        selectedFiles.clear(); updateSelectUI();
-        // 立即更新 UI
-        $("source-tabs").querySelectorAll("button").forEach(function(b) {
-          b.classList.toggle("btn-primary", b.getAttribute("data-source") === source);
-        });
-        $("action-buttons-imgbed").style.display = source === "imgbed" ? "" : "none";
-        // 立即显示加载状态
-        $("media-grid").innerHTML = '<div class="text-center text-secondary" style="padding:40px;grid-column:1/-1;"><span class="spinner"></span></div>';
-        $("dir-select").innerHTML = '<option value="">加载中...</option>';
-        $("pagination").classList.add("d-none");
-        loadDirs();
-      }
+      var IMGBED_CODE = _script.getAttribute("data-imgbed-code") || "";
+      var IMGBED_FOLDER = _script.getAttribute("data-imgbed-folder") || "";
+      var IMGBED_TOKEN = _script.getAttribute("data-imgbed-token") || "";
+      var currentDir = IMGBED_FOLDER || "";
       var currentPage = 0, pageSize = 50, hasMore = false;
-      var allFiles = [], selectedFiles = new Set();
+      var allFiles = [];
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
@@ -115,45 +68,56 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
       // ── 目录加载 ──
       function loadDirs() {
-        fetch(API_BASE + "?action=dirs&source=" + currentSource, { credentials: "include" })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            var sel = $("dir-select"); sel.innerHTML = "";
-            var dirs = (data.data || []);
-            // 本地素材：始终显示根目录选项
-            if (currentSource === "local" && dirs.indexOf("") === -1) dirs.unshift("");
-            if (dirs.indexOf(currentDir) === -1 && currentDir) dirs.unshift(currentDir);
-            dirs.forEach(function(d) {
-              var displayName = d === "" ? "(根目录)" : d;
-              var opt = document.createElement("option"); opt.value = d; opt.textContent = displayName; opt.selected = (d === currentDir); sel.appendChild(opt);
-            });
-            if (dirs.length && currentDir === undefined) currentDir = dirs[0];
-            loadFiles();
+        var sel = $("dir-select");
+        sel.innerHTML = '<option value="">加载中...</option>';
+        // 列出默认目录 + 常用目录（从图床配置）
+        var dirs = [];
+        if (IMGBED_FOLDER) dirs.push(IMGBED_FOLDER);
+        // 尝试列出根目录的文件来推导子目录
+        fetch(IMGBED_URL + "/api/manage/list?count=100&dir=" + encodeURIComponent(currentDir), {
+          headers: { "Authorization": "Bearer " + IMGBED_TOKEN }
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          var files = data?.files || [];
+          var set = new Set(dirs);
+          files.forEach(function(f) {
+            var name = f.name || "";
+            var idx = name.lastIndexOf("/");
+            if (idx > 0) set.add(name.substring(0, idx));
           });
+          sel.innerHTML = "";
+          Array.from(set).sort().forEach(function(d) {
+            var opt = document.createElement("option"); opt.value = d; opt.textContent = d; opt.selected = (d === currentDir); sel.appendChild(opt);
+          });
+          loadFiles();
+        }).catch(function() {
+          sel.innerHTML = "";
+          dirs.forEach(function(d) {
+            var opt = document.createElement("option"); opt.value = d; opt.textContent = d; opt.selected = (d === currentDir); sel.appendChild(opt);
+          });
+          loadFiles();
+        });
       }
 
-      // ── 文件列表 ──
+      // ── 文件列表（浏览器直连图床 API）──
       function loadFiles() {
-        selectedFiles.clear(); updateSelectUI();
         var grid = $("media-grid");
-        grid.innerHTML = '<div class="text-center text-secondary" style="padding:40px;grid-column:1/-1;"><span class="spinner"></span></div>';
+        grid.innerHTML = '<div class="text-center text-secondary" style="padding:40px;grid-column:1/-1;"><span class="spinner"></span>加载中...</div>';
         currentPage = 0;
-        var url = API_BASE + "?action=list&source=" + currentSource + "&count=" + pageSize + "&start=0";
-        if (currentDir) url += "&dir=" + encodeURIComponent(currentDir);
-        fetch(url, { credentials: "include" })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            var files = data?.files || data?.data?.files || [];
-            if (!Array.isArray(files)) files = [];
-            allFiles = files.filter(function(f) {
-              var type = (f.metadata?.FileType || f.type || "").toLowerCase();
-              return type.startsWith("image/") || type === "" || !type;
-            });
-            hasMore = files.length >= pageSize;
-            renderGrid();
-          }).catch(function(e) {
-            grid.innerHTML = '<div class="text-center text-danger" style="padding:24px;grid-column:1/-1;">加载失败</div>';
+        var params = ["count=" + pageSize, "start=0"];
+        if (currentDir) params.push("dir=" + encodeURIComponent(currentDir));
+        fetch(IMGBED_URL + "/api/manage/list?" + params.join("&"), {
+          headers: { "Authorization": "Bearer " + IMGBED_TOKEN }
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          var files = data?.files || [];
+          allFiles = files.filter(function(f) {
+            var type = (f.metadata?.FileType || f.type || "").toLowerCase();
+            return type.startsWith("image/") || type === "" || !type;
           });
+          hasMore = files.length >= pageSize;
+          renderGrid();
+        }).catch(function(e) {
+          grid.innerHTML = '<div class="text-center text-danger" style="padding:24px;grid-column:1/-1;">加载失败: '+esc(e.message)+'<div style="margin-top:8px;">请确认图床已配置并允许跨域</div></div>';
+        });
       }
 
       function renderGrid() {
@@ -162,51 +126,20 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         grid.innerHTML = "";
         allFiles.forEach(function(file) {
           var name = file.name || file.path || "";
-          var url = file.url || (IMGBED_URL + "/file/" + name);
+          var url = IMGBED_URL + "/file/" + name;
           var filename = name.split("/").pop() || name;
-          var isSel = selectedFiles.has(name);
           var d = document.createElement("div");
-          d.style.cssText = "position:relative;border:2px solid " + (isSel ? "var(--sidebar-accent)" : "var(--border)") + ";border-radius:var(--radius);overflow:hidden;cursor:pointer;aspect-ratio:1;background:var(--hover);";
+          d.style.cssText = "position:relative;border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;aspect-ratio:1;background:var(--hover);";
           d.title = filename;
           d.innerHTML = '<img src="' + url + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.opacity=\'0.3\'" />' +
-            '<div style="position:absolute;bottom:0;left:0;right:0;padding:3px 6px;background:linear-gradient(transparent,rgba(0,0,0,0.6));font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(filename) + '</div>' +
-            (isSel ? '<div style="position:absolute;top:4px;right:4px;width:18px;height:18px;background:var(--sidebar-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;">✓</div>' : '');
-          d.addEventListener("click", function(e) {
-            if (e.shiftKey || e.ctrlKey) { toggleSelect(name); } else { openCopyModal(name, url, filename); }
-          });
-          d.addEventListener("contextmenu", function(e) { e.preventDefault(); toggleSelect(name); });
+            '<div style="position:absolute;bottom:0;left:0;right:0;padding:3px 6px;background:linear-gradient(transparent,rgba(0,0,0,0.6));font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(filename) + '</div>';
+          d.addEventListener("click", function() { openCopyModal(name, url, filename); });
           grid.appendChild(d);
         });
         $("pagination").classList.remove("d-none");
         $("page-info").textContent = "共 " + allFiles.length + " 张";
         $("btn-prev").disabled = currentPage === 0;
         $("btn-next").disabled = !hasMore;
-      }
-
-      // ── 选择 / 删除 ──
-      function toggleSelect(name) {
-        if (selectedFiles.has(name)) selectedFiles.delete(name); else selectedFiles.add(name);
-        updateSelectUI(); renderGrid();
-      }
-      function updateSelectUI() {
-        var cnt = selectedFiles.size;
-        $("delete-count").style.display = cnt > 0 ? "" : "none";
-        $("sel-count").textContent = cnt;
-      }
-      function deleteSelected() {
-        if (!selectedFiles.size) return;
-        if (!confirm("确定删除 " + selectedFiles.size + " 个文件？")) return;
-        var files = Array.from(selectedFiles);
-        var done = 0, err = 0;
-        function delNext() {
-          if (!files.length) { toast("删除完成: " + done + " 成功" + (err ? ", " + err + " 失败" : ""), err ? "err" : "ok"); selectedFiles.clear(); updateSelectUI(); loadFiles(); return; }
-          var f = files.shift();
-          fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f }) })
-            .then(function(r) { return r.json(); })
-            .then(function(data) { if (data.success) done++; else err++; delNext(); })
-            .catch(function() { err++; delNext(); });
-        }
-        delNext();
       }
 
       // ── 复制弹窗 ──
@@ -224,8 +157,8 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         document.execCommand("copy"); toast("已复制 ✓", "ok");
       }
 
-      // ── 上传 ──
-      function triggerUpload() { $("file-input").click(); }
+      // ── 上传（浏览器直连图床）──
+      function triggerUpload() { if (!IMGBED_URL) { toast("未配置图床","err"); return; } $("file-input").click(); }
       $("file-input").addEventListener("change", function(e) {
         var files = e.target.files; if (!files || !files.length) return;
         uploadFiles(Array.prototype.slice.call(files));
@@ -233,55 +166,57 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       });
 
       async function uploadFiles(files) {
-        $("upload-progress-card").classList.remove("d-none");
-        $("upload-btn").disabled = true;
+        var btn = $("upload-btn"), st = $("upload-status");
+        btn.disabled = true;
+        st.textContent = "处理中 0/" + files.length;
+        st.style.color = "var(--text-3)";
         var done = 0, ok = 0, err = 0;
         for (var i = 0; i < files.length; i++) {
           var file = files[i];
-          $("upload-progress-text").textContent = "上传中 " + (done + 1) + "/" + files.length + ": " + file.name;
           try {
-            var formData = new FormData();
-            formData.append("file", file);
-            if (currentDir) formData.append("folder", currentDir);
-            var resp = await fetch(API_BASE, { method: "POST", credentials: "include", body: formData });
+            var fd = new FormData();
+            fd.append("file", file);
+            var params = ["returnFormat=full", "uploadNameType=origin"];
+            if (IMGBED_CODE) params.push("authCode=" + encodeURIComponent(IMGBED_CODE));
+            if (currentDir) params.push("uploadFolder=" + encodeURIComponent(currentDir));
+            var resp = await fetch(IMGBED_URL + "/upload?" + params.join("&"), { method: "POST", body: fd });
             var data = await resp.json();
-            if (data.success) { ok++; toast(file.name + " ✓", "ok"); }
-            else { err++; toast(file.name + ": " + (data.error || "失败"), "err"); }
-          } catch (ex) { err++; toast(file.name + ": 网络错误", "err"); }
+            var url = (Array.isArray(data) && data[0] && data[0].publicUrl) || (Array.isArray(data) && data[0] && data[0].src) || data?.publicUrl || data?.src;
+            if (url) { ok++; toast(file.name + " ✓", "ok"); } else { err++; toast(file.name + ": 上传失败", "err"); }
+          } catch (ex) { err++; toast(file.name + ": " + ex.message, "err"); }
           done++;
-          $("upload-progress-text").textContent = "完成 " + done + "/" + files.length + " (成功 " + ok + (err ? ", 失败 " + err : "") + ")";
+          st.textContent = "完成 " + done + "/" + files.length + " (成功 " + ok + (err ? ", 失败 " + err : "") + ")";
         }
-        $("upload-btn").disabled = false;
-        setTimeout(function() { $("upload-progress-card").classList.add("d-none"); }, 2000);
-        loadFiles();
+        btn.disabled = false;
+        if (ok) { setTimeout(function() { st.textContent = ""; }, 3000); loadFiles(); }
       }
 
       // ── 分页 ──
       function prevPage() { if (currentPage <= 0) return; currentPage--; loadPage(); }
       function nextPage() { currentPage++; loadPage(); }
       function loadPage() {
-        selectedFiles.clear(); updateSelectUI();
-        var url = API_BASE + "?action=list&source=" + currentSource + "&count=" + pageSize + "&start=" + (currentPage * pageSize);
-        if (currentDir) url += "&dir=" + encodeURIComponent(currentDir);
-        fetch(url, { credentials: "include" })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            var files = data?.files || data?.data?.files || [];
-            if (!Array.isArray(files)) files = [];
-            allFiles = files.filter(function(f) {
-              var type = (f.metadata?.FileType || f.type || "").toLowerCase();
-              return type.startsWith("image/") || type === "" || !type;
-            });
-            hasMore = files.length >= pageSize;
-            renderGrid();
+        var grid = $("media-grid");
+        grid.innerHTML = '<div class="text-center text-secondary" style="padding:40px;grid-column:1/-1;"><span class="spinner"></span></div>';
+        var params = ["count=" + pageSize, "start=" + (currentPage * pageSize)];
+        if (currentDir) params.push("dir=" + encodeURIComponent(currentDir));
+        fetch(IMGBED_URL + "/api/manage/list?" + params.join("&"), {
+          headers: { "Authorization": "Bearer " + IMGBED_TOKEN }
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          var files = data?.files || [];
+          allFiles = files.filter(function(f) {
+            var type = (f.metadata?.FileType || f.type || "").toLowerCase();
+            return type.startsWith("image/") || type === "" || !type;
           });
+          hasMore = files.length >= pageSize;
+          renderGrid();
+        }).catch(function() { grid.innerHTML = '<div class="text-center text-danger" style="padding:24px;grid-column:1/-1;">加载失败</div>'; });
       }
       function changeDir() { currentDir = $("dir-select").value; loadFiles(); }
 
       window.triggerUpload = triggerUpload; window.loadFiles = loadFiles;
-      window.deleteSelected = deleteSelected; window.closeCopyModal = closeCopyModal;
-      window.copyText = copyText; window.prevPage = prevPage; window.nextPage = nextPage;
-      window.changeDir = changeDir; window.openCopyModal = openCopyModal; window.switchSource = switchSource;
+      window.closeCopyModal = closeCopyModal; window.copyText = copyText;
+      window.prevPage = prevPage; window.nextPage = nextPage; window.changeDir = changeDir;
+      window.openCopyModal = openCopyModal;
 
       (function() {
         if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }

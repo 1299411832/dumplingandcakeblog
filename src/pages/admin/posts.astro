@@ -19,36 +19,47 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
   <div class="toast-wrap"><div class="toast" id="toast-el"></div></div>
 
+  <script src="/js/gh-client.js" is:inline></script>
   <script is:inline>
     (function() {
-      var API_BASE = (window.__API_BASE || "") + "/api/admin/posts/";
+      var cached = [];
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
 
-      function loadCategories() {
-        fetch(API_BASE + "?action=categories", { credentials: "include" })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.success) return;
-            (data.data || []).forEach(function(c) {
-              var opt = document.createElement("option"); opt.value = c; opt.textContent = c;
-              $("filter-category").appendChild(opt);
-            });
-          });
+      // 从 path 提取分类：src/content/posts/{category}/{file}.md
+      function categoryFromPath(p) {
+        var parts = p.split("/");
+        return parts.length > 3 ? parts[3] : "";
       }
 
+      // 读数据：/data/posts.json
       function loadPosts() {
         var list = $("posts-list");
-        list.innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span></div>';
-        var cat = $("filter-category").value;
-        var url = API_BASE + (cat ? "?category=" + encodeURIComponent(cat) : "");
-        fetch(url, { credentials: "include" })
+        list.innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span>加载中...</div>';
+        fetch("/data/posts.json")
           .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.success) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error) + '</div>'; return; }
-            var posts = data.data || [];
+          .then(function(entries) {
+            cached = entries.map(function(e) {
+              var fm = e.frontmatter || {};
+              return Object.assign({ _path: e.path, filePath: e.path }, fm, { content: e.body });
+            });
+            // 排序：置顶优先，然后按 published 降序
+            cached.sort(function(a, b) {
+              if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+              return new Date(b.published || 0) - new Date(a.published || 0);
+            });
+            // 填充分类筛选
+            var catSel = $("filter-category");
+            var cats = new Set(cached.map(function(p) { return p.category || categoryFromPath(p._path); }).filter(Boolean));
+            catSel.innerHTML = '<option value="">全部分类</option>';
+            Array.from(cats).sort().forEach(function(c) {
+              var opt = document.createElement("option"); opt.value = c; opt.textContent = c; catSel.appendChild(opt);
+            });
+
+            var cat = catSel.value;
+            var posts = cat ? cached.filter(function(p) { return (p.category || categoryFromPath(p._path)) === cat; }) : cached;
             if (!posts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
             $("list-count").textContent = "共 " + posts.length + " 篇";
             list.innerHTML = '<div class="card"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
@@ -59,29 +70,32 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
               var date = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "";
               var tr = document.createElement("tr");
               tr.style.cssText = "border-bottom:1px solid var(--border);";
-              tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p.filePath) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
-                '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category) + '</td>' +
+              tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
+                '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category || categoryFromPath(p._path)) + '</td>' +
                 '<td style="padding:10px 16px;color:var(--text-3);font-size:12px;">' + date + '</td>' +
-                '<td style="padding:10px 6px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p.filePath) + '" data-no-swup class="btn btn-ghost btn-sm">编辑</a></td>' +
-                '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p.filePath) + '\')" style="color:var(--danger);">删除</button></td>';
+                '<td style="padding:10px 6px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup class="btn btn-ghost btn-sm">编辑</a></td>' +
+                '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p._path) + '\')" style="color:var(--danger);">删除</button></td>';
               tbody.appendChild(tr);
             });
-          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
+          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
-      function deletePost(filePath) {
+      async function deletePost(path) {
         if (!confirm("确定删除该文章？")) return;
-        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filePath: filePath }) })
-          .then(function(r) { return r.json(); })
-          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadPosts(); } else { toast(data.error || "删除失败", "err"); } })
-          .catch(function() { toast("删除失败", "err"); });
+        if (!GitHubAPI.isReady()) { toast("请先在仪表盘设置 GitHub Token", "err"); return; }
+        try {
+          var meta = await GitHubAPI.get().getFile(path);
+          if (!meta) { toast("文件不存在", "err"); return; }
+          await GitHubAPI.get().deleteFile(path, meta.sha);
+          toast("已删除", "ok"); loadPosts();
+        } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
 
       window.deletePost = deletePost; window.loadPosts = loadPosts;
 
       (function() {
         if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }
-        loadCategories(); loadPosts();
+        loadPosts();
       })();
     })();
   </script>

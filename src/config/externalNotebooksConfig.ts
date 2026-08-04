@@ -1,5 +1,5 @@
-// 笔记管理配置
-// 所有笔记数据通过 /api/admin/notebooks 直接写入 Content Collection
+// 笔记管理配置（模板保留）
+// 笔记数据由后台页面读取 /data/notebooks.json，写入通过 GitHub API
 
 export const externalNotebooksConfig = {
 	enable: true,

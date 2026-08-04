@@ -89,29 +89,44 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
     #preview-pane hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
   </style>
 
-  <script is:inline
-    data-templates={JSON.stringify(externalNotebooksConfig.templates || [])}>
+  <script src="/js/gh-client.js" is:inline></script>
+  <script is:inline data-templates={JSON.stringify(externalNotebooksConfig.templates || [])}>
     (function() {
       var _script = document.currentScript;
       var TEMPLATES = JSON.parse(_script.getAttribute("data-templates") || "[]");
-      var API_BASE = (window.__API_BASE || "") + "/api/admin/notebooks/";
-      var currentNotebook = "", editingEntryId = null, allEntries = [];
+      var COLLECTION = "src/content/life/notebooks";
+      var currentNotebook = "", editingPath = null, allEntries = [];
+      var notebookNames = []; // 笔记本名列表
       var renderedNotebooks = []; // cache for tabs
 
       function $(id) { return document.getElementById(id); }
       function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
       function toast(msg, type) { var el = $("toast-el"); el.textContent = msg; el.className = "toast " + type + " show"; clearTimeout(el._t); el._t = setTimeout(function() { el.className = "toast"; }, 2800); }
 
-      // 加载笔记本列表
+      // 从 path 提取笔记本名：src/content/life/notebooks/{name}/{file}.md
+      function notebookFromPath(p) {
+        var parts = p.split("/");
+        return parts[4] || "";
+      }
+
+      // 读数据：/data/notebooks.json
       function loadNotebookList() {
         var tabs = $("notebook-tabs");
-        fetch(API_BASE, { credentials: "include" })
+        tabs.innerHTML = '<div class="text-center text-secondary" style="padding:12px;"><span class="spinner"></span></div>';
+        fetch("/data/notebooks.json")
           .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.success || !data.data) { tabs.innerHTML = '<div class="text-center text-danger" style="padding:12px;">加载失败</div>'; return; }
-            renderedNotebooks = data.data;
+          .then(function(entries) {
+            allEntries = entries.map(function(e) {
+              var fm = e.frontmatter || {};
+              return Object.assign({ _path: e.path }, fm, { content: e.body, title: fm.name || fm.title || "" });
+            });
+            // 提取笔记本名（去重）
+            var names = new Set(allEntries.map(function(e) { return notebookFromPath(e._path); }).filter(Boolean));
+            notebookNames = Array.from(names).sort();
+            renderedNotebooks = notebookNames;
             tabs.innerHTML = "";
-            renderedNotebooks.forEach(function(name) {
+            if (!notebookNames.length) { tabs.innerHTML = '<div class="text-center text-tertiary" style="padding:12px;">还没有笔记本</div>'; return; }
+            notebookNames.forEach(function(name) {
               var btn = document.createElement("button");
               btn.className = "btn btn-sm notebook-tab";
               btn.textContent = name;
@@ -126,33 +141,29 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
               });
               tabs.appendChild(btn);
             });
-          });
+          })
+          .catch(function(e) { tabs.innerHTML = '<div class="text-center text-danger" style="padding:12px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
       function loadEntries() {
         if (!currentNotebook) return;
         $("entries-list").innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span></div>';
-        fetch(API_BASE + "?notebook=" + encodeURIComponent(currentNotebook), { credentials: "include" })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (!data.success) { $("entries-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">' + esc(data.error || "加载失败") + '</div>'; return; }
-            allEntries = data.data || [];
-            renderEntries();
-          }).catch(function() { $("entries-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
+        var entries = allEntries.filter(function(e) { return notebookFromPath(e._path) === currentNotebook; });
+        renderEntries(entries);
       }
 
-      function renderEntries() {
+      function renderEntries(entries) {
         var list = $("entries-list");
         if (!currentNotebook) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:24px;">请先选择笔记本</div>'; $("list-count").textContent = ""; return; }
-        $("list-count").textContent = allEntries.length + " 篇";
-        if (!allEntries.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">该笔记本还没有笔记</div>'; return; }
+        $("list-count").textContent = entries.length + " 篇";
+        if (!entries.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">该笔记本还没有笔记</div>'; return; }
         list.innerHTML = "";
-        allEntries.forEach(function(e) {
+        entries.forEach(function(e) {
           var d = document.createElement("div"); d.className = "list-row";
           var date = e.date || "";
           var preview = (e.content || "").replace(/[#*`>\-\[\]!]/g, "").replace(/\n/g, " ").slice(0, 80);
           d.innerHTML = '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(e.title || "无标题") + '</div><div class="text-tertiary" style="font-size:12px;">' + date + '</div>' + (preview ? '<div class="text-secondary text-truncate" style="font-size:13px;">' + esc(preview) + '</div>' : "") + '</div>' +
-            '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editEntry(\'' + e.id + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteEntry(\'' + e.id + '\')">删除</button></div>';
+            '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editEntry(\'' + esc(e._path) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteEntry(\'' + esc(e._path) + '\')">删除</button></div>';
           list.appendChild(d);
         });
       }
@@ -192,35 +203,48 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         return html;
       }
 
-      function editEntry(id) {
-        var entry = allEntries.find(function(e) { return e.id === id; }); if (!entry) { toast("未找到", "err"); return; }
-        editingEntryId = id; $("entry-title").value = entry.title || ""; $("entry-date").value = entry.date || "";
+      function editEntry(path) {
+        var entry = allEntries.find(function(e) { return e._path === path; }); if (!entry) { toast("未找到", "err"); return; }
+        editingPath = path; $("entry-title").value = entry.title || ""; $("entry-date").value = entry.date || "";
         $("content-input").value = entry.content || ""; $("submit-btn").textContent = "保存修改"; $("edit-bar").classList.remove("d-none");
         updatePreview(); window.scrollTo({ top: 0, behavior: "smooth" }); toast("正在编辑: " + (entry.title || "无标题"), "ok");
       }
-      function cancelEdit() { editingEntryId = null; $("entry-title").value = ""; $("entry-date").value = new Date().toISOString().split("T")[0]; $("content-input").value = ""; $("submit-btn").textContent = "保存笔记"; $("edit-bar").classList.add("d-none"); updatePreview(); }
-      function submitEntry() {
+      function cancelEdit() { editingPath = null; $("entry-title").value = ""; $("entry-date").value = new Date().toISOString().split("T")[0]; $("content-input").value = ""; $("submit-btn").textContent = "保存笔记"; $("edit-bar").classList.add("d-none"); updatePreview(); }
+
+      // 写数据：GitHub API
+      async function submitEntry() {
         if (!currentNotebook) { toast("请先选择笔记本", "err"); return; }
         var content = $("content-input").value.trim(); if (!content) { toast("请输入内容", "err"); return; }
         var title = $("entry-title").value.trim(), date = $("entry-date").value || new Date().toISOString().split("T")[0];
-        var btn = $("submit-btn"), isEdit = !!editingEntryId; btn.disabled = true; btn.textContent = "保存中...";
-        var method = isEdit ? "PUT" : "POST";
-        var payload = { id: editingEntryId || undefined, notebook: currentNotebook, title: title, date: date, content: content };
-        fetch(API_BASE, { method: method, credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.success) { toast(isEdit ? "已保存 ✓" : "保存成功 ✓", "ok"); cancelEdit(); loadEntries(); }
-            else { toast(data.error || "保存失败", "err"); }
-          }).catch(function(e) { toast("保存失败: " + e.message, "err"); })
-          .finally(function() { btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存笔记"; });
+        if (!GitHubAPI.isReady()) { toast("请先在仪表盘设置 GitHub Token", "err"); return; }
+        var btn = $("submit-btn"), isEdit = !!editingPath; btn.disabled = true; btn.textContent = "保存中...";
+        try {
+          var api = GitHubAPI.get();
+          var fm = { name: title, date: date };
+          if (isEdit) {
+            var meta = await api.getFile(editingPath);
+            await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, content), meta ? meta.sha : undefined);
+            toast("已保存 ✓", "ok"); cancelEdit(); loadNotebookList();
+          } else {
+            var safe = title.replace(/[<>:"/\\|?*\x00-\x1f]/g, "").replace(/\s+/g, "-").substring(0, 100) || date;
+            var filename = safe + ".md";
+            var filePath = COLLECTION + "/" + currentNotebook + "/" + filename;
+            await api.saveFile(filePath, FrontmatterUtil.stringify(fm, content));
+            toast("保存成功 ✓", "ok"); cancelEdit(); loadNotebookList();
+          }
+        } catch(e) { toast("保存失败: " + e.message, "err"); }
+        btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存笔记";
       }
-      function deleteEntry(id) {
+
+      async function deleteEntry(path) {
         if (!confirm("确定删除该笔记？")) return;
-        if (!currentNotebook) return;
-        fetch(API_BASE, { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: id, notebook: currentNotebook }) })
-          .then(function(r) { return r.json(); })
-          .then(function(data) { if (data.success) { toast("已删除", "ok"); loadEntries(); } else { toast(data.error || "删除失败", "err"); } })
-          .catch(function(e) { toast("删除失败", "err"); });
+        if (!GitHubAPI.isReady()) { toast("请先设置 Token", "err"); return; }
+        try {
+          var meta = await GitHubAPI.get().getFile(path);
+          if (!meta) { toast("文件不存在", "err"); return; }
+          await GitHubAPI.get().deleteFile(path, meta.sha);
+          toast("已删除", "ok"); loadNotebookList();
+        } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
 
       window.insertMd = insertMd; window.submitEntry = submitEntry;
