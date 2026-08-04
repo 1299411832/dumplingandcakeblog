@@ -88,6 +88,19 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         });
       }
 
+      // 渲染友链列表（内存数据）
+      function renderFriends() {
+        var list = $("friends-list");
+        if (!cached.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有友链</div>'; $("list-count").textContent = ""; return; }
+        $("list-count").textContent = cached.length + " 个"; list.innerHTML = "";
+        cached.forEach(function(f) {
+          var d = document.createElement("div"); d.className = "list-row";
+          var avatarHtml = f.imgurl ? '<img src="' + esc(f.imgurl) + '" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">' : '<div style="width:36px;height:36px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-3);font-size:12px;">🔗</div>';
+          d.innerHTML = avatarHtml + '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(f.title) + '</div><div class="text-secondary text-truncate" style="font-size:13px;">' + esc(f.desc || f.siteurl) + '</div></div>' + '<button class="btn btn-ghost btn-sm btn-danger" onclick="deleteFriend(\'' + esc(f._path) + '\')">删除</button>';
+          list.appendChild(d);
+        });
+      }
+
       // 读数据：/data/friends.json（EdgeOne CDN 秒开）
       function loadFriends() {
         var list = $("friends-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
@@ -97,14 +110,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             cached = entries.map(function(e) {
               return Object.assign({ _path: e.path }, e.frontmatter, { content: e.body });
             });
-            if (!cached.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有友链</div>'; $("list-count").textContent = ""; return; }
-            $("list-count").textContent = cached.length + " 个"; list.innerHTML = "";
-            cached.forEach(function(f) {
-              var d = document.createElement("div"); d.className = "list-row";
-              var avatarHtml = f.imgurl ? '<img src="' + esc(f.imgurl) + '" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">' : '<div style="width:36px;height:36px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-3);font-size:12px;">🔗</div>';
-              d.innerHTML = avatarHtml + '<div class="flex-1 min-w-0"><div class="fw-500" style="font-size:14px;">' + esc(f.title) + '</div><div class="text-secondary text-truncate" style="font-size:13px;">' + esc(f.desc || f.siteurl) + '</div></div>' + '<button class="btn btn-ghost btn-sm btn-danger" onclick="deleteFriend(\'' + esc(f._path) + '\')">删除</button>';
-              list.appendChild(d);
-            });
+            renderFriends();
           }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
       }
 
@@ -119,7 +125,6 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var api = GitHubAPI.get();
           // 查重
           var existing = await api.listDir(COLLECTION);
-          var hasUrl = existing.some(function() { return false; });
           // 找下一个序号
           var mdFiles = existing.filter(function(e) { return e.name.endsWith(".md"); });
           var index = mdFiles.length + 1;
@@ -128,7 +133,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
           var fm = { title: data.title, imgurl: data.imgurl, desc: data.desc, siteurl: data.siteurl };
           await api.saveFile(COLLECTION + "/" + filename, FrontmatterUtil.stringify(fm, ""));
-          toast("添加成功 ✓", "ok"); clearForm(); loadFriends();
+          // 内存新增
+          cached.push(Object.assign({ _path: COLLECTION + "/" + filename }, fm, { content: "" }));
+          toast("添加成功 ✓", "ok"); clearForm(); renderFriends();
         } catch(e) { toast("添加失败: " + e.message, "err"); }
         btn.disabled = false; btn.textContent = "添加友链";
       }
@@ -142,7 +149,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var meta = await GitHubAPI.get().getFile(target._path);
           if (!meta) { toast("文件不存在", "err"); return; }
           await GitHubAPI.get().deleteFile(target._path, meta.sha);
-          toast("已删除", "ok"); loadFriends();
+          // 内存删除
+          cached = cached.filter(function(f) { return f._path !== path; });
+          toast("已删除", "ok"); renderFriends();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
       function clearForm() { $("paste-input").value = ""; $("preview-area").classList.add("d-none"); }

@@ -224,13 +224,18 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           if (isEdit) {
             var meta = await api.getFile(editingPath);
             await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, content), meta ? meta.sha : undefined);
-            toast("已保存 ✓", "ok"); cancelEdit(); loadNotebookList();
+            // 内存更新
+            var idx = allEntries.findIndex(function(e){return e._path===editingPath;});
+            if (idx >= 0) allEntries[idx] = Object.assign({}, allEntries[idx], { name: title, date: date, title: title, content: content });
+            toast("已保存 ✓", "ok"); cancelEdit(); loadEntries();
           } else {
             var safe = title.replace(/[<>:"/\\|?*\x00-\x1f]/g, "").replace(/\s+/g, "-").substring(0, 100) || date;
             var filename = safe + ".md";
             var filePath = COLLECTION + "/" + currentNotebook + "/" + filename;
             await api.saveFile(filePath, FrontmatterUtil.stringify(fm, content));
-            toast("保存成功 ✓", "ok"); cancelEdit(); loadNotebookList();
+            // 内存新增
+            allEntries.push({ _path: filePath, name: title, date: date, title: title, content: content });
+            toast("保存成功 ✓", "ok"); cancelEdit(); loadEntries();
           }
         } catch(e) { toast("保存失败: " + e.message, "err"); }
         btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存笔记";
@@ -243,7 +248,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var meta = await GitHubAPI.get().getFile(path);
           if (!meta) { toast("文件不存在", "err"); return; }
           await GitHubAPI.get().deleteFile(path, meta.sha);
-          toast("已删除", "ok"); loadNotebookList();
+          // 内存删除
+          allEntries = allEntries.filter(function(e) { return e._path !== path; });
+          toast("已删除", "ok"); loadEntries();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
 

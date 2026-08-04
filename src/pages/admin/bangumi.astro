@@ -148,16 +148,36 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           if (isEdit) {
             var meta = await api.getFile(editingPath);
             await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, fm.comment || ""), meta ? meta.sha : undefined);
-            toast("已保存 ✓", "ok"); cancelEdit(); loadBangumiList();
+            // 内存更新
+            var idx = cachedItems.findIndex(function(i){return i._path===editingPath;});
+            if (idx >= 0) cachedItems[idx] = Object.assign({}, cachedItems[idx], fm, { content: fm.comment || "" });
+            toast("已保存 ✓", "ok"); cancelEdit(); renderBangumi();
           } else {
             var safe = displayTitle.replace(/[<>:"/\\|?*\x00-\x1f]/g, "").replace(/\s+/g, "-").substring(0, 100) || "untitled";
             var dirPath = COLLECTION + "/" + mc.category;
             if (mc.subcategory) dirPath += "/" + mc.subcategory;
             await api.saveFile(dirPath + "/" + safe + ".md", FrontmatterUtil.stringify(fm, fm.comment || ""));
-            toast("保存成功 ✓", "ok"); cancelEdit(); loadBangumiList();
+            // 内存新增
+            cachedItems.push(Object.assign({ _path: dirPath + "/" + safe + ".md" }, fm, { content: fm.comment || "" }));
+            toast("保存成功 ✓", "ok"); cancelEdit(); renderBangumi();
           }
         } catch(e) { toast("保存失败: " + e.message, "err"); }
         btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存";
+      }
+
+      // 渲染影视列表（内存数据）
+      function renderBangumi() {
+        var list = $("bangumi-list");
+        if (!cachedItems.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; }
+        $("list-count").textContent = cachedItems.length + " 部"; list.innerHTML = "";
+        var statusMap = { 1: "想看", 2: "看过", 3: "在看", 4: "搁置", 5: "抛弃" };
+        cachedItems.forEach(function(item) {
+          var d = document.createElement("div"); d.className = "list-row";
+          var posterHtml = item.image ? '<img src="' + esc(item.image) + '" alt="" style="width:32px;height:44px;object-fit:cover;border-radius:2px;flex-shrink:0;">' : '<div style="width:32px;height:44px;background:var(--hover);border-radius:2px;flex-shrink:0;"></div>';
+          var displayTitle = item.name_cn || item.title;
+          d.innerHTML = posterHtml + '<div class="flex-1 min-w-0"><div class="fw-500 text-truncate" style="font-size:13px;">' + esc(displayTitle) + '</div><div class="text-secondary" style="font-size:12px;">' + esc(statusMap[item.status] || "") + (item.score ? " · " + item.score + "分" : "") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editBangumi(\'' + esc(item._path) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteBangumi(\'' + esc(item._path) + '\')">删除</button></div>';
+          list.appendChild(d);
+        });
       }
 
       // 读数据：/data/bangumi.json
@@ -170,16 +190,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             cachedItems = entries.map(function(e) {
               return Object.assign({ _path: e.path }, e.frontmatter, { content: e.body });
             });
-            if (!cachedItems.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; }
-            $("list-count").textContent = cachedItems.length + " 部"; list.innerHTML = "";
-            var statusMap = { 1: "想看", 2: "看过", 3: "在看", 4: "搁置", 5: "抛弃" };
-            cachedItems.forEach(function(item) {
-              var d = document.createElement("div"); d.className = "list-row";
-              var posterHtml = item.image ? '<img src="' + esc(item.image) + '" alt="" style="width:32px;height:44px;object-fit:cover;border-radius:2px;flex-shrink:0;">' : '<div style="width:32px;height:44px;background:var(--hover);border-radius:2px;flex-shrink:0;"></div>';
-              var displayTitle = item.name_cn || item.title;
-              d.innerHTML = posterHtml + '<div class="flex-1 min-w-0"><div class="fw-500 text-truncate" style="font-size:13px;">' + esc(displayTitle) + '</div><div class="text-secondary" style="font-size:12px;">' + esc(statusMap[item.status] || "") + (item.score ? " · " + item.score + "分" : "") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editBangumi(\'' + esc(item._path) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteBangumi(\'' + esc(item._path) + '\')">删除</button></div>';
-              list.appendChild(d);
-            });
+            renderBangumi();
           }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
@@ -190,7 +201,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var meta = await GitHubAPI.get().getFile(path);
           if (!meta) { toast("文件不存在", "err"); return; }
           await GitHubAPI.get().deleteFile(path, meta.sha);
-          toast("已删除", "ok"); loadBangumiList();
+          // 内存删除
+          cachedItems = cachedItems.filter(function(i) { return i._path !== path; });
+          toast("已删除", "ok"); renderBangumi();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
       function clearForm() { $("search-input").value = ""; $("search-results").classList.add("d-none"); $("search-results").innerHTML = ""; $("preview-area").classList.add("d-none"); $("form-area").classList.add("d-none"); $("field-title").value = ""; $("field-name-cn").value = ""; $("field-category").value = "anime"; $("field-status").value = "2"; $("field-score").value = "0"; $("field-image").value = ""; $("field-tags").value = ""; $("field-comment").value = ""; $("field-date").value = ""; searchResults = []; selectedIndex = -1; }

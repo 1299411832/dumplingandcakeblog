@@ -221,7 +221,14 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             var meta = await api.getFile(target._path);
             var sha = meta ? meta.sha : undefined;
             await api.saveFile(target._path, FrontmatterUtil.stringify(fm, content), sha);
-            toast("已保存 ✓","ok"); cancelEdit(); loadMoments();
+            // 内存更新（不等 EdgeOne 重建）
+            var updated = Object.assign({}, target, fm, { content: content });
+            var idx = allMoments.findIndex(function(x){return x._path===editingId;});
+            if (idx >= 0) allMoments[idx] = updated;
+            var cidx = cached.findIndex(function(x){return x._path===editingId;});
+            if (cidx >= 0) cached[cidx] = updated;
+            allMoments.sort(function(a,b){return new Date(b.published||0)-new Date(a.published||0);});
+            toast("已保存 ✓","ok"); cancelEdit(); renderList(currentPage);
           } else {
             // 去重文件名
             var existing = await api.listDir(COLLECTION);
@@ -229,7 +236,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             var suffix = 2;
             while (names.indexOf(filename) >= 0) { filename = dateBase+"-"+suffix+".md"; suffix++; }
             await api.saveFile(COLLECTION+"/"+filename, FrontmatterUtil.stringify(fm, content));
-            toast("发布成功 ✓","ok"); cancelEdit(); loadMoments();
+            // 内存新增
+            var newMoment = Object.assign({ _path: COLLECTION+"/"+filename }, fm, { content: content });
+            allMoments.push(newMoment);
+            allMoments.sort(function(a,b){return new Date(b.published||0)-new Date(a.published||0);});
+            toast("发布成功 ✓","ok"); cancelEdit(); renderList(0);
           }
         } catch(e) { toast("保存失败: "+e.message,"err"); }
         btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "发布";
@@ -244,7 +255,10 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var meta = await GitHubAPI.get().getFile(target._path);
           if (!meta) { toast("文件不存在","err"); return; }
           await GitHubAPI.get().deleteFile(target._path, meta.sha);
-          toast("已删除","ok"); loadMoments();
+          // 内存删除
+          allMoments = allMoments.filter(function(x){return x._path!==path;});
+          cached = cached.filter(function(x){return x._path!==path;});
+          toast("已删除","ok"); renderList(currentPage);
         } catch(e) { toast("删除失败: "+e.message,"err"); }
       }
 

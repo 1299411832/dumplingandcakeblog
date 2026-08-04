@@ -34,6 +34,30 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         return parts.length > 3 ? parts[3] : "";
       }
 
+      // 渲染文章列表（内存数据）
+      function renderPosts() {
+        var list = $("posts-list");
+        var cat = $("filter-category").value;
+        var posts = cat ? cached.filter(function(p) { return (p.category || categoryFromPath(p._path)) === cat; }) : cached;
+        if (!posts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
+        $("list-count").textContent = "共 " + posts.length + " 篇";
+        list.innerHTML = '<div class="card"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+          '<thead><tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-2);font-size:12px;font-weight:500;">' +
+          '<th style="padding:10px 16px;">标题</th><th style="padding:10px 16px;width:100px;">分类</th><th style="padding:10px 16px;width:120px;">日期</th><th style="padding:10px 16px;width:40px;"></th><th style="padding:10px 16px;width:40px;"></th></tr></thead><tbody id="posts-tbody"></tbody></table></div></div>';
+        var tbody = document.getElementById("posts-tbody");
+        posts.forEach(function(p) {
+          var date = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "";
+          var tr = document.createElement("tr");
+          tr.style.cssText = "border-bottom:1px solid var(--border);";
+          tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
+            '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category || categoryFromPath(p._path)) + '</td>' +
+            '<td style="padding:10px 16px;color:var(--text-3);font-size:12px;">' + date + '</td>' +
+            '<td style="padding:10px 6px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup class="btn btn-ghost btn-sm">编辑</a></td>' +
+            '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p._path) + '\')" style="color:var(--danger);">删除</button></td>';
+          tbody.appendChild(tr);
+        });
+      }
+
       // 读数据：/data/posts.json
       function loadPosts() {
         var list = $("posts-list");
@@ -57,26 +81,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             Array.from(cats).sort().forEach(function(c) {
               var opt = document.createElement("option"); opt.value = c; opt.textContent = c; catSel.appendChild(opt);
             });
-
-            var cat = catSel.value;
-            var posts = cat ? cached.filter(function(p) { return (p.category || categoryFromPath(p._path)) === cat; }) : cached;
-            if (!posts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
-            $("list-count").textContent = "共 " + posts.length + " 篇";
-            list.innerHTML = '<div class="card"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
-              '<thead><tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-2);font-size:12px;font-weight:500;">' +
-              '<th style="padding:10px 16px;">标题</th><th style="padding:10px 16px;width:100px;">分类</th><th style="padding:10px 16px;width:120px;">日期</th><th style="padding:10px 16px;width:40px;"></th><th style="padding:10px 16px;width:40px;"></th></tr></thead><tbody id="posts-tbody"></tbody></table></div></div>';
-            var tbody = document.getElementById("posts-tbody");
-            posts.forEach(function(p) {
-              var date = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "";
-              var tr = document.createElement("tr");
-              tr.style.cssText = "border-bottom:1px solid var(--border);";
-              tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
-                '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category || categoryFromPath(p._path)) + '</td>' +
-                '<td style="padding:10px 16px;color:var(--text-3);font-size:12px;">' + date + '</td>' +
-                '<td style="padding:10px 6px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup class="btn btn-ghost btn-sm">编辑</a></td>' +
-                '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p._path) + '\')" style="color:var(--danger);">删除</button></td>';
-              tbody.appendChild(tr);
-            });
+            renderPosts();
           }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
@@ -87,7 +92,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var meta = await GitHubAPI.get().getFile(path);
           if (!meta) { toast("文件不存在", "err"); return; }
           await GitHubAPI.get().deleteFile(path, meta.sha);
-          toast("已删除", "ok"); loadPosts();
+          // 内存删除
+          cached = cached.filter(function(p) { return p._path !== path; });
+          toast("已删除", "ok"); renderPosts();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
 
