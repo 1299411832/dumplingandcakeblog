@@ -2,7 +2,7 @@
 import { Icon } from "astro-icon/components";
 /**
  * 移动端底部悬浮 Dock — 仅 ≤768px 显示
- * 5 栏位单浮岛 + 中间凸出菜单按钮 + 工具栏底部 sheet
+ * 5 栏位单浮岛：首页、搜索、菜单（凸出）、主题、返回
  */
 ---
 
@@ -25,6 +25,15 @@ import { Icon } from "astro-icon/components";
 			<Icon name="material-symbols:menu-rounded" is:inline class="mobile-dock-menu-icon-collapsed" />
 			<Icon name="material-symbols:close-rounded" is:inline class="mobile-dock-menu-icon-open" style="display:none" />
 		</span>
+	</button>
+
+	<!-- 右2: 主题切换 -->
+	<button class="mobile-dock__btn" id="mobile-dock-theme-btn" aria-label="主题切换" type="button">
+		<span class="mobile-dock__icon">
+			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="mobile-dock-theme-icon-light" />
+			<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="mobile-dock-theme-icon-dark" style="display:none" />
+		</span>
+		<span class="mobile-dock__label">主题</span>
 	</button>
 
 	<!-- 右1: 返回 -->
@@ -241,19 +250,16 @@ import { Icon } from "astro-icon/components";
 		}
 	});
 
-	// 主题切换（在工具 sheet 中）
+	// 主题切换（dock 按钮 + 工具 sheet）
+	var dockThemeBtn = document.getElementById("mobile-dock-theme-btn");
+	var dockThemeLightIcon = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-light");
+	var dockThemeDarkIcon = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-dark");
+
 	var themeSheetBtn = document.getElementById("md-theme-btn");
 	var themeSheetLightIcon = themeSheetBtn?.querySelector(".md-theme-icon-light");
 	var themeSheetDarkIcon = themeSheetBtn?.querySelector(".md-theme-icon-dark");
 
-	function updateThemeIcon() {
-		var isDark = document.documentElement.classList.contains("dark");
-		if (themeSheetLightIcon) themeSheetLightIcon.style.display = isDark ? "none" : "";
-		if (themeSheetDarkIcon) themeSheetDarkIcon.style.display = isDark ? "" : "none";
-	}
-
-	themeSheetBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
+	function toggleTheme() {
 		var isDark = document.documentElement.classList.contains("dark");
 		var next = isDark ? "light" : "dark";
 		localStorage.setItem("theme", next);
@@ -262,11 +268,39 @@ import { Icon } from "astro-icon/components";
 		} else {
 			document.documentElement.classList.remove("dark");
 		}
-		updateThemeIcon();
+		updateAllThemeIcons();
+	}
+
+	function updateAllThemeIcons() {
+		var isDark = document.documentElement.classList.contains("dark");
+		// dock 按钮
+		if (dockThemeLightIcon) dockThemeLightIcon.style.display = isDark ? "none" : "";
+		if (dockThemeDarkIcon) dockThemeDarkIcon.style.display = isDark ? "" : "none";
+		// 工具 sheet 按钮
+		if (themeSheetLightIcon) themeSheetLightIcon.style.display = isDark ? "none" : "";
+		if (themeSheetDarkIcon) themeSheetDarkIcon.style.display = isDark ? "" : "none";
+		// 浮动按钮
+		var floatingBtn = document.getElementById("floating-theme-btn");
+		if (floatingBtn) {
+			var floatingLight = floatingBtn.querySelector(".floating-theme-icon-light");
+			var floatingDark = floatingBtn.querySelector(".floating-theme-icon-dark");
+			if (floatingLight) floatingLight.style.display = isDark ? "none" : "";
+			if (floatingDark) floatingDark.style.display = isDark ? "" : "none";
+		}
+	}
+
+	dockThemeBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		toggleTheme();
 	});
 
-	updateThemeIcon();
-	window.addEventListener("theme-change", updateThemeIcon);
+	themeSheetBtn?.addEventListener("click", function(e) {
+		e.stopPropagation();
+		toggleTheme();
+	});
+
+	updateAllThemeIcons();
+	window.addEventListener("theme-change", updateAllThemeIcons);
 
 	// 返回按钮
 	document.getElementById("mobile-dock-back-btn")?.addEventListener("click", function(e) {
@@ -352,23 +386,11 @@ import { Icon } from "astro-icon/components";
 
 	floatingThemeBtn?.addEventListener("click", function(e) {
 		e.stopPropagation();
-		var isDark = document.documentElement.classList.contains("dark");
-		var next = isDark ? "light" : "dark";
-		localStorage.setItem("theme", next);
-		if (next === "dark") {
-			document.documentElement.classList.add("dark");
-		} else {
-			document.documentElement.classList.remove("dark");
-		}
-		updateFloatingThemeIcon();
-		updateThemeIcon();
+		toggleTheme();
 	});
 
 	updateFloatingThemeIcon();
-	window.addEventListener("theme-change", function() {
-		updateFloatingThemeIcon();
-		updateThemeIcon();
-	});
+	window.addEventListener("theme-change", updateFloatingThemeIcon);
 
 	// 浮动 TOC
 	floatingTocBtn?.addEventListener("click", function(e) {
