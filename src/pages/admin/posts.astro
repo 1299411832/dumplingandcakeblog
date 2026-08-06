@@ -22,6 +22,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
   <script src="/js/gh-client.js" is:inline></script>
   <script is:inline>
     (function() {
+      var COLLECTION = "src/content/posts";
       var cached = [];
 
       function $(id) { return document.getElementById(id); }
@@ -34,21 +35,24 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         return parts.length > 3 ? parts[3] : "";
       }
 
-      // 渲染文章列表（内存数据）
       function renderPosts() {
         var list = $("posts-list");
+        var oldMore = list.querySelector(".load-more-btn");
+        if (oldMore) oldMore.remove();
         var cat = $("filter-category").value;
-        var posts = cat ? cached.filter(function(p) { return (p.category || categoryFromPath(p._path)) === cat; }) : cached;
-        if (!posts.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
-        $("list-count").textContent = "共 " + posts.length + " 篇";
+        var pageFiles = allFilesP.slice(currentPageP*PAGE_SIZE_P, (currentPageP+1)*PAGE_SIZE_P);
+        var pageItems = pageFiles.map(function(f) { return cached.find(function(c) { return c._path === f.path; }); }).filter(Boolean);
+        if (cat) pageItems = pageItems.filter(function(p) { return (p.category || categoryFromPath(p._path)) === cat; });
+        if (!pageItems.length && currentPageP === 0) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:40px;">还没有文章</div>'; $("list-count").textContent = ""; return; }
+        if (currentPageP === 0) list.innerHTML = "";
+        $("list-count").textContent = "共 " + allFilesP.length + " 篇";
         list.innerHTML = '<div class="card"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
           '<thead><tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-2);font-size:12px;font-weight:500;">' +
           '<th style="padding:10px 16px;">标题</th><th style="padding:10px 16px;width:100px;">分类</th><th style="padding:10px 16px;width:120px;">日期</th><th style="padding:10px 16px;width:40px;"></th><th style="padding:10px 16px;width:40px;"></th></tr></thead><tbody id="posts-tbody"></tbody></table></div></div>';
         var tbody = document.getElementById("posts-tbody");
-        posts.forEach(function(p) {
+        pageItems.forEach(function(p) {
           var date = p.published ? new Date(p.published).toLocaleDateString("zh-CN") : "";
-          var tr = document.createElement("tr");
-          tr.style.cssText = "border-bottom:1px solid var(--border);";
+          var tr = document.createElement("tr"); tr.style.cssText = "border-bottom:1px solid var(--border);";
           tr.innerHTML = '<td style="padding:10px 16px;"><a href="/admin/posts/edit/?post=' + encodeURIComponent(p._path) + '" data-no-swup style="font-weight:500;text-decoration:none;">' + esc(p.title || "无标题") + '</a>' + (p.draft ? ' <span style="color:var(--text-3);font-size:11px;">— 草稿</span>' : '') + (p.pinned ? ' <span style="color:var(--sidebar-accent);font-size:11px;">— 置顶</span>' : '') + '</td>' +
             '<td style="padding:10px 16px;color:var(--text-2);">' + esc(p.category || categoryFromPath(p._path)) + '</td>' +
             '<td style="padding:10px 16px;color:var(--text-3);font-size:12px;">' + date + '</td>' +
@@ -56,49 +60,72 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             '<td style="padding:10px 6px;"><button class="btn btn-ghost btn-sm" onclick="deletePost(\'' + esc(p._path) + '\')" style="color:var(--danger);">删除</button></td>';
           tbody.appendChild(tr);
         });
+        var nextStart = (currentPageP + 1) * PAGE_SIZE_P;
+        if (nextStart < allFilesP.length) {
+          var more = document.createElement("div"); more.className = "load-more-btn";
+          more.style.cssText = "text-align:center;padding:12px;";
+          more.innerHTML = '<button class="btn" onclick="loadPageP('+(currentPageP+1)+')">加载更多 ('+(allFilesP.length-nextStart)+' 条剩余)</button>';
+          list.appendChild(more);
+        }
       }
 
-      // 读数据：/data/posts.json
+      var PAGE_SIZE_P = 20, allFilesP = [], currentPageP = 0;
+
       function loadPosts() {
+        if (!GitHubAPI.isReady()) { $("posts-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">请先在仪表盘设置 GitHub Token</div>'; return; }
         var list = $("posts-list");
-        list.innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span>加载中...</div>';
-        fetch("/data/posts.json")
-          .then(function(r) { return r.json(); })
-          .then(function(entries) {
-            cached = entries.map(function(e) {
-              var fm = e.frontmatter || {};
-              return Object.assign({ _path: e.path, filePath: e.path }, fm, { content: e.body });
-            });
-            // 排序：置顶优先，然后按 published 降序
-            cached.sort(function(a, b) {
-              if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-              return new Date(b.published || 0) - new Date(a.published || 0);
-            });
-            // 填充分类筛选
-            var catSel = $("filter-category");
-            var cats = new Set(cached.map(function(p) { return p.category || categoryFromPath(p._path); }).filter(Boolean));
-            catSel.innerHTML = '<option value="">全部分类</option>';
-            Array.from(cats).sort().forEach(function(c) {
-              var opt = document.createElement("option"); opt.value = c; opt.textContent = c; catSel.appendChild(opt);
-            });
-            renderPosts();
-          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+        list.innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span>加载文件列表...</div>';
+        currentPageP = 0; cached = [];
+        GitHubAPI.get().listTree(COLLECTION).then(function(files) {
+          files.sort(function(a,b) { return b.name.localeCompare(a.name); });
+          allFilesP = files;
+          if (!files.length) { cached = []; renderPosts(); return; }
+          // 填充分类筛选
+          var catSel = $("filter-category");
+          var cats = new Set();
+          files.forEach(function(f) { var c = categoryFromPath(f.path); if (c) cats.add(c); });
+          catSel.innerHTML = '<option value="">全部分类</option>';
+          Array.from(cats).sort().forEach(function(c) { var opt = document.createElement("option"); opt.value = c; opt.textContent = c; catSel.appendChild(opt); });
+          loadPageP(0);
+        }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+      }
+
+      function loadPageP(page) {
+        currentPageP = page;
+        var batch = allFilesP.slice(page*PAGE_SIZE_P, (page+1)*PAGE_SIZE_P);
+        if (!batch.length) return;
+        if (page === 0) $("posts-list").innerHTML = '<div class="text-center text-secondary" style="padding:40px;"><span class="spinner"></span>加载中...</div>';
+        var api = GitHubAPI.get();
+        Promise.all(batch.map(function(f) {
+          return api.getContent(f.path).then(function(raw) {
+            if (!raw) return null;
+            var p = FrontmatterUtil.parse(raw);
+            var fm = p.frontmatter || {};
+            return Object.assign({ _path: f.path, filePath: f.path, _sha: f.sha }, fm, { content: p.body });
+          });
+        })).then(function(items) {
+          var arr = items.filter(Boolean);
+          arr.forEach(function(m) {
+            var idx = cached.findIndex(function(c) { return c._path === m._path; });
+            if (idx >= 0) cached[idx] = m; else cached.push(m);
+          });
+          renderPosts();
+        }).catch(function(e) { if (page === 0) $("posts-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
       async function deletePost(path) {
         if (!confirm("确定删除该文章？")) return;
         if (!GitHubAPI.isReady()) { toast("请先在仪表盘设置 GitHub Token", "err"); return; }
+        var target = cached.find(function(p) { return p._path === path; });
         try {
-          var meta = await GitHubAPI.get().getFile(path);
-          if (!meta) { toast("文件不存在", "err"); return; }
-          await GitHubAPI.get().deleteFile(path, meta.sha);
-          // 内存删除
+          await GitHubAPI.get().deleteFile(path, target._sha);
           cached = cached.filter(function(p) { return p._path !== path; });
+          allFilesP = allFilesP.filter(function(p) { return p.path !== path; });
           toast("已删除", "ok"); renderPosts();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
 
-      window.deletePost = deletePost; window.loadPosts = loadPosts;
+      window.deletePost = deletePost; window.loadPosts = loadPosts; window.loadPageP = loadPageP;
 
       (function() {
         if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }

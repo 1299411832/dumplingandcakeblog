@@ -165,51 +165,86 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         btn.disabled = false; btn.textContent = isEdit ? "保存修改" : "保存";
       }
 
-      // 渲染影视列表（内存数据）
       function renderBangumi() {
         var list = $("bangumi-list");
-        if (!cachedItems.length) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; }
-        $("list-count").textContent = cachedItems.length + " 部"; list.innerHTML = "";
+        var oldMore = list.querySelector(".load-more-btn");
+        if (oldMore) oldMore.remove();
+        var pageFiles = allFilesB.slice(currentPageB*PAGE_SIZE_B, (currentPageB+1)*PAGE_SIZE_B);
+        var pageItems = pageFiles.map(function(f) { return cachedItems.find(function(c) { return c._path === f.path; }); }).filter(Boolean);
+        if (!pageItems.length && currentPageB === 0) { list.innerHTML = '<div class="text-center text-tertiary" style="padding:32px;">还没有影视数据</div>'; $("list-count").textContent = ""; return; }
+        if (currentPageB === 0) list.innerHTML = "";
+        $("list-count").textContent = allFilesB.length + " 部";
         var statusMap = { 1: "想看", 2: "看过", 3: "在看", 4: "搁置", 5: "抛弃" };
-        cachedItems.forEach(function(item) {
+        pageItems.forEach(function(item) {
           var d = document.createElement("div"); d.className = "list-row";
           var posterHtml = item.image ? '<img src="' + esc(item.image) + '" alt="" style="width:32px;height:44px;object-fit:cover;border-radius:2px;flex-shrink:0;">' : '<div style="width:32px;height:44px;background:var(--hover);border-radius:2px;flex-shrink:0;"></div>';
           var displayTitle = item.name_cn || item.title;
           d.innerHTML = posterHtml + '<div class="flex-1 min-w-0"><div class="fw-500 text-truncate" style="font-size:13px;">' + esc(displayTitle) + '</div><div class="text-secondary" style="font-size:12px;">' + esc(statusMap[item.status] || "") + (item.score ? " · " + item.score + "分" : "") + '</div></div>' + '<div class="d-flex gap-1"><button class="btn btn-ghost btn-sm" onclick="editBangumi(\'' + esc(item._path) + '\')">编辑</button><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteBangumi(\'' + esc(item._path) + '\')">删除</button></div>';
           list.appendChild(d);
         });
+        var nextStart = (currentPageB + 1) * PAGE_SIZE_B;
+        if (nextStart < allFilesB.length) {
+          var more = document.createElement("div"); more.className = "load-more-btn";
+          more.style.cssText = "text-align:center;padding:12px;";
+          more.innerHTML = '<button class="btn" onclick="loadPageB('+(currentPageB+1)+')">加载更多 ('+(allFilesB.length-nextStart)+' 条剩余)</button>';
+          list.appendChild(more);
+        }
       }
 
-      // 读数据：/data/bangumi.json
+      // ── 分页按需读取 ──
+      var PAGE_SIZE_B = 20, allFilesB = [], currentPageB = 0;
+
       function loadBangumiList() {
-        var list = $("bangumi-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
+        if (!GitHubAPI.isReady()) { $("bangumi-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">请先在仪表盘设置 GitHub Token</div>'; return; }
+        var list = $("bangumi-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载文件列表...</div>';
         $("bangumi-section").style.display = "";
-        fetch("/data/bangumi.json")
-          .then(function(r) { return r.json(); })
-          .then(function(entries) {
-            cachedItems = entries.map(function(e) {
-              return Object.assign({ _path: e.path }, e.frontmatter, { content: e.body });
-            });
-            renderBangumi();
-          }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+        currentPageB = 0; cachedItems = [];
+        GitHubAPI.get().listTree(COLLECTION).then(function(files) {
+          files.sort(function(a,b) { return b.name.localeCompare(a.name); });
+          allFilesB = files;
+          if (!files.length) { cachedItems = []; renderBangumi(); return; }
+          $("list-count").textContent = files.length + " 部";
+          loadPageB(0);
+        }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+      }
+
+      function loadPageB(page) {
+        currentPageB = page;
+        var batch = allFilesB.slice(page*PAGE_SIZE_B, (page+1)*PAGE_SIZE_B);
+        if (!batch.length) return;
+        if (page === 0) $("bangumi-list").innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
+        var api = GitHubAPI.get();
+        Promise.all(batch.map(function(f) {
+          return api.getContent(f.path).then(function(raw) {
+            if (!raw) return null;
+            var p = FrontmatterUtil.parse(raw);
+            return Object.assign({ _path: f.path, _sha: f.sha }, p.frontmatter, { content: p.body });
+          });
+        })).then(function(items) {
+          var arr = items.filter(Boolean);
+          arr.forEach(function(m) {
+            var idx = cachedItems.findIndex(function(c) { return c._path === m._path; });
+            if (idx >= 0) cachedItems[idx] = m; else cachedItems.push(m);
+          });
+          renderBangumi();
+        }).catch(function(e) { if (page === 0) $("bangumi-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
       async function deleteBangumi(path) {
         if (!confirm("确定删除？")) return;
         if (!GitHubAPI.isReady()) { toast("请先设置 Token", "err"); return; }
+        var target = cachedItems.find(function(i) { return i._path === path; });
         try {
-          var meta = await GitHubAPI.get().getFile(path);
-          if (!meta) { toast("文件不存在", "err"); return; }
-          await GitHubAPI.get().deleteFile(path, meta.sha);
-          // 内存删除
+          await GitHubAPI.get().deleteFile(path, target._sha);
           cachedItems = cachedItems.filter(function(i) { return i._path !== path; });
+          allFilesB = allFilesB.filter(function(i) { return i.path !== path; });
           toast("已删除", "ok"); renderBangumi();
         } catch(e) { toast("删除失败: " + e.message, "err"); }
       }
       function clearForm() { $("search-input").value = ""; $("search-results").classList.add("d-none"); $("search-results").innerHTML = ""; $("preview-area").classList.add("d-none"); $("form-area").classList.add("d-none"); $("field-title").value = ""; $("field-name-cn").value = ""; $("field-category").value = "anime"; $("field-status").value = "2"; $("field-score").value = "0"; $("field-image").value = ""; $("field-tags").value = ""; $("field-comment").value = ""; $("field-date").value = ""; searchResults = []; selectedIndex = -1; }
       $("search-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); doSearch(); } });
 
-      window.doSearch = doSearch; window.submitBangumi = submitBangumi; window.editBangumi = editBangumi; window.cancelEdit = cancelEdit; window.deleteBangumi = deleteBangumi; window.clearForm = clearForm;
+      window.doSearch = doSearch; window.submitBangumi = submitBangumi; window.editBangumi = editBangumi; window.cancelEdit = cancelEdit; window.deleteBangumi = deleteBangumi; window.clearForm = clearForm; window.loadPageB = loadPageB;
       (function() { if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; } loadBangumiList(); })();
     })();
   </script>

@@ -111,30 +111,37 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
       // 读数据：/data/notebooks.json
       function loadNotebookList() {
+        if (!GitHubAPI.isReady()) { $("notebook-tabs").innerHTML = '<div class="text-center text-danger" style="padding:12px;">请先在仪表盘设置 GitHub Token</div>'; return; }
         var tabs = $("notebook-tabs");
         tabs.innerHTML = '<div class="text-center text-secondary" style="padding:12px;"><span class="spinner"></span></div>';
-        fetch("/data/notebooks.json")
-          .then(function(r) { return r.json(); })
-          .then(function(entries) {
-            allEntries = entries.map(function(e) {
-              var fm = e.frontmatter || {};
-              return Object.assign({ _path: e.path }, fm, { content: e.body, title: fm.name || fm.title || "" });
+        var api = GitHubAPI.get();
+        api.listTree(COLLECTION).then(function(files) {
+          if (!files.length) { tabs.innerHTML = '<div class="text-center text-tertiary" style="padding:12px;">还没有笔记本</div>'; return; }
+          var tasks = files.map(function(f) {
+            return api.getContent(f.path).then(function(raw) {
+              if (!raw) return null;
+              var p = FrontmatterUtil.parse(raw);
+              var fm = p.frontmatter || {};
+              return Object.assign({ _path: f.path, _sha: f.sha }, fm, { content: p.body, title: fm.name || fm.title || "" });
             });
-            // 提取笔记本名（去重）
-            var names = new Set(allEntries.map(function(e) { return notebookFromPath(e._path); }).filter(Boolean));
-            notebookNames = Array.from(names).sort();
-            renderedNotebooks = notebookNames;
-            tabs.innerHTML = "";
-            if (!notebookNames.length) { tabs.innerHTML = '<div class="text-center text-tertiary" style="padding:12px;">还没有笔记本</div>'; return; }
-            notebookNames.forEach(function(name) {
-              var btn = document.createElement("button");
-              btn.className = "btn btn-sm notebook-tab";
-              btn.textContent = name;
-              btn.setAttribute("data-notebook", name);
-              btn.addEventListener("click", function() {
-                document.querySelectorAll(".notebook-tab").forEach(function(t) { t.classList.remove("btn-primary"); });
-                btn.classList.add("btn-primary");
-                currentNotebook = name;
+          });
+          return Promise.all(tasks);
+        }).then(function(items) {
+          allEntries = items.filter(Boolean);
+          var names = new Set(allEntries.map(function(e) { return notebookFromPath(e._path); }).filter(Boolean));
+          notebookNames = Array.from(names).sort();
+          renderedNotebooks = notebookNames;
+          tabs.innerHTML = "";
+          if (!notebookNames.length) { tabs.innerHTML = '<div class="text-center text-tertiary" style="padding:12px;">还没有笔记本</div>'; return; }
+          notebookNames.forEach(function(name) {
+            var btn = document.createElement("button");
+            btn.className = "btn btn-sm notebook-tab";
+            btn.textContent = name;
+            btn.setAttribute("data-notebook", name);
+            btn.addEventListener("click", function() {
+              document.querySelectorAll(".notebook-tab").forEach(function(t) { t.classList.remove("btn-primary"); });
+              btn.classList.add("btn-primary");
+              currentNotebook = name;
                 $("target-notebook").textContent = currentNotebook;
                 $("list-title").textContent = currentNotebook + " 的笔记";
                 loadEntries();
@@ -223,7 +230,8 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           var fm = { name: title, date: date };
           if (isEdit) {
             var meta = await api.getFile(editingPath);
-            await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, content), meta ? meta.sha : undefined);
+            var sha = meta ? meta.sha : undefined;
+            await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, content), sha);
             // 内存更新
             var idx = allEntries.findIndex(function(e){return e._path===editingPath;});
             if (idx >= 0) allEntries[idx] = Object.assign({}, allEntries[idx], { name: title, date: date, title: title, content: content });

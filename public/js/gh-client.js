@@ -1,10 +1,11 @@
 /**
  * GitHub Contents API — 浏览器端客户端
- * 在 EdgeOne 纯静态部署中替代服务端 API 路由
+ * 参考 Decap CMS 架构：读走 raw URL（免费实时），写走 Contents API
  *
  * 用法：<script src="/js/gh-client.js">
  *       var api = GitHubAPI.get();
- *       var files = await api.listFiles("src/content/moments");
+ *       var files = await api.listDir("src/content/moments");
+ *       var content = await api.getContent("src/content/moments/2026-08-01.md");
  *       await api.saveFile("src/content/moments/2026-08-01.md", fm, body);
  *       await api.deleteFile("src/content/moments/2026-08-01.md", sha);
  */
@@ -20,6 +21,36 @@
     this.branch = BRANCH;
   }
 
+  // ─── 本地缓存（参考 Decap CMS localForage 模式，5 分钟 TTL）──
+
+  var CACHE_PREFIX = "gh_cache_";
+  var CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+
+  function cacheGet(key) {
+    try {
+      var raw = localStorage.getItem(CACHE_PREFIX + key);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (Date.now() > data.expires) { localStorage.removeItem(CACHE_PREFIX + key); return null; }
+      return data.value;
+    } catch(e) { return null; }
+  }
+
+  function cacheSet(key, value) {
+    try { localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ value: value, expires: Date.now() + CACHE_TTL })); } catch(e) {}
+  }
+
+  function cacheClearAll() {
+    try {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(CACHE_PREFIX) === 0) keys.push(k);
+      }
+      keys.forEach(function(k) { localStorage.removeItem(k); });
+    } catch(e) {}
+  }
+
   GitHubAPI.prototype._headers = function() {
     return {
       Authorization: "Bearer " + this.token,
@@ -27,7 +58,8 @@
     };
   };
 
-  // 带超时 + 重试的请求（缓解国内直连 GitHub 不稳定）
+  // ─── 指数退避重试（参考 Decap CMS）───────────────
+
   GitHubAPI.prototype._request = async function(url, options) {
     var retries = 2;
     for (var attempt = 0; attempt <= retries; attempt++) {
@@ -40,15 +72,27 @@
       } catch (e) {
         clearTimeout(timer);
         if (attempt < retries) {
-          await new Promise(function(r) { setTimeout(r, 1200 * (attempt + 1)); });
+          // 指数退避：1s → 2s → 4s
+          await new Promise(function(r) { setTimeout(r, 1000 * Math.pow(2, attempt)); });
           continue;
         }
-        throw e;
+        throw new APIError(e.message || "Network error", 0, url);
       }
     }
   };
 
-  // base64 → UTF-8（atob 只能处理 Latin-1，中文需要用 TextDecoder）
+  // ─── 结构化错误（参考 Decap CMS APIError）─────────
+
+  function APIError(message, status, url) {
+    this.message = message;
+    this.status = status || 0;
+    this.url = url || "";
+    this.name = "APIError";
+  }
+  APIError.prototype = new Error();
+
+  // ─── base64 ↔ UTF-8 ──────────────────────────────
+
   function b64ToUTF8(b64) {
     var binary = atob(b64);
     var bytes = new Uint8Array(binary.length);
@@ -56,34 +100,55 @@
     return new TextDecoder("utf-8").decode(bytes);
   }
 
-  // UTF-8 → base64（btoa 只能处理 Latin-1）
   function utf8ToB64(str) {
     return btoa(unescape(encodeURIComponent(str)));
   }
 
-  // 获取单文件（返回 { content, sha }）
+  // ─── 读文件内容（用 Contents API，支持 CORS + 私有仓库）──
+  // 注意：raw.githubusercontent.com 带 Authorization header 会触发 CORS preflight，
+  //       raw URL 不支持预检，所以读内容也用 Contents API
+
+  GitHubAPI.prototype.getContent = async function(path) {
+    var file = await this.getFile(path);
+    return file ? file.content : null;
+  };
+
+  // ─── 获取文件元数据（Contents API，用于拿 SHA + 内容）──
+
   GitHubAPI.prototype.getFile = async function(path) {
+    var cacheKey = "file:" + path;
+    var cached = cacheGet(cacheKey);
+    if (cached) return cached;
     var url = this.base + "/" + encodeURI(path) + "?ref=" + this.branch;
     var resp = await this._request(url, { headers: this._headers() });
     if (resp.status === 404) return null;
-    if (!resp.ok) throw new Error("HTTP " + resp.status + ": " + path);
+    if (!resp.ok) throw new APIError("HTTP " + resp.status + ": " + path, resp.status);
     var data = await resp.json();
     if (data.content && data.encoding === "base64") {
-      return { content: b64ToUTF8(data.content), sha: data.sha || "" };
+      var result = { content: b64ToUTF8(data.content), sha: data.sha || "" };
+      cacheSet(cacheKey, result);
+      return result;
     }
     return null;
   };
 
-  // 列出目录（返回 [{ name, type, sha }]）
+  // ─── 列出目录 ─────────────────────────────────────
+
   GitHubAPI.prototype.listDir = async function(dirPath) {
+    var cacheKey = "dir:" + dirPath;
+    var cached = cacheGet(cacheKey);
+    if (cached) return cached;
     var url = this.base + "/" + encodeURI(dirPath) + "?ref=" + this.branch;
     var resp = await this._request(url, { headers: this._headers() });
     if (resp.status === 404) return [];
-    if (!resp.ok) throw new Error("HTTP " + resp.status + ": " + dirPath);
-    return resp.json();
+    if (!resp.ok) throw new APIError("HTTP " + resp.status + ": " + dirPath, resp.status);
+    var result = await resp.json();
+    cacheSet(cacheKey, result);
+    return result;
   };
 
-  // 递归列出所有 .md 文件
+  // ─── 递归列出所有 .md 文件 ─────────────────────────
+
   GitHubAPI.prototype.listRecursive = async function(dirPath) {
     var result = [];
     var stack = [dirPath];
@@ -100,13 +165,39 @@
     return result;
   };
 
-  // 列出子目录名
+  // ─── 列出子目录名 ─────────────────────────────────
+
   GitHubAPI.prototype.listSubdirs = async function(dirPath) {
     var items = await this.listDir(dirPath);
     return items.filter(function(i) { return i.type === "dir"; }).map(function(i) { return i.name; });
   };
 
-  // 写入文件
+  // ─── Git Trees API：1 次拿整个仓库的文件树（含所有文件 SHA）──
+  // 参考 Decap CMS：/repos/{owner}/{repo}/git/trees/{branch}?recursive=1
+  // 返回指定目录下所有 .md 文件，10 万条上限，个人博客足够
+
+  GitHubAPI.prototype.listTree = async function(dirPrefix) {
+    var cacheKey = "tree:" + dirPrefix;
+    var cached = cacheGet(cacheKey);
+    if (cached) return cached;
+    var url = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/git/trees/" + BRANCH + "?recursive=1";
+    var resp = await this._request(url, { headers: this._headers() });
+    if (!resp.ok) throw new APIError("HTTP " + resp.status + ": " + dirPrefix, resp.status);
+    var data = await resp.json();
+    var prefix = dirPrefix.replace(/\/+$/, "") + "/";
+    var files = (data.tree || [])
+      .filter(function(item) {
+        return item.type === "blob" && item.path.indexOf(prefix) === 0 && item.path.endsWith(".md");
+      })
+      .map(function(item) {
+        return { path: item.path, name: item.path.split("/").pop(), sha: item.sha, size: item.size || 0 };
+      });
+    cacheSet(cacheKey, files);
+    return files;
+  };
+
+  // ─── 写入文件 ─────────────────────────────────────
+
   GitHubAPI.prototype.saveFile = async function(path, content, sha) {
     var body = {
       message: sha ? "admin: update " + path.split("/").pop() : "admin: create " + path.split("/").pop(),
@@ -121,11 +212,13 @@
       headers: Object.assign(this._headers(), { "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
-    if (!resp.ok) throw new Error("HTTP " + resp.status + ": " + path);
+    if (!resp.ok) throw new APIError("HTTP " + resp.status + ": " + path, resp.status);
+    cacheClearAll(); // 写入后清缓存，下次读取最新
     return true;
   };
 
-  // 删除文件
+  // ─── 删除文件 ─────────────────────────────────────
+
   GitHubAPI.prototype.deleteFile = async function(path, sha) {
     var url = this.base + "/" + encodeURI(path);
     var resp = await this._request(url, {
@@ -133,7 +226,8 @@
       headers: Object.assign(this._headers(), { "Content-Type": "application/json" }),
       body: JSON.stringify({ message: "admin: delete " + path.split("/").pop(), sha: sha, branch: this.branch }),
     });
-    if (!resp.ok) throw new Error("HTTP " + resp.status + ": " + path);
+    if (!resp.ok) throw new APIError("HTTP " + resp.status + ": " + path, resp.status);
+    cacheClearAll(); // 删除后清缓存，下次读取最新
     return true;
   };
 

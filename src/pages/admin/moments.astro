@@ -95,66 +95,81 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       function uploadSingleImage(file) { var fd=new FormData(); fd.append("file",file); var p=["returnFormat=full","uploadNameType=origin"]; if (IMGBED_CODE) p.push("authCode="+encodeURIComponent(IMGBED_CODE)); if (IMGBED_FOLDER) p.push("uploadFolder="+encodeURIComponent(IMGBED_FOLDER)); return fetch(IMGBED_URL+"/upload?"+p.join("&"),{method:"POST",body:fd}).then(function(r){if(!r.ok) throw new Error("HTTP "+r.status); return r.json();}).then(function(d){ if (Array.isArray(d)&&d.length>0&&d[0].publicUrl) return d[0].publicUrl; if (Array.isArray(d)&&d.length>0&&d[0].src) return d[0].src; if (d&&d.publicUrl) return d.publicUrl; if (d&&d.src) return d.src; throw new Error("响应格式异常"); }); }
       function fetchLocation() { /* 保持现有逻辑 */ var se = $("geo-status"), btn = $("geo-btn"); if (!navigator.geolocation) { se.textContent="不支持定位"; se.classList.remove("d-none"); return; } se.textContent="正在定位..."; se.classList.remove("d-none"); se.style.color="var(--text-3)"; btn.disabled=true; navigator.geolocation.getCurrentPosition(function(p){ var lat=p.coords.latitude,lng=p.coords.longitude; se.textContent="解析中..."; fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude="+lat+"&longitude="+lng+"&localityLanguage=zh").then(function(r){return r.json();}).then(function(d){ var parts=[]; if(d.city) parts.push(d.city); else if(d.locality) parts.push(d.locality); if(d.principalSubdivision) parts.push(d.principalSubdivision); var loc=parts.join("-")||d.locality||d.countryName||(lat.toFixed(4)+", "+lng.toFixed(4)); $("location-input").value=loc; se.textContent="✓ "+loc; se.style.color="var(--success)"; btn.disabled=false; }).catch(function(){ $("location-input").value=lat.toFixed(4)+", "+lng.toFixed(4); se.textContent="已获取坐标"; se.style.color="var(--text-3)"; btn.disabled=false; }); }, function(err) { se.textContent={1:"权限被拒绝",2:"无法获取",3:"超时"}[err.code]||"失败"; se.style.color="var(--danger)"; btn.disabled=false; }, { enableHighAccuracy:false, timeout:10000, maximumAge:300000 }); }
 
-      // ── 分页加载（读 /data/moments.json，秒开免 token）──
+      // ── 分页按需读取（Git Trees 列目录 + 按页读内容）──
       var PAGE_SIZE = 20;
-      var allMoments = []; // 全部数据（含 frontmatter + body）
+      var allFiles = []; // 全部文件 { path, name, sha }
+      var cached = [];   // 已读入的内容
       var currentPage = 0;
 
-      // 规范化 images：数组 / 逗号分隔字符串 / 单字符串 → 统一数组
       function normalizeImages(images) {
         if (Array.isArray(images)) return images;
-        if (typeof images === "string") {
-          // 逗号分隔的多个 URL
-          return images.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
-        }
+        if (typeof images === "string") return images.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
         return [];
       }
 
       function loadMoments() {
+        if (!GitHubAPI.isReady()) { $("moments-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">请先在仪表盘设置 GitHub Token</div>'; return; }
         var list = $("moments-list");
-        list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载数据...</div>';
+        list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载文件列表...</div>';
         currentPage = 0; cached = [];
-        fetch("/data/moments.json")
-          .then(function(r) { return r.json(); })
-          .then(function(entries) {
-            // 转成后台对象：{ _path, ...frontmatter, content }
-            allMoments = entries.map(function(e) {
-              var fm = Object.assign({}, e.frontmatter);
-              fm.images = normalizeImages(fm.images);
-              return Object.assign({ _path: e.path }, fm, { content: e.body });
-            });
-            // 按 published 降序
-            allMoments.sort(function(a,b) { return new Date(b.published||0) - new Date(a.published||0); });
-            $("list-count").textContent = allMoments.length + " 条";
-            if (!allMoments.length) { showEmpty(); return; }
-            renderList(0);
-          })
-          .catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+        GitHubAPI.get().listTree(COLLECTION).then(function(files) {
+          files.sort(function(a,b) { return b.name.localeCompare(a.name); }); // 按文件名降序（日期）
+          allFiles = files;
+          if (!files.length) { showEmpty(); return; }
+          $("list-count").textContent = files.length + " 条";
+          loadPage(0);
+        }).catch(function(e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
+      }
+
+      // 读取某一页的文件内容并渲染
+      function loadPage(page) {
+        currentPage = page;
+        var start = page * PAGE_SIZE;
+        var batch = allFiles.slice(start, start + PAGE_SIZE);
+        if (!batch.length) return;
+        var list = $("moments-list");
+        if (page === 0) list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
+        var api = GitHubAPI.get();
+        var tasks = batch.map(function(f) {
+          return api.getContent(f.path).then(function(raw) {
+            if (!raw) return null;
+            var p = FrontmatterUtil.parse(raw);
+            var fm = Object.assign({}, p.frontmatter);
+            fm.images = normalizeImages(fm.images);
+            return Object.assign({ _path: f.path, _sha: f.sha }, fm, { content: p.body });
+          });
+        });
+        Promise.all(tasks).then(function(items) {
+          var moments = items.filter(Boolean);
+          moments.sort(function(a,b) { return new Date(b.published||0) - new Date(a.published||0); });
+          moments.forEach(function(m) {
+            var idx = cached.findIndex(function(c) { return c._path === m._path; });
+            if (idx >= 0) cached[idx] = m; else cached.push(m);
+          });
+          renderList(page);
+        }).catch(function(e) { if (page === 0) list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
       function renderList(page) {
         currentPage = page;
         var list = $("moments-list");
-        if (page === 0) list.innerHTML = "";
-        // 移除旧的分页按钮
         var oldMore = list.querySelector(".load-more-btn");
         if (oldMore) oldMore.remove();
+        if (page === 0) list.innerHTML = "";
 
         var start = page * PAGE_SIZE;
-        var batch = allMoments.slice(start, start + PAGE_SIZE);
-        if (!batch.length) return;
+        var pageFiles = allFiles.slice(start, start + PAGE_SIZE);
+        var pageMoments = pageFiles.map(function(f) {
+          return cached.find(function(c) { return c._path === f.path; });
+        }).filter(Boolean);
+        if (!pageMoments.length && page === 0) { showEmpty(); return; }
 
-        batch.forEach(function(m) {
-          // 合并到缓存（编辑用）
-          var found = cached.findIndex(function(c) { return c._path === m._path; });
-          if (found >= 0) cached[found] = m; else cached.push(m);
-
+        pageMoments.forEach(function(m) {
           var d = document.createElement("div"); d.className = "list-row";
           var date = m.published ? new Date(m.published) : new Date();
           var ds = date.toLocaleDateString("zh-CN") + " " + date.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
           var text = (m.content||"").slice(0,100) + ((m.content||"").length>100?"...":"");
           var imgs = Array.isArray(m.images) ? m.images : (m.images?[m.images]:[]);
-          // 检测视频（mp4/webm 等）
           function isVideo(u) { return /\.(mp4|webm|ogv|mov|m4v)$/i.test(u.split("?")[0]); }
           var imgHtml = imgs.length ? '<div class="d-flex gap-1 mt-1">'+imgs.slice(0,3).map(function(u){
             return isVideo(u)
@@ -169,11 +184,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
         // 加载更多
         var nextStart = (page + 1) * PAGE_SIZE;
-        if (nextStart < allMoments.length) {
+        if (nextStart < allFiles.length) {
           var more = document.createElement("div");
           more.className = "load-more-btn";
           more.style.cssText = "text-align:center;padding:12px;";
-          more.innerHTML = '<button class="btn" onclick="renderList('+(page+1)+')">加载更多 ('+(allMoments.length - nextStart)+' 条剩余)</button>';
+          more.innerHTML = '<button class="btn" onclick="loadPage('+(page+1)+')">加载更多 ('+(allFiles.length - nextStart)+' 条剩余)</button>';
           list.appendChild(more);
         }
       }
@@ -217,17 +232,11 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
           if (isEdit) {
             var target = cached.find(function(x){return x._path===editingId;});
             if (!target) { toast("未找到","err"); return; }
-            // 写操作需要先取 SHA
-            var meta = await api.getFile(target._path);
-            var sha = meta ? meta.sha : undefined;
-            await api.saveFile(target._path, FrontmatterUtil.stringify(fm, content), sha);
+            await api.saveFile(target._path, FrontmatterUtil.stringify(fm, content), target._sha);
             // 内存更新（不等 EdgeOne 重建）
             var updated = Object.assign({}, target, fm, { content: content });
-            var idx = allMoments.findIndex(function(x){return x._path===editingId;});
-            if (idx >= 0) allMoments[idx] = updated;
             var cidx = cached.findIndex(function(x){return x._path===editingId;});
             if (cidx >= 0) cached[cidx] = updated;
-            allMoments.sort(function(a,b){return new Date(b.published||0)-new Date(a.published||0);});
             toast("已保存 ✓","ok"); cancelEdit(); renderList(currentPage);
           } else {
             // 去重文件名
@@ -238,8 +247,8 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
             await api.saveFile(COLLECTION+"/"+filename, FrontmatterUtil.stringify(fm, content));
             // 内存新增
             var newMoment = Object.assign({ _path: COLLECTION+"/"+filename }, fm, { content: content });
-            allMoments.push(newMoment);
-            allMoments.sort(function(a,b){return new Date(b.published||0)-new Date(a.published||0);});
+            allFiles.unshift({ path: COLLECTION+"/"+filename, name: filename, sha: undefined });
+            cached.push(newMoment);
             toast("发布成功 ✓","ok"); cancelEdit(); renderList(0);
           }
         } catch(e) { toast("保存失败: "+e.message,"err"); }
@@ -252,11 +261,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         var target = cached.find(function(x){return x._path===path;});
         if (!target) { toast("未找到","err"); return; }
         try {
-          var meta = await GitHubAPI.get().getFile(target._path);
-          if (!meta) { toast("文件不存在","err"); return; }
-          await GitHubAPI.get().deleteFile(target._path, meta.sha);
+          await GitHubAPI.get().deleteFile(target._path, target._sha);
           // 内存删除
-          allMoments = allMoments.filter(function(x){return x._path!==path;});
+          allFiles = allFiles.filter(function(x){return x.path!==path;});
           cached = cached.filter(function(x){return x._path!==path;});
           toast("已删除","ok"); renderList(currentPage);
         } catch(e) { toast("删除失败: "+e.message,"err"); }
@@ -265,7 +272,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       window.addImage = addImage; window.removeImage = removeImage; window.toggleBatchImages = toggleBatchImages; window.applyBatchImages = applyBatchImages;
       window.triggerUpload = triggerUpload; window.fetchLocation = fetchLocation; window.toggleCustomTime = toggleCustomTime;
       window.submitMoment = submitMoment; window.editMoment = editMoment; window.cancelEdit = cancelEdit; window.deleteMoment = deleteMoment;
-      window.renderList = renderList;
+      window.loadPage = loadPage;
 
       if (sessionStorage.getItem("admin_auth") !== "1") { window.location.href = "/admin/"; return; }
       renderImgs(); loadMoments();

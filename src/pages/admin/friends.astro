@@ -103,15 +103,23 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
 
       // 读数据：/data/friends.json（EdgeOne CDN 秒开）
       function loadFriends() {
+        if (!GitHubAPI.isReady()) { $("friends-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">请先在仪表盘设置 GitHub Token</div>'; return; }
         var list = $("friends-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
-        fetch("/data/friends.json")
-          .then(function(r) { return r.json(); })
-          .then(function(entries) {
-            cached = entries.map(function(e) {
-              return Object.assign({ _path: e.path }, e.frontmatter, { content: e.body });
+        var api = GitHubAPI.get();
+        api.listTree(COLLECTION).then(function(files) {
+          if (!files.length) { cached = []; renderFriends(); return; }
+          var tasks = files.map(function(f) {
+            return api.getContent(f.path).then(function(raw) {
+              if (!raw) return null;
+              var p = FrontmatterUtil.parse(raw);
+              return Object.assign({ _path: f.path, _sha: f.sha }, p.frontmatter, { content: p.body });
             });
-            renderFriends();
-          }).catch(function() { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败</div>'; });
+          });
+          return Promise.all(tasks);
+        }).then(function(items) {
+          cached = items.filter(Boolean);
+          renderFriends();
+        }).catch(function(e) { $("friends-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; });
       }
 
       // 写数据：GitHub API（需要 token）
@@ -146,9 +154,7 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         var target = cached.find(function(f) { return f._path === path; });
         if (!target) { toast("未找到", "err"); return; }
         try {
-          var meta = await GitHubAPI.get().getFile(target._path);
-          if (!meta) { toast("文件不存在", "err"); return; }
-          await GitHubAPI.get().deleteFile(target._path, meta.sha);
+          await GitHubAPI.get().deleteFile(target._path, target._sha);
           // 内存删除
           cached = cached.filter(function(f) { return f._path !== path; });
           toast("已删除", "ok"); renderFriends();

@@ -232,13 +232,21 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       }
 
       async function loadPlacesList() {
+        if (!GitHubAPI.isReady()) { $("places-list").innerHTML = '<div class="text-center text-danger" style="padding:24px;">请先在仪表盘设置 GitHub Token</div>'; return; }
         var list = $("places-list"); list.innerHTML = '<div class="text-center text-secondary" style="padding:24px;"><span class="spinner"></span>加载中...</div>';
         try {
-          var resp = await fetch("/data/places.json");
-          var entries = await resp.json();
-          cachedPlaces = entries.map(function(e) {
-            return Object.assign({ _path: e.path }, e.frontmatter, { content: e.body });
+          var api = GitHubAPI.get();
+          var files = await api.listTree(COLLECTION);
+          if (!files.length) { cachedPlaces = []; renderPlaces(); return; }
+          var tasks = files.map(function(f) {
+            return api.getContent(f.path).then(function(raw) {
+              if (!raw) return null;
+              var p = FrontmatterUtil.parse(raw);
+              return Object.assign({ _path: f.path, _sha: f.sha }, p.frontmatter, { content: p.body });
+            });
           });
+          var entries = await Promise.all(tasks);
+          cachedPlaces = entries.filter(Boolean);
           renderPlaces();
         } catch (e) { list.innerHTML = '<div class="text-center text-danger" style="padding:24px;">加载失败: '+esc(e.message)+'</div>'; }
       }
@@ -270,8 +278,8 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
         try {
           var api = GitHubAPI.get();
           if (isEdit && editingPath) {
-            var meta = await api.getFile(editingPath);
-            await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, ""), meta ? meta.sha : undefined);
+            var target = cachedPlaces.find(function(e) { return e._path === editingPath; });
+            await api.saveFile(editingPath, FrontmatterUtil.stringify(fm, ""), target._sha);
             // 内存更新
             var idx = cachedPlaces.findIndex(function(e){return e._path===editingPath;});
             if (idx >= 0) cachedPlaces[idx] = Object.assign({}, cachedPlaces[idx], fm, { content: "" });
@@ -307,10 +315,9 @@ import AdminLayout from "@/layouts/AdminLayout.astro";
       async function deletePlace(path) {
         if (!confirm("确定删除这个足迹？")) return;
         if (!GitHubAPI.isReady()) { toast("请先设置 Token", "err"); return; }
+        var target = cachedPlaces.find(function(e) { return e._path === path; });
         try {
-          var meta = await GitHubAPI.get().getFile(path);
-          if (!meta) { toast("文件不存在", "err"); return; }
-          await GitHubAPI.get().deleteFile(path, meta.sha);
+          await GitHubAPI.get().deleteFile(path, target._sha);
           if (editingPath === path) clearForm();
           // 内存删除
           cachedPlaces = cachedPlaces.filter(function(e) { return e._path !== path; });
