@@ -57,7 +57,6 @@ html.is-navigating-to-music #sun-moon-theme-btn {
 html.is-navigating-to-music #navbar .navbar-logo-content,
 html.is-navigating-to-music #navbar .navbar-link-item,
 html.is-navigating-to-music #navbar .btn-plain,
-html.is-navigating-to-music #navbar .admin-entry-btn,
 html.is-navigating-to-music #navbar .nav-hamburger-btn {
 	color: oklch(0.95 0 0 / 0.85) !important;
 }
@@ -1338,7 +1337,6 @@ html.is-navigating-to-music #sun-moon-theme-btn {
 html:has(.music-visualizer-page) #navbar .navbar-logo-content,
 html:has(.music-visualizer-page) #navbar .navbar-link-item,
 html:has(.music-visualizer-page) #navbar .btn-plain,
-html:has(.music-visualizer-page) #navbar .admin-entry-btn,
 html:has(.music-visualizer-page) #navbar .nav-hamburger-btn {
 	color: oklch(0.95 0 0 / 0.85) !important;
 }

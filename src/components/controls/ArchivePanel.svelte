@@ -31,7 +31,6 @@ interface ActiveFilter {
 export let tags: string[] = [];
 export let categories: string[] = [];
 export let sortedPosts: Post[] = [];
-export let extConfig: { gistId: string; fileName: string } | null = null;
 
 const typeLabels: Record<string, string> = {
 	post: "文章",
@@ -299,43 +298,6 @@ function applyFilters(allPosts: Post[]) {
 
 onMount(async () => {
 	let allPosts = [...sortedPosts];
-
-	// 加载外部说说
-	if (extConfig && extConfig.gistId) {
-		try {
-			const token = localStorage.getItem("gh_moments_token") || "";
-			const headers: Record<string, string> = {
-				Accept: "application/vnd.github+json",
-			};
-			if (token) headers["Authorization"] = "Bearer " + token;
-			const res = await fetch(
-				`https://api.github.com/gists/${extConfig.gistId}`,
-				{ headers },
-			);
-			if (res.ok) {
-				const gist = await res.json();
-				const file = gist.files[extConfig.fileName];
-				if (file) {
-					const moments = JSON.parse(file.content || "[]");
-					for (const m of moments) {
-						allPosts.push({
-							id: m.id || `ext-${Date.now()}`,
-							type: "moment",
-							data: {
-								title: (m.content || "").slice(0, 50) || "说说",
-								tags: m.tags || [],
-								category: "说说",
-								published: new Date(m.published),
-							},
-						} as any);
-					}
-				}
-			}
-		} catch (e) {
-			/* ignore */
-		}
-	}
-
 	applyFilters(allPosts);
 });
 </script>
