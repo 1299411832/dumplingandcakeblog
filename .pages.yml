@@ -26,7 +26,8 @@ content:
         filename:
           template: "{year}-{month}-{day}-{primary}.md"
           field: create
-        exclude: ["**/images/**", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.avif", "**/*.gif"]
+        # PagesCMS 的 exclude 按名称精确匹配（不支持 glob），排除图片子目录
+        exclude: ["images", "assets"]
         view:
           primary: title
           fields: [title, published, tags, category, draft, pinned]
