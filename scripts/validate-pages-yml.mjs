@@ -24,7 +24,7 @@ const { load } = await import(
 
 // 预期字段表（与 content.config.ts 的 zod 对齐；hidden 字段保 round-trip）
 const EXPECTED_FIELDS = {
-	posts: ["title", "published", "updated", "draft", "description", "image", "tags", "category", "lang", "pinned", "author", "sourceLink", "licenseName", "licenseUrl", "comment", "order", "prevTitle", "prevSlug", "nextTitle", "nextSlug", "body"],
+	posts: ["title", "published", "updated", "draft", "description", "image", "tags", "category", "lang", "pinned", "author", "sourceLink", "licenseName", "licenseUrl", "comment", "order", "descriptionSource", "prevTitle", "prevSlug", "nextTitle", "nextSlug", "body"],
 	moments: ["published", "author", "avatar", "tags", "images", "location", "device", "pinned", "id", "body"],
 	friends: ["title", "imgurl", "desc", "siteurl", "tags", "weight", "enabled"],
 	apps: ["title", "imgurl", "desc", "siteurl", "tags", "weight", "enabled"],

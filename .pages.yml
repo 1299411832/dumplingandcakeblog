@@ -150,6 +150,12 @@ content:
             description: 数字越小越靠前（主题内部排序用）
 
           # 内部字段：主题生成上一篇/下一篇链接用，CMS 中不可见但保留
+          - name: descriptionSource
+            label: 摘要来源
+            type: string
+            hidden: true
+            description: 手动/AI 摘要标记（manual 或 ai），主题读取
+
           - name: prevTitle
             label: 上一篇标题
             type: string
