@@ -30,14 +30,15 @@ collections:
     extension: md
     format: frontmatter
     # Decap nested collections：按子目录树形展示（文件 frontmatter 的 path 字段定位）
-    # subfolders: false → 子文件夹直接放 md（无 index 文件），文件夹用文件夹名显示
+    # subfolders: true（默认）→ 列表显示全部文章（含子目录），
+    # 文件夹用 index 文件（draft 不发布）的 title 显示分类名
     nested:
       depth: 10
-      subfolders: false
     meta:
       path:
         label: Path
         widget: string
+        index_file: index
     slug: "{{year}}-{{month}}-{{day}}-{{title}}"
     fields:
       - { label: 标题, name: title, widget: string, required: true }
