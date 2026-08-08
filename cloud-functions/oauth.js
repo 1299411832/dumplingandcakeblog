@@ -5,6 +5,8 @@
 // 环境变量（EdgeOne 控制台配置，不要提交到仓库）：
 //   GITHUB_CLIENT_ID     GitHub OAuth App 的 Client ID
 //   GITHUB_CLIENT_SECRET GitHub OAuth App 的 Client Secret
+//   SITE_URL             站点域名（必须配置！函数执行时 Host 是平台内部域名，
+//                        不能用作回调地址）
 
 export function onRequestGet(context) {
 	const { env, request } = context;
@@ -17,8 +19,9 @@ export function onRequestGet(context) {
 
 	const url = new URL(request.url);
 	const scope = url.searchParams.get("scope") || "repo";
-	// redirect_uri 指向回调函数（GitHub OAuth App 里配置的同一个地址）
-	const redirectUri = `${url.origin}/callback`;
+	// redirect_uri 必须用固定域名（与 GitHub OAuth App 注册的回调地址一致）
+	const siteUrl = env.SITE_URL || "https://blog.tsh520.cn";
+	const redirectUri = `${siteUrl}/callback`;
 	const params = new URLSearchParams({
 		client_id: clientId,
 		scope,
