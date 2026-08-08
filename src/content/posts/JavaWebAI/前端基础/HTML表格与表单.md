@@ -9,6 +9,8 @@ tags:
 category: 编程学习
 description: HTML表格与表单速查卡片，涵盖表格标签与表单标签的用法、属性对比与实战要点
 order: 4
+path: "JavaWebAI/前端基础/HTML表格与表单"
+
 ---
 
 ### 表格标签

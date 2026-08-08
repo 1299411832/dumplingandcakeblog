@@ -8,6 +8,8 @@ category: 编程学习
 description: Maven三套生命周期（clean、default、site）的核心阶段及插件执行机制
 descriptionSource: ai
 order: 4
+path: "JavaWebAI/后端基础/Maven生命周期"
+
 ---
 
 # Maven生命周期

@@ -9,6 +9,8 @@ category: 编程学习
 description: DML数据操作语言：INSERT、UPDATE、DELETE 的语法与注意事项
 descriptionSource: ai
 order: 4
+path: "JavaWebAI/后端基础/SQL-DML语句"
+
 ---
 
 # SQL-DML语句

@@ -9,6 +9,8 @@ tags:
 category: 编程学习
 description: HTML媒体标签速查卡片，涵盖超链接标签、图片标签、视频标签的用法与注意事项
 order: 3
+path: "JavaWebAI/前端基础/HTML媒体标签"
+
 ---
 
 ### 超链接标签

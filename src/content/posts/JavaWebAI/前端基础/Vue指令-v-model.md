@@ -8,6 +8,8 @@ category: 编程学习
 description: 使用v-model在表单元素上实现数据和视图的双向绑定
 descriptionSource: ai
 order: 10
+path: "JavaWebAI/前端基础/Vue指令-v-model"
+
 ---
 # Vue指令-v-model
 

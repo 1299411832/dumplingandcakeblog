@@ -9,6 +9,8 @@ tags:
 category: 编程学习
 description: Web标准与浏览器内核速查卡片，涵盖Web标准定义、浏览器内核对比及常见浏览器差异
 order: 1
+path: "JavaWebAI/前端基础/Web标准与浏览器内核"
+
 ---
 
 ## 定义

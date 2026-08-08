@@ -7,6 +7,8 @@ tags:
   - 脚本
 category: 技术分享
 description: 介绍如何给 Waline 评论系统加一个自动备份到 GitHub 的脚本
+path: "技术分享/blog-waline-backup"
+
 ---
 
 > 数据库只有一个 SQLite 文件，丢了就真没了。写个脚本每天自动备份到 GitHub 私有仓库，安心。

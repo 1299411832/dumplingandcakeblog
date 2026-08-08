@@ -9,6 +9,8 @@ tags:
 category: 编程学习
 description: CSS布局速查卡片，涵盖CSS盒模型、Flex布局、页面居中方案的核心用法与实战技巧
 order: 5
+path: "JavaWebAI/前端基础/CSS布局"
+
 ---
 
 ### CSS盒模型

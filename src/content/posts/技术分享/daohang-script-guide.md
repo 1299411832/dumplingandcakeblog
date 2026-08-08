@@ -5,6 +5,8 @@ tags: [脚本工具, 博客开发, 自动化]
 category: 技术分享
 description: "详细介绍 add-daohang 脚本的功能、使用方式和工作原理，支持自动获取网站 ICO 图标、URL 查重、编辑模式等。"
 pinned: false
+path: "技术分享/daohang-script-guide"
+
 ---
 
 ## 前言

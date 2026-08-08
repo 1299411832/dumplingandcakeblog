@@ -6,6 +6,8 @@ tags:
   - 使用文档
 category: 博客指南
 descriptionSource: manual
+path: "博客指南/Obsidian笔记同步指南"
+
 ---
 
 

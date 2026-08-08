@@ -8,6 +8,8 @@ category: 编程学习
 description: v-if通过移除DOM节点控制显示，v-show通过CSS display属性切换可见性
 descriptionSource: ai
 order: 9
+path: "JavaWebAI/前端基础/Vue指令-v-if与v-show"
+
 ---
 # Vue指令-v-if与v-show
 

@@ -8,6 +8,8 @@ category: 编程学习
 description: Vue渐进式框架的核心概念：数据驱动视图与createApp创建应用
 descriptionSource: ai
 order: 6
+path: "JavaWebAI/前端基础/Vue框架概述"
+
 ---
 # Vue框架概述
 

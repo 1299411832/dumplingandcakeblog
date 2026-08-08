@@ -7,6 +7,8 @@ tags:
 category: 编程学习
 description: "嘿，想用 Java 写个聊天程序、上传文件，或者搞懂为啥浏览器输个网址就能打开网页？其实没那么玄——底层就是 IP、端口、TCP/UDP 这些“老朋友”在干活。这篇就带你轻轻松松理清网络编程的脉络，不堆概念，不啃协议，只聊代码里真正用得到的那些事儿。"
 descriptionSource: ai
+path: "Java笔记本/Java菜鸟/Java 网络编程"
+
 ---
 ## 一、 网络基础概念
 

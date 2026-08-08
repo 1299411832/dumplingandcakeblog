@@ -8,6 +8,8 @@ category: 编程学习
 description: 使用v-for指令进行列表渲染，结合key属性实现高效DOM复用
 descriptionSource: ai
 order: 7
+path: "JavaWebAI/前端基础/Vue指令-v-for"
+
 ---
 # Vue指令-v-for
 

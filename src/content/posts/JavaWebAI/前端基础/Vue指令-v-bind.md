@@ -8,6 +8,8 @@ category: 编程学习
 description: 使用v-bind（简写:）动态绑定HTML标签的属性和样式
 descriptionSource: ai
 order: 8
+path: "JavaWebAI/前端基础/Vue指令-v-bind"
+
 ---
 # Vue指令-v-bind
 

@@ -8,6 +8,8 @@ category: 编程学习
 description: 使用Ajax实现页面无刷新数据交互，async/await简化异步编程
 descriptionSource: ai
 order: 13
+path: "JavaWebAI/前端基础/Ajax与异步编程"
+
 ---
 # Ajax与异步编程
 

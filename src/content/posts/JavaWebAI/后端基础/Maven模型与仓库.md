@@ -8,6 +8,8 @@ category: 编程学习
 description: Maven的三大模型（项目对象模型、依赖管理模型、构建生命周期模型）及仓库体系（本地仓库、中央仓库、远程仓库）
 descriptionSource: ai
 order: 1
+path: "JavaWebAI/后端基础/Maven模型与仓库"
+
 ---
 
 # Maven模型与仓库

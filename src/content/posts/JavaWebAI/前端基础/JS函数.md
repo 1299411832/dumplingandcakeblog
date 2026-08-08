@@ -8,6 +8,8 @@ category: 编程学习
 description: JavaScript函数的三种定义方式：命名函数、函数表达式和箭头函数
 descriptionSource: ai
 order: 4
+path: "JavaWebAI/前端基础/JS函数"
+
 ---
 # JS函数
 

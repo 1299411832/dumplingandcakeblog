@@ -8,6 +8,8 @@ tags:
   - 指南
 category: 技术分享
 description: 介绍如何使用Meting-API
+path: "技术分享/Meting-API-使用指南"
+
 ---
 
 > 多平台音乐 API 代理服务，支持网易云、QQ音乐、酷狗、百度、酷我。

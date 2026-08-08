@@ -9,6 +9,8 @@ category: 编程学习
 description: MySQL 8.0 社区版的安装、启动与命令行连接方式
 descriptionSource: ai
 order: 2
+path: "JavaWebAI/后端基础/MySQL安装与连接"
+
 ---
 
 # MySQL安装与连接

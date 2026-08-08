@@ -8,6 +8,8 @@ category: 编程学习
 description: Vue实例从创建到销毁的8个阶段及mounted等钩子函数的应用
 descriptionSource: ai
 order: 14
+path: "JavaWebAI/前端基础/Vue生命周期"
+
 ---
 # Vue生命周期
 

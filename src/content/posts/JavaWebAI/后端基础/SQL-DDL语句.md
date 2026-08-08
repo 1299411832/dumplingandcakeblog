@@ -9,6 +9,8 @@ category: 编程学习
 description: DDL数据定义语言：数据库与表结构的创建、查询、修改、删除操作
 descriptionSource: ai
 order: 3
+path: "JavaWebAI/后端基础/SQL-DDL语句"
+
 ---
 
 # SQL-DDL语句

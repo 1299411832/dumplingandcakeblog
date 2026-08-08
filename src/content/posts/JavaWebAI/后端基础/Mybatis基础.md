@@ -11,6 +11,8 @@ category: 编程学习
 description: Mybatis是一款优秀的持久层框架，用于简化JDBC开发，支持注解和XML两种方式编写SQL。
 descriptionSource: ai
 order: 4
+path: "JavaWebAI/后端基础/Mybatis基础"
+
 ---
 
 # Mybatis基础

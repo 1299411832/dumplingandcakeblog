@@ -6,6 +6,8 @@ tags:
   - 使用文档
 category: 博客指南
 descriptionSource: manual
+path: "博客指南/AI摘要打字机使用指南"
+
 ---
 
 

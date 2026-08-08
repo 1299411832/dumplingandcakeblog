@@ -8,6 +8,8 @@ category: 编程学习
 description: 基于Promise的Axios HTTP客户端发送GET/POST请求及与async/await配合使用
 descriptionSource: ai
 order: 12
+path: "JavaWebAI/前端基础/Axios库使用"
+
 ---
 # Axios库使用
 

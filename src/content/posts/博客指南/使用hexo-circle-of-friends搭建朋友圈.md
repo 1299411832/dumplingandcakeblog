@@ -7,6 +7,8 @@ description: "记录如何使用 hexo-circle-of-friends 项目为 Astro 博客�
 cover: ""
 pinned: false
 draft: false
+path: "博客指南/使用hexo-circle-of-friends搭建朋友圈"
+
 ---
 
 ## 前言

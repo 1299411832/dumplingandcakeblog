@@ -4,6 +4,8 @@ published: 2026-07-20
 tags:
   - "py"
 category: "python"
+path: "python/Python 基础教程  菜鸟教程"
+
 ---
 ## Python2.xPython 基础教程
 

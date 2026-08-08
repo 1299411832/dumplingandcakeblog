@@ -8,6 +8,8 @@ category: 编程学习
 description: Maven下载安装、本地仓库配置、阿里云私服配置、环境变量配置、JDK版本关联及常见依赖下载问题解决
 descriptionSource: ai
 order: 2
+path: "JavaWebAI/后端基础/Maven安装配置"
+
 ---
 
 # Maven安装配置

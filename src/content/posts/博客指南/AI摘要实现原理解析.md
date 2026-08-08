@@ -8,6 +8,8 @@ tags:
   - AI
 category: 博客指南
 descriptionSource: manual
+path: "博客指南/AI摘要实现原理解析"
+
 ---
 
 
