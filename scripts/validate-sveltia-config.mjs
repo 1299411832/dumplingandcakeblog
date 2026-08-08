@@ -62,9 +62,9 @@ const backend = config?.backend || {};
 if (backend.name !== "github") errors.push("backend.name 应为 github");
 if (!backend.repo) errors.push("缺少 backend.repo");
 if (!backend.branch) errors.push("缺少 backend.branch");
-if (backend.auth_type !== "pkce") errors.push("backend.auth_type 应为 pkce（Sveltia 纯前端认证）");
-if (!backend.app_id) errors.push("缺少 backend.app_id（GitHub OAuth App 的 Client ID）");
-ok(`backend: ${backend.name} ${backend.repo}@${backend.branch} pkce(app_id=${backend.app_id})`);
+if (!backend.base_url) errors.push("缺少 backend.base_url");
+if (backend.auth_endpoint !== "oauth") errors.push("backend.auth_endpoint 应为 oauth");
+ok(`backend: ${backend.name} ${backend.repo}@${backend.branch} oauth=${backend.base_url}/${backend.auth_endpoint}`);
 
 // 3. media
 if (!config.media_folder) warn("未配置 media_folder（备用媒体库）");
