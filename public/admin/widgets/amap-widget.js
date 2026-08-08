@@ -98,9 +98,10 @@
 
 	// preSave 钩子：把 amap-coords 展开为顶层 lat/lng 并删除辅助键
 	// （zod schema 要求 lat/lng 是顶层字段，不能留嵌套的 amap-coords）
-	// Decap 的事件监听器格式：{ 事件名: 回调 }（与 Sveltia 的 { name, handler } 不同）
+	// Decap 3.x 的事件监听器格式：{ name: 事件名, handler: 回调 }（源码确认）
 	CMS.registerEventListener({
-		preSave: function (args) {
+		name: "preSave",
+		handler: function (args) {
 			const entry = args && args.entry;
 			const coords = entry && entry.data && entry.data["amap-coords"];
 			if (coords && typeof coords.lat === "number" && typeof coords.lng === "number") {
