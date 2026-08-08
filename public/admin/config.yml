@@ -1,5 +1,7 @@
-# Sveltia CMS 配置（Decap CMS 兼容格式）
+# Decap CMS 配置
 # 管理后台：https://blog.tsh520.cn/admin/
+# 说明：Decap 的 nested collections 是 beta（有已知 bug，如 #6974/#7527/#7359），
+#       故 posts 按分类拆成多个普通集合（官方文档认可的标准做法，稳定可靠）
 # 字段与 src/content.config.ts 的 zod schema 对齐（保存后构建必须通过）
 
 backend:
@@ -17,77 +19,200 @@ backend:
 media_folder: "public/assets"
 public_folder: "/assets"
 
+# posts 字段模板（各分类集合共用，YAML anchor）
+x-posts-fields: &posts-fields
+  - { label: 标题, name: title, widget: string, required: true }
+  - label: 发布时间
+    name: published
+    widget: datetime
+    required: true
+    format: "yyyy-MM-dd"
+    date_format: "yyyy-MM-dd"
+    time_format: false
+  - { label: 更新时间, name: updated, widget: datetime, required: false, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false }
+  - { label: 草稿, name: draft, widget: boolean, default: false }
+  - { label: 摘要, name: description, widget: text }
+  - { label: 封面图, name: image, widget: image, required: false }
+  - label: 标签
+    name: tags
+    widget: list
+    field: { label: 标签, name: tag, widget: string }
+  - { label: 分类, name: category, widget: string, required: false }
+  - label: 语言
+    name: lang
+    widget: select
+    options:
+      - { label: 中文, value: "" }
+      - { label: English, value: en }
+      - { label: 日本語, value: ja }
+      - { label: 繁體中文, value: zh_TW }
+      - { label: Русский, value: ru }
+  - { label: 置顶, name: pinned, widget: boolean, default: false }
+  - { label: 作者, name: author, widget: string, required: false }
+  - { label: 原文链接, name: sourceLink, widget: string, required: false }
+  - { label: 许可名称, name: licenseName, widget: string, required: false }
+  - { label: 许可链接, name: licenseUrl, widget: string, required: false }
+  - { label: 启用评论, name: comment, widget: boolean, default: true }
+  - { label: 排序权重, name: order, widget: number, required: false }
+  - label: 摘要来源
+    name: descriptionSource
+    widget: select
+    required: false
+    options: [manual, ai]
+  - { label: 正文, name: body, widget: markdown }
+
+# notebooks 字段模板
+x-notebook-fields: &notebook-fields
+  - { label: 标题, name: name, widget: string }
+  - { label: 日期, name: date, widget: datetime, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
+  - { label: 内容, name: body, widget: text }
+
 collections:
   # ============================================================
-  # 📝 博客文章
+  # 📝 博客文章（按分类拆分，每个分类一个集合）
   # ============================================================
-  - name: posts
-    label: 📝 博客文章
+  - name: posts-aiuse
+    label: 📝 博客·AI使用
     label_singular: 文章
-    folder: src/content/posts
+    folder: src/content/posts/AI使用
     create: true
     delete: true
     extension: md
     format: frontmatter
-    # Decap nested collections：按子目录树形展示（文件 frontmatter 的 path 字段定位）
-    # 不用 index_file（会切换成纯树浏览、列表不显示文件），
-    # 每个分类放 0-index.md（0 排字母序第一）：文件夹显示名 = 它的 title（分类名），
-    # draft: true 不发布，列表仍扁平显示全部文章
-    nested:
-      depth: 10
-    meta:
-      path:
-        label: Path
-        widget: string
     slug: "{{year}}-{{month}}-{{day}}-{{title}}"
-    fields:
-      - { label: 标题, name: title, widget: string, required: true }
-      - label: 发布时间
-        name: published
-        widget: datetime
-        required: true
-        format: "yyyy-MM-dd"
-        date_format: "yyyy-MM-dd"
-        time_format: false
-      - label: 更新时间
-        name: updated
-        widget: datetime
-        required: false
-        format: "yyyy-MM-dd"
-        date_format: "yyyy-MM-dd"
-        time_format: false
-      - { label: 草稿, name: draft, widget: boolean, default: false }
-      - { label: 摘要, name: description, widget: text }
-      - { label: 封面图, name: image, widget: image, required: false }
-      - label: 标签
-        name: tags
-        widget: list
-        field: { label: 标签, name: tag, widget: string }
-      - { label: 分类, name: category, widget: string, required: false }
-      - label: 语言
-        name: lang
-        widget: select
-        options:
-          - { label: 中文, value: "" }
-          - { label: English, value: en }
-          - { label: 日本語, value: ja }
-          - { label: 繁體中文, value: zh_TW }
-          - { label: Русский, value: ru }
-      - { label: 置顶, name: pinned, widget: boolean, default: false }
-      - { label: 作者, name: author, widget: string, required: false }
-      - { label: 原文链接, name: sourceLink, widget: string, required: false }
-      - { label: 许可名称, name: licenseName, widget: string, required: false }
-      - { label: 许可链接, name: licenseUrl, widget: string, required: false }
-      - { label: 启用评论, name: comment, widget: boolean, default: true }
-      - { label: 排序权重, name: order, widget: number, required: false }
-      - label: 摘要来源
-        name: descriptionSource
-        widget: select
-        required: false
-        options: [manual, ai]
-      - { label: 正文, name: body, widget: markdown }
-    # 说明：prevTitle/prevSlug/nextTitle/nextSlug 为主题内部字段，
-    # 不声明（Sveltia 保存时保留未声明字段，不会丢失）
+    fields: *posts-fields
+
+  - name: posts-english
+    label: 📝 博客·English笔记本
+    label_singular: 文章
+    folder: src/content/posts/English笔记本
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-javaweb-front
+    label: 📝 博客·JavaWebAI前端
+    label_singular: 文章
+    folder: src/content/posts/JavaWebAI/前端基础
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-javaweb-back
+    label: 📝 博客·JavaWebAI后端
+    label_singular: 文章
+    folder: src/content/posts/JavaWebAI/后端基础
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-javanotes-basic
+    label: 📝 博客·Java菜鸟
+    label_singular: 文章
+    folder: src/content/posts/Java笔记本/Java菜鸟
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-javanotes-advanced
+    label: 📝 博客·Java进阶
+    label_singular: 文章
+    folder: src/content/posts/Java笔记本/Java进阶
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-mysql
+    label: 📝 博客·MySQL数据库
+    label_singular: 文章
+    folder: src/content/posts/MySQL数据库
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-python
+    label: 📝 博客·python
+    label_singular: 文章
+    folder: src/content/posts/python
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-blogguide
+    label: 📝 博客·博客指南
+    label_singular: 文章
+    folder: src/content/posts/博客指南
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-removed
+    label: 📝 博客·已弃用
+    label_singular: 文章
+    folder: src/content/posts/已弃用
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-tech
+    label: 📝 博客·技术分享
+    label_singular: 文章
+    folder: src/content/posts/技术分享
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-wool
+    label: 📝 博客·羊毛分享
+    label_singular: 文章
+    folder: src/content/posts/羊毛分享
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
+
+  - name: posts-resources
+    label: 📝 博客·资源整理
+    label_singular: 文章
+    folder: src/content/posts/资源整理
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields: *posts-fields
 
   # ============================================================
   # 💬 动态
@@ -171,7 +296,7 @@ collections:
       - { label: 启用, name: enabled, widget: boolean, default: true }
 
   # ============================================================
-  # 🌱 生活记录
+  # 📍 足迹
   # ============================================================
   - name: life-places
     label: 📍 足迹
@@ -211,42 +336,66 @@ collections:
         field: { label: 照片 URL, name: url, widget: imgbed }
       - { label: 备注, name: body, widget: text }
 
-  - name: life-notebooks-entries
-    label: 📝 笔记本条目
+  # ============================================================
+  # 📝 笔记本（仅收录根目录有条目的笔记本；深层笔记本用 Obsidian 维护）
+  # ============================================================
+  - name: notebook-dev
+    label: 📝 笔记·博客开发
     label_singular: 条目
-    folder: src/content/life/notebooks
+    folder: src/content/life/notebooks/博客开发
     create: true
     delete: true
     extension: md
     format: frontmatter
-    # Decap nested collections：按笔记本目录树形展示
-    # subfolders: false → 笔记本目录直接用目录名显示
-    nested:
-      depth: 10
-      subfolders: false
-    meta:
-      path:
-        label: Path
-        widget: string
     slug: "{{year}}-{{month}}-{{day}}"
-    fields:
-      - { label: 标题, name: name, widget: string }
-      - { label: 日期, name: date, widget: datetime, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
-      - { label: 封面, name: cover, widget: string, required: false }
-      - { label: 简介, name: summary, widget: text, required: false }
-      - label: 图片
-        name: image
-        widget: list
-        field: { label: 图片 URL, name: url, widget: imgbed }
-      - label: 标签
-        name: tags
-        widget: list
-        field: { label: 标签, name: tag, widget: string }
-      - { label: 内容, name: body, widget: text }
-    # 说明：_index.json 是笔记本索引，extension: md 自动排除；image/ 图片目录同理
+    fields: *notebook-fields
+
+  - name: notebook-100things
+    label: 📝 笔记·记录100件事
+    label_singular: 条目
+    folder: src/content/life/notebooks/记录100件事
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields: *notebook-fields
+
+  - name: notebook-daily
+    label: 📝 笔记·每日总结
+    label_singular: 条目
+    folder: src/content/life/notebooks/每日总结
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields: *notebook-fields
+
+  - name: notebook-essay
+    label: 📝 笔记·日常随笔
+    label_singular: 条目
+    folder: src/content/life/notebooks/日常随笔
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields: *notebook-fields
+
+  - name: notebook-himalaya
+    label: 📝 笔记·喜马拉雅
+    label_singular: 条目
+    folder: src/content/life/notebooks/喜马拉雅
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields: *notebook-fields
 
   # ============================================================
-  # 📦 其他内容
+  # 🖼️ 相册
   # ============================================================
   - name: album
     label: 🖼️ 相册
@@ -275,6 +424,9 @@ collections:
         field: { label: 照片 URL, name: url, widget: imgbed }
       - { label: 描述, name: body, widget: text }
 
+  # ============================================================
+  # 🧭 导航链接
+  # ============================================================
   - name: daohang
     label: 🧭 导航链接
     label_singular: 导航
@@ -300,8 +452,9 @@ collections:
       - { label: 排序, name: order, widget: number, default: 0 }
       - { label: 备注, name: body, widget: text }
 
-  # 资源/公告（ziyuan 集合：公告与每日一言两种形态共用，
-  # 因无区分字段无法拆两个 collection，编辑时二选一填写）
+  # ============================================================
+  # 📢 公告/每日一言（ziyuan 集合：公告与语录两种形态共用，二选一填写）
+  # ============================================================
   - name: ziyuan
     label: 📢 公告/每日一言
     label_singular: 条目

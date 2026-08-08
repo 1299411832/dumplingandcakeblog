@@ -23,9 +23,23 @@ const { load } = await import(
 	pathToFileURL(join(pnpmDir, jsYamlDir, "node_modules/js-yaml/dist/js-yaml.mjs")).href
 );
 
-// 预期字段表（与 src/content.config.ts 的 zod 对齐）
+// 预期字段表（与 src/content.config.ts 的 zod 对齐；posts 按分类拆多个集合）
+const POSTS_FIELDS = ["title", "published", "updated", "draft", "description", "image", "tags", "category", "lang", "pinned", "author", "sourceLink", "licenseName", "licenseUrl", "comment", "order", "descriptionSource", "body"];
+const NOTEBOOK_FIELDS = ["name", "date", "body"];
 const EXPECTED_FIELDS = {
-	posts: ["title", "published", "updated", "draft", "description", "image", "tags", "category", "lang", "pinned", "author", "sourceLink", "licenseName", "licenseUrl", "comment", "order", "descriptionSource", "body"],
+	"posts-aiuse": POSTS_FIELDS,
+	"posts-english": POSTS_FIELDS,
+	"posts-javaweb-front": POSTS_FIELDS,
+	"posts-javaweb-back": POSTS_FIELDS,
+	"posts-javanotes-basic": POSTS_FIELDS,
+	"posts-javanotes-advanced": POSTS_FIELDS,
+	"posts-mysql": POSTS_FIELDS,
+	"posts-python": POSTS_FIELDS,
+	"posts-blogguide": POSTS_FIELDS,
+	"posts-removed": POSTS_FIELDS,
+	"posts-tech": POSTS_FIELDS,
+	"posts-wool": POSTS_FIELDS,
+	"posts-resources": POSTS_FIELDS,
 	moments: ["published", "author", "avatar", "tags", "images", "location", "device", "pinned", "body"],
 	friends: ["title", "imgurl", "desc", "siteurl", "tags", "weight", "enabled"],
 	apps: ["title", "imgurl", "desc", "siteurl", "tags", "weight", "enabled"],
@@ -33,7 +47,11 @@ const EXPECTED_FIELDS = {
 	album: ["title", "subtitle", "cover", "date", "location", "tags", "draft", "imgbedFolder", "photos", "body"],
 	ziyuan: ["title", "content", "closable", "link", "quotes"],
 	"life-places": ["date", "id", "province", "city", "experience", "visitCount", "lat", "lng", "amap-coords", "url", "urlLabel", "tags", "photos", "body"],
-	"life-notebooks-entries": ["name", "date", "cover", "summary", "image", "tags", "body"],
+	"notebook-dev": NOTEBOOK_FIELDS,
+	"notebook-100things": NOTEBOOK_FIELDS,
+	"notebook-daily": NOTEBOOK_FIELDS,
+	"notebook-essay": NOTEBOOK_FIELDS,
+	"notebook-himalaya": NOTEBOOK_FIELDS,
 };
 
 const WIDGETS = new Set([
