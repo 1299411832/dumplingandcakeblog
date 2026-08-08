@@ -9,7 +9,6 @@ category: 编程学习
 description: HTTP协议的基本概念、特点与BS/CS架构介绍
 descriptionSource: ai
 order: 2
-path: "JavaWebAI/后端基础/HTTP协议概述"
 
 ---
 

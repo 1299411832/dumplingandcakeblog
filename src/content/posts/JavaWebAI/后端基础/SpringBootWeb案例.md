@@ -9,7 +9,6 @@ category: 编程学习
 description: 基于SpringBoot开发Web程序完成用户列表渲染的完整案例
 descriptionSource: ai
 order: 4
-path: "JavaWebAI/后端基础/SpringBootWeb案例"
 
 ---
 

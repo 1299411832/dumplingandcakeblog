@@ -7,7 +7,6 @@ tags:
   - 工具
 category: 博客指南
 descriptionSource: manual
-path: "博客指南/Gist数据迁移工具使用指南"
 
 ---
 

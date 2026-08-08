@@ -9,7 +9,6 @@ category: 编程学习
 description: 关系型数据库的二维表模型与MySQL的数据存储层次结构
 descriptionSource: ai
 order: 1
-path: "JavaWebAI/后端基础/MySQL数据模型"
 
 ---
 

@@ -16,13 +16,6 @@
 	<script defer src="/admin/widgets/amap-widget.js?v=2"></script>
 </head>
 <body>
-	<!-- Sveltia CMS 会自动渲染后台界面 -->
-	<script>
-		// 登录后的跳转目标（OAuth 回调会回到这里）
-		if (window.location.hash && window.location.hash.indexOf("access_token=") > -1) {
-			localStorage.setItem("sveltia-cms:token", window.location.hash.split("access_token=")[1]);
-			window.location.hash = "";
-		}
-	</script>
+	<!-- Decap CMS 自动渲染后台界面（认证走 OAuth 弹窗 postMessage，无需 hash token 处理） -->
 </body>
 </html>

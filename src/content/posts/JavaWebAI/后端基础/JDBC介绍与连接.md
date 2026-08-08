@@ -9,7 +9,6 @@ category: 编程学习
 description: JDBC（Java DataBase Connectivity）是Java操作关系型数据库的底层API规范。
 descriptionSource: ai
 order: 1
-path: "JavaWebAI/后端基础/JDBC介绍与连接"
 
 ---
 

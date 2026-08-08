@@ -8,7 +8,6 @@ tags:
   - 评论系统
 category: 技术分享
 description: 为说说页面的每条动态适配独立评论区，实现自定义聊天室 UI、邮件通知导航到详情页等功能。
-path: "技术分享/moments-comment-system"
 
 ---
 

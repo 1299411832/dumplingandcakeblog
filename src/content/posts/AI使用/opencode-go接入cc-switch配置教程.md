@@ -9,7 +9,6 @@ tags:
   - 教程
 category: AI使用
 description: "想用 Claude Code 又不想碰官方 API 的定价？OpenCode Go 订阅自带 Anthropic 原生格式端点，配合 CC Switch 桌面端，填一个 Base URL 加 API Key 就能把 Claude Code 切到 Go 的模型上，Qwen3.8 Max、MiniMax M3 随便切。"
-path: "AI使用/opencode-go接入cc-switch配置教程"
 
 ---
 

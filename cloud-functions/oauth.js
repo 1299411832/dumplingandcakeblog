@@ -28,7 +28,7 @@ export function onRequestGet(context) {
 		client_id: clientId,
 		scope,
 		redirect_uri: redirectUri,
-		state: "sveltia-cms",
+		state: "decap-cms",
 	});
 
 	return Response.redirect(

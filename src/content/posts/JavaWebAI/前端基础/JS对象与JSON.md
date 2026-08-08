@@ -8,7 +8,6 @@ category: 编程学习
 description: JavaScript对象的键值对结构及JSON.stringify和JSON.parse的数据转换方法
 descriptionSource: ai
 order: 1
-path: "JavaWebAI/前端基础/JS对象与JSON"
 
 ---
 # JS对象与JSON

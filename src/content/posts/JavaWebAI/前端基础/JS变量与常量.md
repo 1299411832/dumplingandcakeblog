@@ -8,7 +8,6 @@ category: 编程学习
 description: JavaScript中let、const和var三种变量声明方式及其作用域差异
 descriptionSource: ai
 order: 2
-path: "JavaWebAI/前端基础/JS变量与常量"
 
 ---
 # JS变量与常量

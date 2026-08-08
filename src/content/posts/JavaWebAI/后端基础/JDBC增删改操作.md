@@ -10,7 +10,6 @@ category: 编程学习
 description: 基于JDBC执行INSERT/UPDATE/DELETE等DML语句，掌握executeUpdate方法的使用。
 descriptionSource: ai
 order: 2
-path: "JavaWebAI/后端基础/JDBC增删改操作"
 
 ---
 

@@ -98,17 +98,24 @@
 
 	// preSave 钩子：把 amap-coords 展开为顶层 lat/lng 并删除辅助键
 	// （zod schema 要求 lat/lng 是顶层字段，不能留嵌套的 amap-coords）
-	// Decap 3.x 的事件监听器格式：{ name: 事件名, handler: 回调 }（源码确认）
+	// 注意：Decap 的 entry.data 是 Immutable.js Map！
+	// 必须用 entry.get('data') 读取、.set() 修改，并返回新的 data（源码确认）
 	CMS.registerEventListener({
 		name: "preSave",
 		handler: function (args) {
 			const entry = args && args.entry;
-			const coords = entry && entry.data && entry.data["amap-coords"];
+			if (!entry) return;
+			const data = entry.get("data");
+			if (!data) return;
+			const coords = data.get("amap-coords");
 			if (coords && typeof coords.lat === "number" && typeof coords.lng === "number") {
-				entry.data.lat = coords.lat;
-				entry.data.lng = coords.lng;
-				delete entry.data["amap-coords"];
+				// 展开为顶层 lat/lng，删除辅助键，返回新 data
+				return data
+					.delete("amap-coords")
+					.set("lat", coords.lat)
+					.set("lng", coords.lng);
 			}
+			return data;
 		},
 	});
 

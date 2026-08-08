@@ -8,7 +8,6 @@ tags:
   - 教程
 category: 技术分享
 description: 介绍Waline如何从 Vercel 迁移到腾讯云服务器。
-path: "技术分享/deploy-tencent-baota"
 
 ---
 

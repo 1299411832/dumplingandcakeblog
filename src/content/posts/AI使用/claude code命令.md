@@ -6,7 +6,6 @@ tags:
   - AI 编程
 category: AI使用
 description: Claude Code 常用命令速查：恢复会话、压缩上下文、切换模型、调整努力程度、权限模式……按用途分组整理成表格，随用随查。
-path: "AI使用/claude code命令"
 
 ---
 

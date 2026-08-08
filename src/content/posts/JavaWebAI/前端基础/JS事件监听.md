@@ -8,7 +8,6 @@ category: 编程学习
 description: 使用addEventListener为DOM元素绑定事件实现用户交互
 descriptionSource: ai
 order: 5
-path: "JavaWebAI/前端基础/JS事件监听"
 
 ---
 # JS事件监听

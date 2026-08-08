@@ -61,10 +61,22 @@ x-posts-fields: &posts-fields
     options: [manual, ai]
   - { label: 正文, name: body, widget: markdown }
 
-# notebooks 字段模板
+# notebooks 字段模板（与 content.config.ts 的 notebooks schema 对齐）
 x-notebook-fields: &notebook-fields
   - { label: 标题, name: name, widget: string }
   - { label: 日期, name: date, widget: datetime, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
+  - { label: 封面, name: cover, widget: string, required: false }
+  - { label: 简介, name: summary, widget: text, required: false }
+  - label: 图片
+    name: image
+    widget: list
+    required: false
+    field: { label: 图片 URL, name: url, widget: imgbed }
+  - label: 标签
+    name: tags
+    widget: list
+    required: false
+    field: { label: 标签, name: tag, widget: string }
   - { label: 内容, name: body, widget: text }
 
 collections:
@@ -225,8 +237,8 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    # 文件名即日期（同日第二篇需手动在 GitHub 改名）
-    slug: "{{year}}-{{month}}-{{day}}"
+    # 文件名即日期，带时间避免同日新建冲突（存量中文名/不规则名不受影响）
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields:
       - label: 时间
         name: published
@@ -347,7 +359,7 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    slug: "{{year}}-{{month}}-{{day}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields: *notebook-fields
 
   - name: notebook-100things
@@ -358,7 +370,7 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    slug: "{{year}}-{{month}}-{{day}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields: *notebook-fields
 
   - name: notebook-daily
@@ -369,7 +381,7 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    slug: "{{year}}-{{month}}-{{day}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields: *notebook-fields
 
   - name: notebook-essay
@@ -380,7 +392,7 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    slug: "{{year}}-{{month}}-{{day}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields: *notebook-fields
 
   - name: notebook-himalaya
@@ -391,7 +403,7 @@ collections:
     delete: true
     extension: md
     format: frontmatter
-    slug: "{{year}}-{{month}}-{{day}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     fields: *notebook-fields
 
   # ============================================================

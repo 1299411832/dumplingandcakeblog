@@ -7,7 +7,6 @@ tags:
 category: 编程学习
 description: Maven的定义、核心作用（依赖管理、项目构建、统一项目结构）及基本介绍
 descriptionSource: ai
-path: "JavaWebAI/后端基础/Maven概述"
 
 ---
 

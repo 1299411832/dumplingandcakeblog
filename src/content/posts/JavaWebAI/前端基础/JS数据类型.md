@@ -8,7 +8,6 @@ category: 编程学习
 description: JavaScript的原始数据类型与引用数据类型，以及typeof检测和模板字符串的使用
 descriptionSource: ai
 order: 3
-path: "JavaWebAI/前端基础/JS数据类型"
 
 ---
 # JS数据类型

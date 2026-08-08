@@ -8,7 +8,6 @@ category: 编程学习
 description: 使用v-on（简写@）为HTML标签绑定事件处理方法
 descriptionSource: ai
 order: 11
-path: "JavaWebAI/前端基础/Vue指令-v-on"
 
 ---
 # Vue指令-v-on

@@ -9,7 +9,6 @@ tags:
 category: 博客指南
 updated: 2026-08-07
 descriptionSource: manual
-path: "博客指南/使用PagesCMS给静态博客接入后台"
 
 ---
 

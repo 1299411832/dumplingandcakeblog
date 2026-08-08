@@ -10,7 +10,6 @@ category: 编程学习
 description: SpringBoot支持properties和yml两种配置文件格式，yml以数据为中心，层级结构更清晰。
 descriptionSource: ai
 order: 5
-path: "JavaWebAI/后端基础/SpringBoot配置文件"
 
 ---
 
