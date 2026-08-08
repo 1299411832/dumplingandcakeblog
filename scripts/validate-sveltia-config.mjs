@@ -80,6 +80,12 @@ for (const c of config?.collections ?? []) {
 	}
 	if (!c.extension) warn(`${c.name}: 未指定 extension（默认 md）`);
 	if (!Array.isArray(c.fields) || c.fields.length === 0) errors.push(`${c.name}: 缺少 fields`);
+	// nested collections 必须有 meta.path（Decap 树形文件夹定位用）
+	if (c.nested && (!c.meta?.path?.widget || !c.meta?.path?.label)) {
+		errors.push(`${c.name}: nested 集合必须配置 meta.path`);
+	} else if (c.nested) {
+		ok(`${c.name}: nested 树形 ${c.nested.depth || 10} 层`);
+	}
 
 	const declared = (c.fields ?? []).map((f) => f.name);
 	for (const f of c.fields ?? []) {
