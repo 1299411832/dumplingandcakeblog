@@ -6,9 +6,11 @@ backend:
   name: github
   repo: tianshihao2003/dumplingandcakeblog
   branch: main
-  base_url: https://blog.tsh520.cn
-  auth_endpoint: oauth
-  site_domain: blog.tsh520.cn
+  # Sveltia 的纯前端 PKCE 认证（无需自建 OAuth 服务器）：
+  # 浏览器直接调 GitHub authorize，GitHub OAuth App 的
+  # Authorization callback URL 必须配置为 https://blog.tsh520.cn/admin/
+  auth_type: pkce
+  app_id: Ov23li2KVdGpMg50lJ0p
 
 # 备用媒体库：上传到仓库 public/assets（主要用图床直传 widget）
 media_folder: "public/assets"
