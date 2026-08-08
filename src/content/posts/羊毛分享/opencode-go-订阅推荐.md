@@ -1,14 +1,13 @@
 ---
-title: "35 块钱的 AI 编程订阅，我从早用到晚，进度条都不带动一下"
+title: 35 块钱的 AI 编程订阅，我从早用到晚，进度条都不带动一下
 published: 2026-08-08
 tags:
   - OpenCode
   - DeepSeek
-  - AI 编程
   - 订阅推荐
   - 羊毛
 category: 羊毛分享
-description: "首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版）随便用：天天从早写到晚，用量进度条纹丝不动，还是直连国内官方 API，不用代理不卡顿。用我的链接注册，咱俩各得 $5，等于白嫖半个月。"
+description: 首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版）随便用：天天从早写到晚，用量进度条纹丝不动，还是直连国内官方 API，不用代理不卡顿。用我的链接注册，咱俩各得 $5，等于白嫖半个月。
 ---
 
 > 先说结论：这可能是目前性价比最高的 AI 编程订阅，没有之一。
@@ -25,6 +24,7 @@ description: "首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版
 - ❌ 还要挂代理才能连上，网络一抖，对话直接断
 
 直到我发现了 **OpenCode Go**，一个月实测下来：上面的问题一个都没有。
+![479](https://img.tsh520.cn/file/blog/article/file-20260808151016332.png)
 
 ---
 
@@ -48,6 +48,8 @@ description: "首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版
 
 六万三千次。每 5 小时刷新一次。你一天从早到晚泡在里面，能刷掉 1% 都算你猛。
 
+![](https://img.tsh520.cn/file/blog/article/file-20260808151129244.png)
+
 而且它还是 **直连国内官方 API** 的——不用代理、不用加速器，国内网络直接满速响应，和本地开发一样丝滑。这一点对国内用户来说简直是降维打击。
 
 ---
@@ -70,6 +72,8 @@ description: "首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版
 
 贵的、便宜的、写代码的、跑推理的，一个订阅全包圆。日常主力 DeepSeek V4 Flash，想换口味就切 Grok 和 Kimi，不需要额外掏一分钱。
 
+![484](https://img.tsh520.cn/file/blog/article/file-20260808151208264.png)
+
 ---
 
 # 算一笔账，你就知道有多离谱
@@ -84,6 +88,8 @@ description: "首月 35 块钱订阅 OpenCode Go，DeepSeek V4 Flash（正式版
 对比一下市面上同级别的订阅，动辄二三十美金一个月，还不带 DeepSeek 这种全量模型。OpenCode Go 这个价格，属于是来交朋友的。
 
 重点：**国内订阅直接用支付宝付款就行，不需要 Visa/Mastercard，也不用绑银行卡**。对没有国际信用卡的学生党和国内开发者来说，这个门槛直接给你抹平了。
+![487](https://img.tsh520.cn/file/blog/article/file-20260808151301910.jpg)
+右上角随时可退订，这样下个月不扣钱。
 
 ---
 
