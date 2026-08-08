@@ -5,15 +5,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="robots" content="noindex, nofollow" />
 	<title>博客管理后台</title>
-	<!-- 自定义 widget 需要 React，必须先于 CMS 加载（Decap 官方要求） -->
-	<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-	<!-- Decap CMS（自动读取同目录 config.yml） -->
-	<script src="https://cdn.jsdelivr.net/npm/decap-cms@3.15.1/dist/decap-cms.js"></script>
-	<!-- 自定义 widget 必须在 CMS 加载之后注册 -->
-	<script src="/admin/admin-config.js"></script>
-	<script src="/admin/widgets/imgbed-widget.js"></script>
-	<script src="/admin/widgets/amap-widget.js"></script>
+	<!-- 全部 defer：Decap 需要在 DOM 就绪后初始化（body 未创建时挂载会报 null）；
+	     defer 脚本按文档顺序执行：React → CMS → 配置 → widget -->
+	<script defer src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/decap-cms@3.15.1/dist/decap-cms.js"></script>
+	<script defer src="/admin/admin-config.js"></script>
+	<script defer src="/admin/widgets/imgbed-widget.js"></script>
+	<script defer src="/admin/widgets/amap-widget.js"></script>
 </head>
 <body>
 	<!-- Sveltia CMS 会自动渲染后台界面 -->
