@@ -30,9 +30,10 @@ collections:
     extension: md
     format: frontmatter
     # Decap nested collections：按子目录树形展示（文件 frontmatter 的 path 字段定位）
+    # subfolders: false → 子文件夹直接放 md（无 index 文件），文件夹用文件夹名显示
     nested:
       depth: 10
-      summary: "{{title}}"
+      subfolders: false
     meta:
       path:
         label: Path
@@ -218,9 +219,10 @@ collections:
     extension: md
     format: frontmatter
     # Decap nested collections：按笔记本目录树形展示
+    # subfolders: false → 笔记本目录直接用目录名显示
     nested:
       depth: 10
-      summary: "{{name}}"
+      subfolders: false
     meta:
       path:
         label: Path
