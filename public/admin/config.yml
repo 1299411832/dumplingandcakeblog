@@ -170,7 +170,7 @@ collections:
     format: frontmatter
     slug: "{{year}}-{{month}}-{{day}}"
     fields:
-      - { label: 日期, name: date, widget: date, format: "yyyy-MM-dd" }
+      - { label: 日期, name: date, widget: datetime, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
       - { label: ID, name: id, widget: string, required: false }
       - { label: 省份, name: province, widget: string, required: false }
       - { label: 城市, name: city, widget: string, required: false }
@@ -209,7 +209,7 @@ collections:
     slug: "{{year}}-{{month}}-{{day}}"
     fields:
       - { label: 标题, name: name, widget: string }
-      - { label: 日期, name: date, widget: date, format: "yyyy-MM-dd" }
+      - { label: 日期, name: date, widget: datetime, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
       - { label: 封面, name: cover, widget: string, required: false }
       - { label: 简介, name: summary, widget: text, required: false }
       - label: 图片
@@ -239,7 +239,7 @@ collections:
       - { label: 相册名, name: title, widget: string, required: true }
       - { label: 副标题, name: subtitle, widget: string, required: false }
       - { label: 封面图, name: cover, widget: string, required: false }
-      - { label: 日期, name: date, widget: date, required: true, format: "yyyy-MM-dd" }
+      - { label: 日期, name: date, widget: datetime, required: true, format: "yyyy-MM-dd", date_format: "yyyy-MM-dd", time_format: false, type: date }
       - { label: 地点, name: location, widget: string, required: false }
       - label: 标签
         name: tags
