@@ -98,14 +98,17 @@
 
 	// preSave 钩子：把 amap-coords 展开为顶层 lat/lng 并删除辅助键
 	// （zod schema 要求 lat/lng 是顶层字段，不能留嵌套的 amap-coords）
-	CMS.registerEventListener("preSave", function (args) {
-		const entry = args && args.entry;
-		const coords = entry && entry.data && entry.data["amap-coords"];
-		if (coords && typeof coords.lat === "number" && typeof coords.lng === "number") {
-			entry.data.lat = coords.lat;
-			entry.data.lng = coords.lng;
-			delete entry.data["amap-coords"];
-		}
+	// 注意：registerEventListener 需要传对象格式 { 事件名: 回调 }（Decap/Sveltia API 约定）
+	CMS.registerEventListener({
+		preSave: function (args) {
+			const entry = args && args.entry;
+			const coords = entry && entry.data && entry.data["amap-coords"];
+			if (coords && typeof coords.lat === "number" && typeof coords.lng === "number") {
+				entry.data.lat = coords.lat;
+				entry.data.lng = coords.lng;
+				delete entry.data["amap-coords"];
+			}
+		},
 	});
 
 	console.log("[amap-widget] 注册完成");
