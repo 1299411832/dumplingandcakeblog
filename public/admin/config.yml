@@ -1,0 +1,317 @@
+# Sveltia CMS 配置（Decap CMS 兼容格式）
+# 管理后台：https://blog.tsh520.cn/admin/
+# 字段与 src/content.config.ts 的 zod schema 对齐（保存后构建必须通过）
+
+backend:
+  name: github
+  repo: tianshihao2003/dumplingandcakeblog
+  branch: main
+  base_url: https://blog.tsh520.cn
+  auth_endpoint: oauth
+  site_domain: blog.tsh520.cn
+
+# 备用媒体库：上传到仓库 public/assets（主要用图床直传 widget）
+media_folder: "public/assets"
+public_folder: "/assets"
+
+collections:
+  # ============================================================
+  # 📝 博客文章
+  # ============================================================
+  - name: posts
+    label: 📝 博客文章
+    label_singular: 文章
+    folder: src/content/posts
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields:
+      - { label: 标题, name: title, widget: string, required: true }
+      - label: 发布时间
+        name: published
+        widget: datetime
+        required: true
+        format: "yyyy-MM-dd"
+        date_format: "yyyy-MM-dd"
+        time_format: false
+      - label: 更新时间
+        name: updated
+        widget: datetime
+        required: false
+        format: "yyyy-MM-dd"
+        date_format: "yyyy-MM-dd"
+        time_format: false
+      - { label: 草稿, name: draft, widget: boolean, default: false }
+      - { label: 摘要, name: description, widget: text }
+      - { label: 封面图, name: image, widget: image, required: false }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 分类, name: category, widget: string, required: false }
+      - label: 语言
+        name: lang
+        widget: select
+        options:
+          - { label: 中文, value: "" }
+          - { label: English, value: en }
+          - { label: 日本語, value: ja }
+          - { label: 繁體中文, value: zh_TW }
+          - { label: Русский, value: ru }
+      - { label: 置顶, name: pinned, widget: boolean, default: false }
+      - { label: 作者, name: author, widget: string, required: false }
+      - { label: 原文链接, name: sourceLink, widget: string, required: false }
+      - { label: 许可名称, name: licenseName, widget: string, required: false }
+      - { label: 许可链接, name: licenseUrl, widget: string, required: false }
+      - { label: 启用评论, name: comment, widget: boolean, default: true }
+      - { label: 排序权重, name: order, widget: number, required: false }
+      - label: 摘要来源
+        name: descriptionSource
+        widget: select
+        required: false
+        options: [manual, ai]
+      - { label: 正文, name: body, widget: markdown }
+    # 说明：prevTitle/prevSlug/nextTitle/nextSlug 为主题内部字段，
+    # 不声明（Sveltia 保存时保留未声明字段，不会丢失）
+
+  # ============================================================
+  # 💬 动态
+  # ============================================================
+  - name: moments
+    label: 💬 动态
+    label_singular: 动态
+    folder: src/content/moments
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    # 文件名即日期（同日第二篇需手动在 GitHub 改名）
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields:
+      - label: 时间
+        name: published
+        widget: datetime
+        required: true
+        format: "yyyy-MM-dd HH:mm:ss"
+        date_format: "yyyy-MM-dd"
+        time_format: "HH:mm:ss"
+      - { label: 作者, name: author, widget: string, required: false }
+      - { label: 头像, name: avatar, widget: string, required: false }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - label: 图片
+        name: images
+        widget: list
+        field: { label: 图片 URL, name: url, widget: imgbed }
+      - { label: 位置, name: location, widget: string, required: false }
+      - { label: 设备, name: device, widget: string, required: false }
+      - { label: 置顶, name: pinned, widget: boolean, default: false }
+      - { label: 内容, name: body, widget: text }
+
+  # ============================================================
+  # 🔗 友链与应用
+  # ============================================================
+  - name: friends
+    label: 🔗 友情链接
+    label_singular: 友链
+    folder: src/content/friends
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{title}}"
+    fields:
+      - { label: 站点名, name: title, widget: string, required: true }
+      - { label: 头像链接, name: imgurl, widget: string, required: true }
+      - { label: 站点描述, name: desc, widget: string, required: true }
+      - { label: 站点链接, name: siteurl, widget: string, required: true }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 权重, name: weight, widget: number, default: 0 }
+      - { label: 启用, name: enabled, widget: boolean, default: true }
+
+  - name: apps
+    label: 📱 应用
+    label_singular: 应用
+    folder: src/content/apps
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{title}}"
+    fields:
+      - { label: 应用名, name: title, widget: string, required: true }
+      - { label: 图标链接, name: imgurl, widget: string, required: true }
+      - { label: 应用描述, name: desc, widget: string, required: true }
+      - { label: 应用链接, name: siteurl, widget: string, required: true }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 权重, name: weight, widget: number, default: 0 }
+      - { label: 启用, name: enabled, widget: boolean, default: true }
+
+  # ============================================================
+  # 🌱 生活记录
+  # ============================================================
+  - name: life-places
+    label: 📍 足迹
+    label_singular: 足迹
+    folder: src/content/life/places
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields:
+      - { label: 日期, name: date, widget: date, format: "yyyy-MM-dd" }
+      - { label: ID, name: id, widget: string, required: false }
+      - { label: 省份, name: province, widget: string, required: false }
+      - { label: 城市, name: city, widget: string, required: false }
+      - { label: 体验, name: experience, widget: text, required: false }
+      - { label: 访问次数, name: visitCount, widget: number, default: 1 }
+      - { label: 纬度, name: lat, widget: number, required: false }
+      - { label: 经度, name: lng, widget: number, required: false }
+      # 高德坐标搜索辅助字段：搜索后自动回填 lat/lng（保存时由 preSave 钩子展开）
+      - label: 坐标搜索
+        name: amap-coords
+        widget: amap-geocode
+        required: false
+        fields:
+          - { label: 纬度, name: lat, widget: number }
+          - { label: 经度, name: lng, widget: number }
+      - { label: 关联链接, name: url, widget: string, required: false }
+      - { label: 链接文字, name: urlLabel, widget: string, required: false }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - label: 照片
+        name: photos
+        widget: list
+        field: { label: 照片 URL, name: url, widget: imgbed }
+      - { label: 备注, name: body, widget: text }
+
+  - name: life-notebooks-entries
+    label: 📝 笔记本条目
+    label_singular: 条目
+    folder: src/content/life/notebooks
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}"
+    fields:
+      - { label: 标题, name: name, widget: string }
+      - { label: 日期, name: date, widget: date, format: "yyyy-MM-dd" }
+      - { label: 封面, name: cover, widget: string, required: false }
+      - { label: 简介, name: summary, widget: text, required: false }
+      - label: 图片
+        name: image
+        widget: list
+        field: { label: 图片 URL, name: url, widget: imgbed }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 内容, name: body, widget: text }
+    # 说明：_index.json 是笔记本索引，extension: md 自动排除；image/ 图片目录同理
+
+  # ============================================================
+  # 📦 其他内容
+  # ============================================================
+  - name: album
+    label: 🖼️ 相册
+    label_singular: 相册
+    folder: src/content/album
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{title}}"
+    fields:
+      - { label: 相册名, name: title, widget: string, required: true }
+      - { label: 副标题, name: subtitle, widget: string, required: false }
+      - { label: 封面图, name: cover, widget: string, required: false }
+      - { label: 日期, name: date, widget: date, required: true, format: "yyyy-MM-dd" }
+      - { label: 地点, name: location, widget: string, required: false }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 草稿, name: draft, widget: boolean, default: false }
+      - { label: 图床文件夹, name: imgbedFolder, widget: string, required: false }
+      - label: 照片列表
+        name: photos
+        widget: list
+        field: { label: 照片 URL, name: url, widget: imgbed }
+      - { label: 描述, name: body, widget: text }
+
+  - name: daohang
+    label: 🧭 导航链接
+    label_singular: 导航
+    folder: src/content/daohang
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{name}}"
+    fields:
+      - { label: 名称, name: name, widget: string, required: true }
+      - { label: 链接, name: url, widget: string, required: true }
+      - { label: 图标链接, name: icon, widget: string, required: false }
+      - { label: 描述, name: description, widget: string, required: false }
+      - { label: 分类, name: category, widget: string, default: 未分类 }
+      - label: 标签
+        name: tags
+        widget: list
+        field: { label: 标签, name: tag, widget: string }
+      - { label: 颜色, name: color, widget: string, required: false }
+      - { label: 图片, name: image, widget: string, required: false }
+      - { label: 推荐, name: featured, widget: boolean, default: false }
+      - { label: 排序, name: order, widget: number, default: 0 }
+      - { label: 备注, name: body, widget: text }
+
+  # 资源/公告（ziyuan 集合：公告与每日一言两种形态共用，
+  # 因无区分字段无法拆两个 collection，编辑时二选一填写）
+  - name: ziyuan
+    label: 📢 公告/每日一言
+    label_singular: 条目
+    folder: src/content/ziyuan
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{title}}"
+    fields:
+      - { label: 标题, name: title, widget: string, required: true }
+      - label: 内容（公告形态）
+        name: content
+        widget: text
+        required: false
+        hint: 公告内容；与"每日一言"二选一填写
+      - { label: 可关闭, name: closable, widget: boolean, default: true }
+      - label: 链接（公告形态）
+        name: link
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - { label: 启用, name: enable, widget: boolean, default: true }
+          - { label: 按钮文字, name: text, widget: string }
+          - { label: 链接地址, name: url, widget: string }
+          - { label: 新窗口打开, name: external, widget: boolean, default: false }
+      - label: 每日一言（语录形态）
+        name: quotes
+        widget: list
+        required: false
+        hint: 语录列表；与"公告"二选一填写
+        fields:
+          - { label: 内容, name: text, widget: text, required: true }
+          - { label: 作者, name: author, widget: string, required: true }
