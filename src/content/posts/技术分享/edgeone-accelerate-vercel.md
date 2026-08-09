@@ -20,7 +20,12 @@ Vercel 部署网站很方便，但**国内访问速度一直是个老大难问�
 
 这篇文章分享我实际验证可行的方案：**源站域名分离法**——给 Vercel 一个"源站域名"，用户访问的域名走 EdgeOne 加速。
 
-<!-- 📷 插图 1：整体架构示意图（用户 → EdgeOne → Vercel 源站域名） -->
+先看加速前后的效果对比：
+![550](assets/edgeone-accelerate-vercel/file-20260810012407162.png)
+📷 插图 1：加速前的加载速度截图（Vercel 直连）
+
+
+ 📷 插图 2：加速后的加载速度截图（EdgeOne 加速）
 
 ## 原理：为什么不能直接套
 
@@ -71,8 +76,6 @@ Vercel（绑定了 cms-origin.tsh520.cn）✅ Valid
 
 > ⚠️ **回源 HOST 头是最容易错的地方**：必须填源站域名（`cms-origin.tsh520.cn`），不能选"使用加速域名"——否则 Vercel 收到的是加速域名（没绑定）会拒绝请求。
 
-<!-- 📷 插图 2：EdgeOne 回源配置截图（注意回源 HOST 头） -->
-
 ### ③ DNS：切换解析
 
 把 `cms.tsh520.cn` 的 CNAME **从 `cms.vercel.app` 改成 EdgeOne 给的加速地址**（EdgeOne 站点详情页会显示，类似 `cms.tsh520.cn.eo.dnse2.com`）。
@@ -88,8 +91,6 @@ Vercel（绑定了 cms-origin.tsh520.cn）✅ Valid
 
 这样登录、回调都走加速域名，EdgeOne 会正确回源。
 
-<!-- 📷 插图 3：DNS 解析配置截图（CNAME 指向 EdgeOne） -->
-
 ## 踩坑记录
 
 | 坑 | 现象 | 解决 |
@@ -104,7 +105,7 @@ Vercel（绑定了 cms-origin.tsh520.cn）✅ Valid
 1. 等 EdgeOne 状态从"部署中"变"已部署"（几分钟）
 2. 浏览器访问 `https://cms.tsh520.cn` → 正常打开
 3. **登录功能测试**（重要）：如果应用有登录，确认登录态正常——Cookie 的域名取决于应用配置的 BASE_URL（用加速域名就不会有问题）
-4. 速度对比：F12 → Network 看加载时间（国内应该明显提升）
+4. **速度对比**：F12 → Network 看加载时间（国内应该明显提升，效果对比见文章开头）
 
 ## 总结
 
