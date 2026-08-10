@@ -355,10 +355,9 @@ onMount(() => {
 	}
 	applyFilters([...sortedPosts]);
 });
-
 </script>
 
-<div class="archive-panel card-base px-3 py-6 md:px-10 md:py-8" bind:this={panelEl}>
+<div class="archive-panel card-base px-3 pt-3 pb-6 md:px-10 md:pt-4 md:pb-8" bind:this={panelEl}>
   <div class="ap-tabs" role="tablist" aria-label="归档类型筛选">
     {#each TABS as tab (tab.value)}
       <button
