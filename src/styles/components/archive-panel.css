@@ -18,11 +18,12 @@
 	min-width: 0;
 }
 
-/* 滑动指示条（装饰性，JS 正常时跟随激活按钮） */
+/* 滑动指示条（装饰性，JS 正常时跟随激活按钮）
+   颜色与激活按钮同源（与 projects 页 tools-tab 一致，硬编码 + :root.dark 反转） */
 .ap-tab-indicator {
 	position: absolute;
 	border-radius: 9999px;
-	background: var(--deep-text);
+	background: #000;
 	transition:
 		left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 		top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -31,6 +32,9 @@
 	opacity: 0;
 	pointer-events: none;
 	z-index: 10;
+}
+:root.dark .ap-tab-indicator {
+	background: #fff;
 }
 
 .ap-tab {
@@ -62,14 +66,16 @@
 	opacity: 0.7;
 }
 
-/* 激活态：按钮自带背景色（var(--deep-text)）+ 文字反色（var(--page-bg)）
-   背景与文字使用同一对同步变量（:root / :root.dark 同源切换），
-   任何时刻必然黑底白字（亮色）/ 白底黑字（暗色），不会出现黑底黑字
-   且不依赖 JS 指示条——JS 异常时选中按钮依然清晰可见 */
+/* 激活态：硬编码双色 + :root.dark 同时反转（与 projects 页 tools-tab-btn-active 逐字一致）
+   背景与文字在同一规则内切换，无变量/时序依赖，任何状态必然黑底白字或白底黑字 */
 .ap-tab[aria-selected="true"] {
-	background: var(--deep-text);
-	color: var(--page-bg);
+	background: #000;
+	color: #fff;
 	cursor: default;
+}
+:root.dark .ap-tab[aria-selected="true"] {
+	background: #fff;
+	color: #000;
 }
 
 .ap-tab-count {
@@ -83,8 +89,12 @@
 	font-variant-numeric: tabular-nums;
 }
 .ap-tab[aria-selected="true"] .ap-tab-count {
-	background: color-mix(in oklch, var(--page-bg) 30%, transparent);
-	color: var(--page-bg);
+	background: rgba(255, 255, 255, 0.25);
+	color: #fff;
+}
+:root.dark .ap-tab[aria-selected="true"] .ap-tab-count {
+	background: rgba(0, 0, 0, 0.2);
+	color: #000;
 }
 
 @media (max-width: 380px) {
