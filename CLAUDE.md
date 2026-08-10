@@ -9,12 +9,15 @@
 | 项 | 值 |
 |---|---|
 | 名称 | Firefly v6.6.13 — "团子和蛋糕的博客" |
-| 框架 | Astro 6.4.6 + Svelte 5 + Tailwind CSS v4 |
+| 框架 | Astro 7.1.6 + Svelte 5 + Tailwind CSS v4 |
 | 包管理 | pnpm 9.14.4 (ESM, `preinstall` 强制) |
 | 运行时 | Node.js >= 22 |
-| 部署 | EdgeOne Pages（主）+ GitHub Pages（CI） |
+| 部署 | EdgeOne Pages（主，GitHub 集成自动构建）+ GitHub Pages（CI，见第 18 节分支警告） |
 | 线上 | https://blog.tsh520.cn/ |
+| 后台 | PagesCMS 自托管（Vercel + EdgeOne 加速）：https://cms.tsh520.cn/（配置见第 19 节） |
 | 来源 | Fork 自 CuteLeaf/Firefly ← saicaca/fuwari，已深度定制为独立演化 |
+
+> ⚠️ **Astro 版本已升级至 7.x**（`feat/astro-7-upgrade` 已合并），勿再按 6.4.x 文档操作。
 
 ---
 
@@ -23,34 +26,35 @@
 ```
 src/
 ├── assets/images/       # 头像、封面等构建时图片
-├── components/          # 按功能域组织的组件（117 个文件）
+├── components/          # 按功能域组织的组件（124 个文件）
 │   ├── analytics/       # GA, Clarity, Umami (3)
 │   ├── comment/         # 评论系统：index + 5 种后端 + 3 个弹窗组件 (9)
-│   ├── common/          # 跨域共享基础组件 (16)
+│   ├── common/          # 跨域共享基础组件 (17)
 │   ├── controls/        # 交互控件：搜索、归档、主题、Dock (8)
-│   ├── features/        # 独立功能模块 (23, 含 music-visualizer/)
-│   ├── layout/          # 布局组件：Navbar, Footer, SideBar, HomeHero... (16)
+│   ├── features/        # 独立功能模块 (25, 含 music-visualizer/)
+│   ├── layout/          # 布局组件：Navbar, Footer, SideBar, HomeHero... (19)
 │   ├── misc/            # License, RelatedPosts, SharePoster (3)
 │   ├── moments/         # 动态卡片 (2)
 │   ├── pages/           # 页面级组件：bangumi, books, movies-games, music (10)
 │   └── widget/          # 侧栏 Widget (27)
-├── config/              # 站点配置（29 个文件，index.ts barrel export）
+├── config/              # 站点配置（26 个 .ts，index.ts barrel export）
 ├── constants/           # 常量：页面尺寸、主题模式、图标、链接预设
 ├── content/             # Astro Content Collections（12 个集合）
 │   ├── album/ apps/ bangumi/ changelog/ daohang/
 │   ├── friends/ life/ moments/ posts/ spec/ ziyuan/
-├── i18n/                # 国际化（5 种语言，290 个翻译键）
+│   └── life/notebooks/  # notebooks 集合物理位置（life 的子目录）
+├── i18n/                # 国际化（5 种语言，291 个翻译键）
 │   └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
-├── layouts/             # Layout.astro (555行), MainGridLayout.astro (303行)
+├── layouts/             # Layout.astro (591行), MainGridLayout.astro (305行)
 ├── notes/               # Obsidian 笔记（不发布）
-├── pages/               # 路由（45 个文件）
-│   ├── admin/           # 管理后台 (7)
-│   ├── api/             # JSON API (1)
+├── pages/               # 路由（38 个文件；admin 后台已删除，勿重建）
+│   ├── api/             # JSON API (2)：calendar.json.ts, home-stats.json.ts
 │   ├── album/ bangumi/ books/ categories/ life/ moments/ posts/
-│   └── 404, about, archive, apps, changelog, circle, friends,
-│       guestbook, music, projects, search, sponsor, rss, robots.txt, og
+│   └── 404, about, archive, apps, changelog, circle, debug-urls, friends,
+│       guestbook, life/notebooks, movies-games/, music, projects, search,
+│       sponsor, rss, robots.txt, og
 ├── plugins/             # 自定义 remark/rehype 插件 (10)
-├── styles/              # CSS 样式（58 个文件）
+├── styles/              # CSS 样式（63 个文件）
 │   ├── tokens/          # 设计令牌：colors, breakpoints, animation, z-index
 │   ├── base/            # reset, utilities
 │   ├── components/      # 组件样式
@@ -60,12 +64,19 @@ src/
 │   ├── transitions/     # Swup 过渡动画
 │   └── vendor/          # 第三方覆盖
 ├── types/               # TypeScript 类型：config.ts, bangumi.ts, guestbook-chat.ts
-└── utils/               # 工具函数（18 个文件）
+└── utils/               # 工具函数（30 个文件）
     ├── 8 个控制器模块   # 见第 10 节
-    └── 10 个业务工具    # content-utils, date-utils, image-utils, url-utils...
+    └── 22 个业务工具    # content-utils, date-utils, image-utils, url-utils...
+
+# 根目录其他重要文件
+.pages.yml                # PagesCMS 后台配置（11 集合声明，见第 19 节）
+.claude/settings.json     # 命令白名单（分类器不可用时不卡 Bash）
+scripts/                  # 开发脚本：vision.mjs（图片识别）、check-svelte-warnings.mjs 等
+docs/                     # 部署文档（deploy-pagescms-vercel.md 等）
 ```
 
 **禁止在 `components/` 根目录平铺组件文件，必须放入对应功能域子目录。**
+**注意：`src/pages/admin/`、`src/utils/admin/` 等 admin 相关已删除（fc8599f），只剩空目录残留，勿再创建自研后台（后台用 PagesCMS）。**
 
 ---
 
@@ -229,7 +240,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ## 6. 配置系统
 
-29 个配置文件，通过 `src/config/index.ts` barrel export。
+26 个配置文件，通过 `src/config/index.ts` barrel export（24 个具名导出）。
 
 ### 核心配置
 
@@ -243,6 +254,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 | `musicConfig.ts` | `musicPlayerConfig` | 音乐播放器：Meting API 或本地播放列表 |
 | `backgroundWallpaper.ts` | `backgroundWallpaper` | 背景图配置（当前 mode: "none"，不渲染 banner） |
 | `homePortfolioShutterConfig.ts` | `homePortfolioShutterConfig` | 首页作品集百叶窗配置 |
+| `homeConfig.ts` | `homeConfig` | 首页配置（2026 新增，文档曾遗漏） |
 
 ### 其他配置
 
@@ -250,7 +262,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ### 外部配置（直接导入，不经 barrel）
 
-`externalBangumiConfig`, `externalFriendsConfig`, `externalMomentsConfig`, `externalNotebooksConfig`, `externalPlacesConfig`
+仅剩 `externalBangumiConfig`（供 bangumi / movies-games 页面使用）。其余 `externalFriendsConfig` 等 4 个已随 fc8599f 删除。
 
 ---
 
@@ -260,7 +272,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ```
 src/i18n/
-├── i18nKey.ts       # 290 个翻译键枚举
+├── i18nKey.ts       # 291 个翻译键枚举
 ├── translation.ts   # 翻译加载器（回退链：当前语言 → zh_CN → en）
 └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ```
@@ -371,7 +383,7 @@ if (!window.__backToTopInited) {
 
 ## 10. 控制器模块（Layout.astro 分解产物）
 
-Layout.astro 已从 1492 行分解为 555 行 + 8 个独立控制器模块。**修改页面过渡、滚动、布局逻辑时，必须改对应的控制器，禁止回退到 Layout.astro 内联脚本。**
+Layout.astro 已从 1492 行分解为 591 行 + 8 个独立控制器模块。**修改页面过渡、滚动、布局逻辑时，必须改对应的控制器，禁止回退到 Layout.astro 内联脚本。**
 
 | 模块 | 文件 | 职责 |
 |------|------|------|
@@ -561,7 +573,7 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 
 | 依赖 | 版本 | 说明 |
 |------|------|------|
-| Astro | 6.4.x | 不随意升级大版本 |
+| Astro | 7.1.x | **已升级 7.x**（勿按 6.x 文档操作）|
 | Svelte | 5.x | runes API（`$props`, `$state`, `$derived`, `$effect`） |
 | Tailwind CSS | 4.x | CSS-first 配置，无 `tailwind.config.js` |
 | Swup | @swup/astro | 不迁移到 View Transitions |
@@ -569,13 +581,16 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 | pnpm | 9.14.x | 唯一包管理器 |
 | Node.js | >= 22 | 运行时要求 |
 
+> ⚠️ `stylus` 仍残留于 dependencies（Astro 7 构建带 stylus loader），但项目代码已全部用纯 CSS——**勿新建 Stylus 文件**，依赖待清理。
+
 ---
 
 ## 17. 已知架构债务（不阻塞开发）
 
 | 问题 | 影响 | 建议 |
 |------|------|------|
-| `swup-lifecycle-controller.ts` 567 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
+| **CI workflow 监听 `master` 但分支是 `main`** | **CI（biome/build/deploy）从不触发** | 尽快把 3 个 workflow 的 `on.push.branches` 改为 `main` |
+| `swup-lifecycle-controller.ts` 537 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
 | Waline 代码散布 3 处 | 改配置需改 3 个文件 | 需要时合并 |
 | Layout.astro 内联脚本含 moments 评论 | 布局包含功能逻辑 | 需要时提取 |
 | `page-loader-controller.js` 是纯 JS | 类型不一致 | 需要时转 TS |
@@ -583,6 +598,8 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 | 52 个 `window.*` 全局变量 | 模块间隐式耦合 | 长期目标 |
 | PageLoader 加载动画已关闭 | 首页无 loading 过渡 | 恢复方法见第 12 节 |
 | HomeHero GSAP 入口动画已跳过 | 首页元素直接显示，无逐个动画 | 恢复需重写 `initHeroOpening()` |
+| `stylus` 依赖残留 | 文档称已迁移，依赖未清 | 需要时从 dependencies 移除 |
+| 空目录残留（album/daily/admin 等） | 代码已删，目录空 | 需要时清理 |
 
 ---
 
@@ -596,3 +613,44 @@ scope: layout | config | i18n | styles | utils | components | content
 ```
 
 **每次修改后必须 `pnpm build` 验证通过再提交。**
+
+---
+
+## 19. PagesCMS 后台（2026-08 接入）
+
+博客后台使用 **PagesCMS 自托管**（Vercel 部署 + EdgeOne 加速），后台地址 `https://cms.tsh520.cn/`。
+
+### 架构
+
+```text
+用户访问 cms.tsh520.cn（DNS → EdgeOne 加速）
+    ↓ EdgeOne 回源（Host: cms-origin.tsh520.cn）
+Vercel（PagesCMS 实例，绑定 cms-origin.tsh520.cn）
+    ↓ GitHub API 写回
+仓库 main 分支（内容文件）
+    ↓ EdgeOne Pages 检测 push 自动重建
+博客站点
+```
+
+- **源站域名分离**：Vercel 绑定 `cms-origin.tsh520.cn`（DNS → vercel.app），用户域名 `cms.tsh520.cn` 走 EdgeOne（回源 Host = cms-origin）——Vercel 的域名验证机制要求 DNS 持续指向它，不能直接套 CDN
+- **配置声明**：仓库根目录 `.pages.yml` 声明 11 个内容集合（posts 按分类拆 13 个集合、moments/friends/apps/daohang/album/ziyuan 拆 2/life 拆 3），字段与 `src/content.config.ts` 的 zod 对齐
+- **自定义字段**：imgbed（图床上传，走服务端代理）+ amap-geocode（高德坐标，保存时展开为 lat/lng）——在 pagescms 仓库（`E:\GithubProgect\MyRunProject\pagescms`）的 `fields/custom/` 定义，注册在 `fields/registry.ts`
+- **凭证**：Vercel 环境变量（GITHUB_APP_*、IMAGEBED_*、AMAP_KEY 等）；图床/高德代理路由在 pagescms 的 `app/api/` 下（凭证服务端持有）
+- **修改 .pages.yml 后**：字段必须与 zod 对齐（merge: false，未声明字段保存时被丢弃）；用 `node scripts/validate-sveltia-config.mjs`（旧名，实为 .pages.yml 校验）验证——**注意**：该脚本现在校验的是 public/admin/config.yml（Decap 时代遗留），.pages.yml 校验已随脚本删除——**当前 .pages.yml 的字段对齐靠手动检查 + 构建验证**
+
+> ⚠️ 曾使用 Decap CMS（public/admin/ 目录 + config.yml，已弃用）；现统一用 PagesCMS。
+
+---
+
+## 20. 文档同步规范（强制）
+
+**修改项目时，必须同步更新 CLAUDE.md**，保证文档与项目实时一致：
+
+1. **修改代码前**：先读 CLAUDE.md，遵守其中的规范与反模式清单
+2. **修改代码后**（提交前）：
+   - 新增/删除/重命名了文件或目录 → 更新第 2 节目录结构（数量、路径）
+   - 新增/删除配置、i18n 键、组件、页面、集合 → 更新对应章节的数字和清单
+   - 升级/降级依赖 → 更新第 16 节技术栈版本
+   - 发现新的坑/规范/反模式 → 写入对应章节（或第 15 节反模式清单）
+3. **新增规范**（本次添加）：文档不准确时（数字过时、功能删除等），及时修正，禁止"文档写的和实际不一致还照着做"
+4. **验证**：提交前跑 `pnpm build`；文档修改与代码修改在同一提交或相邻提交
