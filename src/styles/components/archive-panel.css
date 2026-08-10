@@ -2,7 +2,9 @@
    归档页类型 Tab（ArchivePanel.svelte 专用）
    样式放在全局 CSS（经 main.css 导入）：
    - 不受 Svelte scoped 优化影响，规则必然存在
-   - 激活态按钮自带背景色兜底，不依赖 JS 指示条
+   - 激活态用描边线条标识，不用实心背景——
+     文字始终使用主题主文字色（--deep-text），
+     与页面背景天然对比，不存在背景/文字同色问题
    ============================================ */
 
 /* 单行容器：永不换行，按钮均分宽度，窄屏时整行等比缩小 */
@@ -16,25 +18,6 @@
 	border: 2px solid var(--deep-text);
 	margin-bottom: 1.5rem;
 	min-width: 0;
-}
-
-/* 滑动指示条（装饰性，JS 正常时跟随激活按钮）
-   颜色与激活按钮同源（与 projects 页 tools-tab 一致，硬编码 + :root.dark 反转） */
-.ap-tab-indicator {
-	position: absolute;
-	border-radius: 9999px;
-	background: #000;
-	transition:
-		left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-		top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-		width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-		height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	opacity: 0;
-	pointer-events: none;
-	z-index: 10;
-}
-:root.dark .ap-tab-indicator {
-	background: #fff;
 }
 
 .ap-tab {
@@ -57,7 +40,6 @@
 	color: var(--content-meta);
 	transition:
 		color 0.2s,
-		background-color 0.2s,
 		opacity 0.2s;
 	font-family: inherit;
 }
@@ -66,16 +48,13 @@
 	opacity: 0.7;
 }
 
-/* 激活态：硬编码双色 + :root.dark 同时反转（与 projects 页 tools-tab-btn-active 逐字一致）
-   背景与文字在同一规则内切换，无变量/时序依赖，任何状态必然黑底白字或白底黑字 */
+/* 激活态：主题色描边线条（inset box-shadow 不占布局空间，无尺寸跳动）
+   文字用 --deep-text（主题主文字色），与页面背景始终对比可见 */
 .ap-tab[aria-selected="true"] {
-	background: #000;
-	color: #fff;
+	background: transparent;
+	color: var(--deep-text);
+	box-shadow: inset 0 0 0 1.5px var(--deep-text);
 	cursor: default;
-}
-:root.dark .ap-tab[aria-selected="true"] {
-	background: #fff;
-	color: #000;
 }
 
 .ap-tab-count {
@@ -89,12 +68,8 @@
 	font-variant-numeric: tabular-nums;
 }
 .ap-tab[aria-selected="true"] .ap-tab-count {
-	background: rgba(255, 255, 255, 0.25);
-	color: #fff;
-}
-:root.dark .ap-tab[aria-selected="true"] .ap-tab-count {
-	background: rgba(0, 0, 0, 0.2);
-	color: #000;
+	background: color-mix(in oklch, var(--deep-text) 15%, transparent);
+	color: var(--deep-text);
 }
 
 @media (max-width: 380px) {

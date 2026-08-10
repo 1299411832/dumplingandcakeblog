@@ -356,45 +356,10 @@ onMount(() => {
 	applyFilters([...sortedPosts]);
 });
 
-let tabWrapEl = $state<HTMLElement>();
-let indicatorEl = $state<HTMLElement>();
-
-// 滑动指示条跟随激活 Tab（与 projects/movies-games 的 tools-tab 风格一致）
-function moveIndicator() {
-	const wrap = tabWrapEl;
-	const ind = indicatorEl;
-	if (!wrap || !ind) return;
-	const active = wrap.querySelector<HTMLButtonElement>(
-		'.ap-tab[aria-selected="true"]',
-	);
-	if (!active) {
-		ind.style.opacity = "0";
-		return;
-	}
-	ind.style.left = `${active.offsetLeft}px`;
-	ind.style.top = `${active.offsetTop}px`;
-	ind.style.width = `${active.offsetWidth}px`;
-	ind.style.height = `${active.offsetHeight}px`;
-	ind.style.opacity = "1";
-}
-
-$effect(() => {
-	// activeType 变化（DOM 更新后）或首次挂载时定位指示条
-	void activeType;
-	moveIndicator();
-});
-
-$effect(() => {
-	// 窗口尺寸变化后重算指示条位置
-	const handler = () => moveIndicator();
-	window.addEventListener("resize", handler);
-	return () => window.removeEventListener("resize", handler);
-});
 </script>
 
 <div class="archive-panel card-base px-3 py-6 md:px-10 md:py-8" bind:this={panelEl}>
-  <div class="ap-tabs" bind:this={tabWrapEl} role="tablist" aria-label="归档类型筛选">
-    <div class="ap-tab-indicator" bind:this={indicatorEl}></div>
+  <div class="ap-tabs" role="tablist" aria-label="归档类型筛选">
     {#each TABS as tab (tab.value)}
       <button
         type="button"
