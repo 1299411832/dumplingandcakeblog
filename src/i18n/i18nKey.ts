@@ -50,6 +50,7 @@ enum I18nKey {
 	minuteCount = "minuteCount",
 	minutesCount = "minutesCount",
 	postCount = "postCount",
+	posts = "posts",
 	postsCount = "postsCount",
 
 	// Music Widget
@@ -111,6 +112,7 @@ enum I18nKey {
 	portalViewMore = "portalViewMore",
 	portalRunningDays = "portalRunningDays",
 	portalDays = "portalDays",
+	life = "life",
 	recentLife = "recentLife",
 	recentItems = "recentItems",
 	// 番组计划筛选和状态文本

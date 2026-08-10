@@ -89,6 +89,7 @@ export const en: Translation = {
 	[Key.minuteCount]: "minute",
 	[Key.minutesCount]: "minutes",
 	[Key.postCount]: "post",
+	[Key.posts]: "Posts",
 	[Key.postsCount]: "posts",
 
 	[Key.themeColor]: "Theme Color",
@@ -114,6 +115,7 @@ export const en: Translation = {
 	[Key.portalViewMore]: "View More",
 	[Key.portalRunningDays]: "Running for",
 	[Key.portalDays]: "days",
+	[Key.life]: "Life",
 	[Key.recentLife]: "Recent Records",
 	[Key.recentItems]: "Recent Updates",
 	// Bangumi Filter and Status Text

@@ -87,6 +87,7 @@ export const zh_TW: Translation = {
 	[Key.minuteCount]: "分鐘",
 	[Key.minutesCount]: "分鐘",
 	[Key.postCount]: "篇文章",
+	[Key.posts]: "文章",
 	[Key.postsCount]: "篇文章",
 
 	[Key.themeColor]: "主題色相",
@@ -112,6 +113,7 @@ export const zh_TW: Translation = {
 	[Key.portalViewMore]: "查看更多",
 	[Key.portalRunningDays]: "已運行",
 	[Key.portalDays]: "天",
+	[Key.life]: "生活",
 	[Key.recentLife]: "最新記錄",
 	[Key.recentItems]: "最近更新",
 

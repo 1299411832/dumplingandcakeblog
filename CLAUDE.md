@@ -30,7 +30,7 @@ src/
 │   ├── analytics/       # GA, Clarity, Umami (3)
 │   ├── comment/         # 评论系统：index + 5 种后端 + 3 个弹窗组件 (9)
 │   ├── common/          # 跨域共享基础组件 (17)
-│   ├── controls/        # 交互控件：搜索、归档、主题、Dock (8)
+│   ├── controls/        # 交互控件：搜索、归档（类型 Tab 筛选）、主题、Dock (8)
 │   ├── features/        # 独立功能模块 (25, 含 music-visualizer/)
 │   ├── layout/          # 布局组件：Navbar, Footer, SideBar, HomeHero... (19)
 │   ├── misc/            # License, RelatedPosts, SharePoster (3)
@@ -43,7 +43,7 @@ src/
 │   ├── album/ apps/ bangumi/ changelog/ daohang/
 │   ├── friends/ life/ moments/ posts/ spec/ ziyuan/
 │   └── life/notebooks/  # notebooks 集合物理位置（life 的子目录）
-├── i18n/                # 国际化（5 种语言，291 个翻译键）
+├── i18n/                # 国际化（5 种语言，293 个翻译键）
 │   └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ├── layouts/             # Layout.astro (591行), MainGridLayout.astro (305行)
 ├── notes/               # Obsidian 笔记（不发布）
@@ -272,7 +272,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ```
 src/i18n/
-├── i18nKey.ts       # 291 个翻译键枚举
+├── i18nKey.ts       # 293 个翻译键枚举
 ├── translation.ts   # 翻译加载器（回退链：当前语言 → zh_CN → en）
 └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ```

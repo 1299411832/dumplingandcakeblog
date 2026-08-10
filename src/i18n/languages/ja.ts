@@ -90,6 +90,7 @@ export const ja: Translation = {
 	[Key.minuteCount]: "分",
 	[Key.minutesCount]: "分",
 	[Key.postCount]: "投稿",
+	[Key.posts]: "記事",
 	[Key.postsCount]: "投稿",
 
 	[Key.themeColor]: "テーマカラー",
@@ -115,6 +116,7 @@ export const ja: Translation = {
 	[Key.portalViewMore]: "もっと見る",
 	[Key.portalRunningDays]: "運営",
 	[Key.portalDays]: "日目",
+	[Key.life]: "生活",
 	[Key.recentLife]: "最新の記録",
 	[Key.recentItems]: "最近の更新",
 

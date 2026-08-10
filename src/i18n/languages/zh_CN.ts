@@ -88,6 +88,7 @@ export const zh_CN: Translation = {
 	[Key.minuteCount]: "分钟",
 	[Key.minutesCount]: "分钟",
 	[Key.postCount]: "篇文章",
+	[Key.posts]: "文章",
 	[Key.postsCount]: "篇文章",
 
 	[Key.themeColor]: "主题色相",
@@ -113,6 +114,7 @@ export const zh_CN: Translation = {
 	[Key.portalViewMore]: "查看更多",
 	[Key.portalRunningDays]: "已运行",
 	[Key.portalDays]: "天",
+	[Key.life]: "生活",
 	[Key.recentLife]: "最新记录",
 	[Key.recentItems]: "最近更新",
 	// 番组计划筛选和状态文本

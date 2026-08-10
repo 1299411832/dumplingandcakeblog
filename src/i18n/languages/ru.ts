@@ -90,6 +90,7 @@ export const ru: Translation = {
 	[Key.minuteCount]: "минута",
 	[Key.minutesCount]: "минуты",
 	[Key.postCount]: "пост",
+	[Key.posts]: "Статьи",
 	[Key.postsCount]: "постов",
 
 	[Key.themeColor]: "Цвет темы",
@@ -115,6 +116,7 @@ export const ru: Translation = {
 	[Key.portalViewMore]: "Ещё",
 	[Key.portalRunningDays]: "Работает",
 	[Key.portalDays]: "дней",
+	[Key.life]: "Жизнь",
 	[Key.recentLife]: "Последние записи",
 	[Key.recentItems]: "Недавние обновления",
 
