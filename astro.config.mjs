@@ -292,6 +292,8 @@ export default defineConfig({
 			},
 		},
 		build: {
+			// 大 chunk 阈值：KaTeX 等库较大，500kB 会误报，调到 800kB
+			chunkSizeWarningLimit: 800,
 			// 启用资源压缩和优化
 			minify: "terser",
 			terserOptions: {

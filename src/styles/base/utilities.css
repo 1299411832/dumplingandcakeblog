@@ -1,6 +1,12 @@
-/* ===== 自定义 Tailwind 工具类 ===== */
+/* ===== 自定义工具类（按钮/链接展开动画） ===== */
+/* 用分组选择器替代 @utility：避免 lightningcss minify 的 Unknown at rule 警告。
+   .scale-animation / .link / .link-lg 需要此动画（原 @apply expand-animation），
+   直接在选择器组里合并声明，行为一致 */
 
-@utility expand-animation {
+.expand-animation,
+.scale-animation,
+.link,
+.link-lg {
   position: relative;
   z-index: 0;
   &::before {

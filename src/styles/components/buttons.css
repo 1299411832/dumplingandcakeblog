@@ -17,7 +17,7 @@
       @apply hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active);
     }
     &.scale-animation {
-      @apply expand-animation;
+      /* 展开动画由 utilities.css 分组选择器提供 */
     }
   }
 
