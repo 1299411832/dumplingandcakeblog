@@ -201,6 +201,30 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 **Swup 容器内（`#swup-container`）的组件避免 `client:load`，因为每次导航都会重新挂载。**
 
+### 5.4 Svelte 5 编码规范（避免编译器警告）
+
+**可交互元素（a11y）**：
+- 可点击元素优先用 `<button>` / `<a>`；必须用 `<div>` 时，加 `role="button"` + `tabindex="0"` + `onkeydown`（Enter/Space 触发相同处理）
+- 无文本内容的按钮/链接必须加 `aria-label`
+- slider 类元素：`role="slider"` + `tabindex="0"` + `aria-valuenow`
+- `mouseover`/`mouseenter` 需配 `focus`/`focusin` 键盘事件
+- 确因设计需要忽略检查时，用行注释说明原因：
+  ```svelte
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  ```
+
+**runes（Svelte 5 响应式）**：
+- 所有响应式变量必须用 `$state(...)` 声明（包括 DOM ref：`let el = $state<HTMLDivElement>()`），禁止裸 `let` + 后续赋值
+- 派生值用 `$derived(...)`，副作用用 `$effect(...)`
+
+**模板**：
+- 非 void 标签禁止自闭合：`<div></div>`（不要 `<div />`），`<span></span>` 同理
+
+**样式**：
+- 不用到的 CSS 选择器及时删除（`<style>` 内未引用选择器会警告）
+
+**验证**：修改 Svelte 组件后跑 `pnpm build` 或 dev，确认无 `vite-plugin-svelte` 警告输出。
+
 ---
 
 ## 6. 配置系统
