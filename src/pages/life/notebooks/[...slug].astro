@@ -1,4 +1,5 @@
 ---
+import type { CollectionEntry } from "astro:content";
 import { getCollection, render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
@@ -11,10 +12,10 @@ export async function getStaticPaths() {
 	const paths: {
 		params: { slug: string };
 		props: {
-			entry: any;
-			entries?: any[];
-			sortedEntries?: any[];
-			item?: any;
+			entry: CollectionEntry<"notebooks">;
+			entries?: CollectionEntry<"notebooks">[];
+			sortedEntries?: CollectionEntry<"notebooks">[];
+			item?: CollectionEntry<"notebooks">;
 			isNotebookIndex?: boolean;
 		};
 	}[] = [];
@@ -69,9 +70,9 @@ export async function getStaticPaths() {
 }
 
 const { entry, sortedEntries, item, isNotebookIndex } = Astro.props as {
-	entry: any;
-	sortedEntries?: any[];
-	item?: any;
+	entry: CollectionEntry<"notebooks">;
+	sortedEntries?: CollectionEntry<"notebooks">[];
+	item?: CollectionEntry<"notebooks">;
 	isNotebookIndex: boolean;
 };
 const notebookContent = !isNotebookIndex && item ? await render(item) : null;
@@ -137,10 +138,10 @@ if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
 		const noteItemId = e.id.replace(/\\/g, "/");
 		const itemSlug =
 			noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
-		if (!yearMap.has(y)) yearMap.set(y, new Map());
-		const monthMap = yearMap.get(y)!;
+		const monthMap = yearMap.get(y) ?? new Map<number, ArchiveEntry[]>();
+		yearMap.set(y, monthMap);
 		if (!monthMap.has(m)) monthMap.set(m, []);
-		monthMap.get(m)!.push({
+		monthMap.get(m)?.push({
 			slug: itemSlug,
 			day: String(d.getDate()).padStart(2, "0"),
 			name: e.data.name || itemSlug,

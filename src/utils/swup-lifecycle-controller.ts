@@ -33,7 +33,7 @@ export function initSwupLifecycle(): void {
 	const setup = () => {
 		window.swup.hooks.on(
 			"link:click",
-			(visit: any, { el }: { el: HTMLAnchorElement }) => {
+			(visit: { to?: { url: string } }, { el }: { el: HTMLAnchorElement }) => {
 				// Remove the delay for the first time page load
 				document.documentElement.style.setProperty("--content-delay", "0ms");
 
@@ -82,10 +82,10 @@ export function initSwupLifecycle(): void {
 			const isHome = pathsEqual(window.location.pathname, url("/"));
 
 			if (isHome) {
-				bodyElement!.classList.add("lg:is-home");
+				bodyElement?.classList.add("lg:is-home");
 				document.documentElement.classList.add("lg:is-home");
 			} else {
-				bodyElement!.classList.remove("lg:is-home");
+				bodyElement?.classList.remove("lg:is-home");
 				document.documentElement.classList.remove("lg:is-home");
 			}
 
@@ -204,10 +204,12 @@ export function initSwupLifecycle(): void {
 			const isArticlePage = tocWrapper !== null;
 
 			if (isArticlePage) {
-				const tocElement = document.querySelector("table-of-contents");
-				if (tocElement && typeof (tocElement as any).init === "function") {
+				const tocElement = document.querySelector<
+					HTMLElement & { init: () => void }
+				>("table-of-contents");
+				if (tocElement && typeof tocElement.init === "function") {
 					setTimeout(() => {
-						(tocElement as any).init();
+						tocElement.init();
 					}, 100);
 				}
 			}
@@ -221,10 +223,8 @@ export function initSwupLifecycle(): void {
 
 				if (transparentMode === "semifull") {
 					try {
-						if (
-							typeof (window as any).initSemifullScrollDetection === "function"
-						) {
-							(window as any).initSemifullScrollDetection();
+						if (typeof window.initSemifullScrollDetection === "function") {
+							window.initSemifullScrollDetection();
 						}
 					} catch (e) {
 						console.warn("[swup] semifull scroll detection init failed:", e);
@@ -236,118 +236,121 @@ export function initSwupLifecycle(): void {
 			window.dispatchEvent(new CustomEvent("swup:content:replaced"));
 		});
 
-		window.swup.hooks.on("visit:start", (visit: { to: { url: string } }) => {
-			// Music page uses different layout structure - force full page load
-			const fromPath = window.location.pathname;
-			let toPath: string;
-			try {
-				toPath = new URL(visit.to.url, window.location.origin).pathname;
-			} catch {
-				toPath = visit.to.url || "";
-			}
-			const isMusicPage = (p: string) => p === "/music/" || p === "/music";
-			if (isMusicPage(fromPath) || isMusicPage(toPath)) {
-				(visit as any).abort();
-				(window as any).swup.loadPage(visit.to.url, {
-					animate: false,
+		window.swup.hooks.on(
+			"visit:start",
+			(visit: { to: { url: string }; abort: () => void }) => {
+				// Music page uses different layout structure - force full page load
+				const fromPath = window.location.pathname;
+				let toPath: string;
+				try {
+					toPath = new URL(visit.to.url, window.location.origin).pathname;
+				} catch {
+					toPath = visit.to.url || "";
+				}
+				const isMusicPage = (p: string) => p === "/music/" || p === "/music";
+				if (isMusicPage(fromPath) || isMusicPage(toPath)) {
+					visit.abort();
+					window.swup.loadPage(visit.to.url, {
+						animate: false,
+					});
+					return;
+				}
+
+				// Destroy any leftover lightbox DOM to prevent cross-page image bleed
+				const allLbs = document.querySelectorAll("#photo-lightbox");
+				allLbs.forEach((lb) => {
+					const img = lb.querySelector("#lightbox-image, .lightbox-img");
+					if (img) {
+						(img as HTMLImageElement).removeAttribute("src");
+						(img as HTMLImageElement).src = "";
+					}
+					if (lb.parentNode) lb.parentNode.removeChild(lb);
 				});
-				return;
-			}
+				document.body.style.overflow = "";
 
-			// Destroy any leftover lightbox DOM to prevent cross-page image bleed
-			const allLbs = document.querySelectorAll("#photo-lightbox");
-			allLbs.forEach((lb) => {
-				const img = lb.querySelector("#lightbox-image, .lightbox-img");
-				if (img) {
-					(img as HTMLImageElement).removeAttribute("src");
-					(img as HTMLImageElement).src = "";
+				// Start progress bar
+				const progressBar = document.getElementById("progress-bar");
+				if (progressBar) {
+					progressBar.classList.remove("finishing", "done");
+					// Force reflow so the animation restarts cleanly
+					void progressBar.offsetWidth;
+					progressBar.classList.add("loading");
 				}
-				if (lb.parentNode) lb.parentNode.removeChild(lb);
-			});
-			document.body.style.overflow = "";
 
-			// Start progress bar
-			const progressBar = document.getElementById("progress-bar");
-			if (progressBar) {
-				progressBar.classList.remove("finishing", "done");
-				// Force reflow so the animation restarts cleanly
-				void progressBar.offsetWidth;
-				progressBar.classList.add("loading");
-			}
+				// Control mobile banner visibility with improved staging animation
+				const isMobile = window.innerWidth < 1024;
+				const isHomePage = pathsEqual(visit.to.url, url("/"));
 
-			// Control mobile banner visibility with improved staging animation
-			const isMobile = window.innerWidth < 1024;
-			const isHomePage = pathsEqual(visit.to.url, url("/"));
-
-			// Disable post list container transition on mobile to prevent conflicts
-			if (isMobile) {
-				const postListContainer = document.getElementById(
-					"post-list-container",
-				);
-				if (postListContainer) {
-					postListContainer.style.transition = "none";
+				// Disable post list container transition on mobile to prevent conflicts
+				if (isMobile) {
+					const postListContainer = document.getElementById(
+						"post-list-container",
+					);
+					if (postListContainer) {
+						postListContainer.style.transition = "none";
+					}
 				}
-			}
 
-			const wallpaperWrapper = document.getElementById("wallpaper-wrapper");
-			const mainContentWrapper = document.querySelector(
-				".absolute.w-full.z-30",
-			) as HTMLElement | null;
+				const wallpaperWrapper = document.getElementById("wallpaper-wrapper");
+				const mainContentWrapper = document.querySelector(
+					".absolute.w-full.z-30",
+				) as HTMLElement | null;
 
-			if (isMobile && wallpaperWrapper && mainContentWrapper) {
-				// Cancel any in-flight banner animation from previous navigation
-				if (bannerAnimCtrl) bannerAnimCtrl.abort();
-				bannerAnimCtrl = new AbortController();
-				const sig = bannerAnimCtrl.signal;
+				if (isMobile && wallpaperWrapper && mainContentWrapper) {
+					// Cancel any in-flight banner animation from previous navigation
+					if (bannerAnimCtrl) bannerAnimCtrl.abort();
+					bannerAnimCtrl = new AbortController();
+					const sig = bannerAnimCtrl.signal;
 
-				if (isHomePage) {
-					// Home page: disable main content transition to prevent list shift
-					mainContentWrapper.style.transition = "none";
+					if (isHomePage) {
+						// Home page: disable main content transition to prevent list shift
+						mainContentWrapper.style.transition = "none";
 
-					// Show banner first, then remove hidden class for smooth appearance
-					wallpaperWrapper.style.display = "";
-					setTimeout(() => {
-						if (sig.aborted) return;
-						wallpaperWrapper.classList.remove("mobile-hide-banner");
-					}, 100);
-					setTimeout(() => {
-						if (sig.aborted) return;
-						mainContentWrapper.classList.remove("mobile-main-no-banner");
-						// Restore transition after position animation completes
+						// Show banner first, then remove hidden class for smooth appearance
+						wallpaperWrapper.style.display = "";
 						setTimeout(() => {
 							if (sig.aborted) return;
-							mainContentWrapper.style.transition = "";
-						}, 50);
-					}, 150);
-				} else {
-					// Non-home: staged hide - banner first, then content shift
-					wallpaperWrapper.classList.add("mobile-hide-banner");
-					setTimeout(() => {
-						if (sig.aborted) return;
-						mainContentWrapper.classList.add("mobile-main-no-banner");
-					}, 100);
+							wallpaperWrapper.classList.remove("mobile-hide-banner");
+						}, 100);
+						setTimeout(() => {
+							if (sig.aborted) return;
+							mainContentWrapper.classList.remove("mobile-main-no-banner");
+							// Restore transition after position animation completes
+							setTimeout(() => {
+								if (sig.aborted) return;
+								mainContentWrapper.style.transition = "";
+							}, 50);
+						}, 150);
+					} else {
+						// Non-home: staged hide - banner first, then content shift
+						wallpaperWrapper.classList.add("mobile-hide-banner");
+						setTimeout(() => {
+							if (sig.aborted) return;
+							mainContentWrapper.classList.add("mobile-main-no-banner");
+						}, 100);
+					}
+				} else if (!isMobile && wallpaperWrapper) {
+					// Desktop: ensure banner is visible
+					wallpaperWrapper.style.display = "";
+					wallpaperWrapper.classList.remove("mobile-hide-banner");
+					if (mainContentWrapper) {
+						mainContentWrapper.classList.remove("mobile-main-no-banner");
+					}
 				}
-			} else if (!isMobile && wallpaperWrapper) {
-				// Desktop: ensure banner is visible
-				wallpaperWrapper.style.display = "";
-				wallpaperWrapper.classList.remove("mobile-hide-banner");
-				if (mainContentWrapper) {
-					mainContentWrapper.classList.remove("mobile-main-no-banner");
+
+				// Increase page height during transition to prevent scroll animation jump
+				const heightExtend = document.getElementById("page-height-extend");
+				if (heightExtend) {
+					heightExtend.classList.remove("hidden");
 				}
-			}
 
-			// Increase page height during transition to prevent scroll animation jump
-			const heightExtend = document.getElementById("page-height-extend");
-			if (heightExtend) {
-				heightExtend.classList.remove("hidden");
-			}
-
-			// Hide TOC while scrolling back to top
-			const toc = document.getElementById("toc-wrapper");
-			if (toc) {
-				toc.classList.add("toc-not-ready");
-			}
-		});
+				// Hide TOC while scrolling back to top
+				const toc = document.getElementById("toc-wrapper");
+				if (toc) {
+					toc.classList.add("toc-not-ready");
+				}
+			},
+		);
 
 		window.swup.hooks.on("page:view", () => {
 			const isHome = pathsEqual(window.location.pathname, url("/"));
@@ -427,17 +430,16 @@ export function initSwupLifecycle(): void {
 					if (!feed || !sentinel) return;
 
 					const BATCH = 5;
-					const gKey = "__momentsScrollState";
-					if (!(window as any)[gKey]) {
-						(window as any)[gKey] = { observer: null };
+					if (!window.__momentsScrollState) {
+						window.__momentsScrollState = { observer: null };
 					}
-					const gs = (window as any)[gKey];
+					const gs = window.__momentsScrollState;
 					let count = BATCH;
 					let loading = false;
 					let done = false;
 
 					function items() {
-						return Array.from(feed!.querySelectorAll(".wx-feed-item"));
+						return Array.from(feed.querySelectorAll(".wx-feed-item"));
 					}
 					function show() {
 						const all = items();
@@ -448,7 +450,7 @@ export function initSwupLifecycle(): void {
 					function check() {
 						const total = items().length;
 						done = count >= total;
-						sentinel!.classList[done ? "add" : "remove"]("hidden");
+						sentinel.classList[done ? "add" : "remove"]("hidden");
 					}
 					function more() {
 						if (loading || done) return;
@@ -466,7 +468,7 @@ export function initSwupLifecycle(): void {
 						}, 300);
 					}
 					function vis() {
-						const r = sentinel!.getBoundingClientRect();
+						const r = sentinel.getBoundingClientRect();
 						return r.top < window.innerHeight + 200;
 					}
 					function obs() {
@@ -492,8 +494,8 @@ export function initSwupLifecycle(): void {
 				})();
 
 				// Changelog page infinite scroll
-				if (typeof (window as any).__resetChangelogScroll === "function") {
-					(window as any).__resetChangelogScroll();
+				if (typeof window.__resetChangelogScroll === "function") {
+					window.__resetChangelogScroll();
 				}
 			}, 300);
 		});

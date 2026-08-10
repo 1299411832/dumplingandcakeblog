@@ -131,7 +131,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 		},
 		{
 			// 组件类型：天气组件
-			type: "weather" as any,
+			type: "weather",
 			enable: true,
 			position: "top",
 			showOnPostPage: false,
@@ -169,7 +169,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 		},
 		{
 			// 组件类型：抖音热搜
-			type: "douyinHot" as any,
+			type: "douyinHot",
 			enable: true,
 			position: "top",
 			showOnPostPage: false,

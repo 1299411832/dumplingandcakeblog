@@ -22,9 +22,12 @@ const categories = await getCategoryList();
 // Fetch announcement data
 const ziyuanEntries = await getCollection("ziyuan");
 const announcementEntry = ziyuanEntries.find((e) => e.id === "announcement");
-const announcementData = announcementEntry?.data as any;
-const announcementContent = (announcementData?.content as string) || "暂无公告";
-const announcementLink = announcementData?.link;
+const announcementData = announcementEntry?.data;
+const announcementContent = announcementData?.content ?? "暂无公告";
+const announcementLink =
+	announcementData && "link" in announcementData
+		? announcementData.link
+		: undefined;
 
 // Fetch music playlist from bangumi (same source as music page)
 const metingApiBase = musicPlayerConfig.meting?.api

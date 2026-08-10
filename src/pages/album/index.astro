@@ -1,4 +1,5 @@
 ---
+import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import BounceCards from "@/components/features/BounceCards.astro";
@@ -16,10 +17,12 @@ async function fetchImgbedPreview(folder: string): Promise<string[]> {
 			{ headers: { Authorization: `Bearer ${imgbedToken}` } },
 		);
 		if (!resp.ok) return [];
-		const data = await resp.json();
+		const data = (await resp.json()) as {
+			files?: { name: string; metadata?: { FileType?: string } }[];
+		};
 		return (data.files || [])
-			.filter((f: any) => f.metadata?.FileType?.startsWith("image/"))
-			.map((f: any) => `${imgbedUrl}/file/${f.name}`);
+			.filter((f) => f.metadata?.FileType?.startsWith("image/"))
+			.map((f) => `${imgbedUrl}/file/${f.name}`);
 	} catch {
 		return [];
 	}
@@ -38,7 +41,9 @@ const imgbedPreviewCache = new Map<string, string[]>();
 const imgbedAlbums = sortedAlbums.filter((a) => a.data.imgbedFolder);
 if (imgbedAlbums.length > 0) {
 	const results = await Promise.all(
-		imgbedAlbums.map((a) => fetchImgbedPreview(a.data.imgbedFolder!)),
+		imgbedAlbums.map((a) =>
+			a.data.imgbedFolder ? fetchImgbedPreview(a.data.imgbedFolder) : [],
+		),
 	);
 	imgbedAlbums.forEach((a, i) => {
 		if (results[i].length > 0) imgbedPreviewCache.set(a.id, results[i]);
@@ -66,7 +71,7 @@ const formatDateRange = (start: Date, end: Date) => {
 	return `${format(start)} - ${format(end)}`;
 };
 
-function getPreviewPhotos(album: any) {
+function getPreviewPhotos(album: CollectionEntry<"album">) {
 	if (album.data.imgbedFolder) {
 		return imgbedPreviewCache.get(album.id) || [];
 	}

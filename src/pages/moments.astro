@@ -27,7 +27,9 @@ const momentAssets = import.meta.glob<{ default: ImageMetadata }>(
 );
 
 // 解析图片路径
-const parseImages = (imagesData: any): (string | ImageMetadata)[] => {
+const parseImages = (
+	imagesData: (ImageMetadata | string)[] | string | undefined,
+): (string | ImageMetadata)[] => {
 	let rawPaths: string[] = [];
 	if (Array.isArray(imagesData)) {
 		rawPaths = imagesData.map((img) =>

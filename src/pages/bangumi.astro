@@ -87,7 +87,7 @@ const mappedData = customBangumi.map((item) => {
 		subject_id: 0,
 		subject_type: categoryInfo.subjectType,
 		rate: data.score || 0,
-		type: data.status as any,
+		type: data.status,
 		comment: data.comment || null,
 		tags: data.tags || [],
 		ep_status: 0,

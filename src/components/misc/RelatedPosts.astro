@@ -1,4 +1,5 @@
 ---
+import type { CollectionEntry } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getSortedPosts } from "@utils/content-utils";
@@ -24,7 +25,7 @@ const otherPosts = allPosts.filter((post) => {
 });
 
 // 计算相关度：优先同分类，其次标签重叠度
-function calculateRelevance(post: any): {
+function calculateRelevance(post: CollectionEntry<"posts">): {
 	score: number;
 	sameCategory: boolean;
 } {

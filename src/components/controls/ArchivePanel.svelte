@@ -142,18 +142,18 @@ function groupByYearMonth(ps: Post[]): YearGroup[] {
 	for (const p of ps) {
 		const y = p.data.published.getFullYear();
 		const mo = p.data.published.getMonth() + 1;
-		if (!ym.has(y)) ym.set(y, new Map());
-		const mm = ym.get(y)!;
+		const mm = ym.get(y) ?? new Map<number, Post[]>();
+		ym.set(y, mm);
 		if (!mm.has(mo)) mm.set(mo, []);
-		mm.get(mo)!.push(p);
+		mm.get(mo)?.push(p);
 	}
 	return Array.from(ym.keys())
 		.sort((a, b) => b - a)
 		.map((year) => {
-			const mm = ym.get(year)!;
+			const mm = ym.get(year) ?? new Map<number, Post[]>();
 			const months = Array.from(mm.keys())
 				.sort((a, b) => b - a)
-				.map((month) => ({ month, posts: mm.get(month)! }));
+				.map((month) => ({ month, posts: mm.get(month) ?? [] }));
 			return {
 				year,
 				months,
@@ -171,8 +171,10 @@ function getItemUrl(post: Post): string {
 		return "/moments/";
 	}
 	if (post.type && post.type !== "post") {
-		// @ts-expect-error - data.link exists on ArchiveItem
-		return (post as any).data?.link || getPostUrlBySlug(post.id);
+		return (
+			(post as { data?: { link?: string } }).data?.link ||
+			getPostUrlBySlug(post.id)
+		);
 	}
 	return getPostUrlBySlug(post.id);
 }

@@ -76,10 +76,12 @@ for (const post of posts) {
 	let node = root;
 
 	for (const part of parts) {
-		if (!node.folders.has(part)) {
-			node.folders.set(part, createNode());
+		let child = node.folders.get(part);
+		if (!child) {
+			child = createNode();
+			node.folders.set(part, child);
 		}
-		node = node.folders.get(part)!;
+		node = child;
 	}
 
 	node.articles.push({

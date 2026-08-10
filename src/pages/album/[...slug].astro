@@ -15,18 +15,20 @@ export async function getStaticPaths() {
 const { album } = Astro.props;
 const isImgbed = !!album.data.imgbedFolder;
 
-const photos = (album.data.photos || []).map((photo: any, index: number) => {
-	let src: string;
-	let alt: string;
-	if (typeof photo === "string") {
-		src = photo;
-		alt = "";
-	} else {
-		src = photo.src || "";
-		alt = photo.alt || "";
-	}
-	return { src, alt, index };
-});
+const photos = (album.data.photos || []).map(
+	(photo: string | { src?: string; alt?: string }, index: number) => {
+		let src: string;
+		let alt: string;
+		if (typeof photo === "string") {
+			src = photo;
+			alt = "";
+		} else {
+			src = photo.src || "";
+			alt = photo.alt || "";
+		}
+		return { src, alt, index };
+	},
+);
 
 // 图床 API 配置（用于客户端动态加载）
 const imgbedUrl = import.meta.env.PUBLIC_IMAGEBED_URL || "";

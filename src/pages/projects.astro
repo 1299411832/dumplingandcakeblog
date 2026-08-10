@@ -16,7 +16,9 @@ allEntries.forEach((entry) => {
 		categoryMap.set(cat, []);
 		allCategories.push(cat);
 	}
-	categoryMap.get(cat)!.push(entry);
+	const list = categoryMap.get(cat) ?? [];
+	list.push(entry);
+	categoryMap.set(cat, list);
 });
 
 // 排序
@@ -73,7 +75,7 @@ for (const [cat, items] of sortedData) {
 }
 
 // 所有启用的网站（扁平列表）
-const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat)!);
+const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat) ?? []);
 ---
 
 <MainGridLayout title="网站导航" description="收录个人网站、常用工具和收藏网站">

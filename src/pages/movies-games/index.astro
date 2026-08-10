@@ -58,7 +58,7 @@ interface MgItem {
 		collection_total: number;
 		score: number;
 		rank: number;
-		tags: any[];
+		tags: string[];
 	};
 	_subcategory?: string;
 }
@@ -78,7 +78,7 @@ const mgItems: MgItem[] = customBangumi
 			real: 6,
 		};
 
-		const subcategory = (data as any).subcategory as string | undefined;
+		const subcategory = data.subcategory;
 
 		return {
 			subject_id: 0,

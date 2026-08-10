@@ -30,7 +30,7 @@ export const getStaticPaths = (async () => {
 		params: { category: string };
 		props: {
 			categoryName: string;
-			posts: any[];
+			posts: CollectionEntry<"posts">[];
 			totalPosts: number;
 			tags: { name: string; count: number }[];
 		};

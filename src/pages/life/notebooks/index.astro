@@ -18,8 +18,10 @@ const sortByDateDesc = <T extends Record<string, unknown>>(
 	field: keyof T,
 ) =>
 	[...list].sort((a, b) => {
-		const aDate = a[field] instanceof Date ? a[field]!.getTime() : 0;
-		const bDate = b[field] instanceof Date ? b[field]!.getTime() : 0;
+		const av = a[field];
+		const bv = b[field];
+		const aDate = av instanceof Date ? av.getTime() : 0;
+		const bDate = bv instanceof Date ? bv.getTime() : 0;
 		return bDate - aDate;
 	});
 

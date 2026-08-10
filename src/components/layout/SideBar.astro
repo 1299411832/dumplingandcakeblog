@@ -1,5 +1,6 @@
 ---
 import type { MarkdownHeading } from "astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 import Advertisement from "@/components/widget/Advertisement.astro";
 import Announcement from "@/components/widget/Announcement.astro";
 import Calendar from "@/components/widget/Calendar.astro";
@@ -63,9 +64,9 @@ const componentMap = {
 	lifeStats: LifeStats,
 	siteHeatmap: SiteHeatmap,
 	quoteOfTheDay: QuoteOfTheDay,
-	douyinHot: DouyinHot as any,
-	weather: Weather as any,
-} satisfies Record<WidgetComponentType, any>;
+	douyinHot: DouyinHot as AstroComponentFactory,
+	weather: Weather as AstroComponentFactory,
+} satisfies Record<WidgetComponentType, AstroComponentFactory>;
 
 // 获取侧边栏位置
 const side = (Astro.props.side ||

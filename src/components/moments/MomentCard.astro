@@ -37,7 +37,9 @@ const isVideoUrl = (url: string): boolean => {
 };
 
 // 解析图片路径，同时分离视频
-const parseImages = (imagesData: any): (string | ImageMetadata)[] => {
+const parseImages = (
+	imagesData: (ImageMetadata | string)[] | string | undefined,
+): (string | ImageMetadata)[] => {
 	let rawPaths: string[] = [];
 	if (Array.isArray(imagesData)) {
 		rawPaths = imagesData.map((img) =>

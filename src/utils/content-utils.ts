@@ -136,9 +136,7 @@ export async function getArchiveList(): Promise<ArchiveItem[]> {
 				tags: [],
 				category: null,
 				image:
-					typeof b.data.image === "string"
-						? b.data.image
-						: (b.data.image as any)?.src,
+					typeof b.data.image === "string" ? b.data.image : b.data.image.src,
 				link,
 			},
 		};

@@ -83,13 +83,19 @@ let linkText = $state("");
 let timerDone = false;
 let dataLoaded = false;
 
+declare global {
+	interface Window {
+		__commentModal?: { open: () => void };
+	}
+}
+
 onMount(() => {
 	nickText = localStorage.getItem("comment-nick") || "";
 	mailText = localStorage.getItem("comment-mail") || "";
 	linkText = localStorage.getItem("comment-link") || "";
-	(window as any).__commentModal = { open };
+	window.__commentModal = { open };
 	return () => {
-		delete (window as any).__commentModal;
+		delete window.__commentModal;
 	};
 });
 

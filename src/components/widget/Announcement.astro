@@ -8,14 +8,27 @@ import { i18n } from "@/i18n/translation";
 // 从 content/ziyuan/announcement.md 读取公告配置
 const ziyuanEntries = await getCollection("ziyuan");
 const announcementEntry = ziyuanEntries.find((e) => e.id === "announcement");
-const announcementData = announcementEntry?.data as any;
+
+// ziyuan 是 union schema，这里按公告分支（含 link/closable）读取
+type AnnouncementData = {
+	title?: string;
+	content?: string;
+	closable?: boolean;
+	link?: {
+		enable?: boolean;
+		text?: string;
+		url?: string;
+		external?: boolean;
+	};
+};
+const announcementData = (announcementEntry?.data ?? {}) as AnnouncementData;
 
 // 兼容旧配置：如果没有数据则使用默认值
 const config = {
-	title: announcementData?.title || "公告",
-	content: announcementData?.content || "默认内容",
-	closable: announcementData?.closable ?? true,
-	link: announcementData?.link,
+	title: announcementData.title || "公告",
+	content: announcementData.content || "默认内容",
+	closable: announcementData.closable ?? true,
+	link: announcementData.link,
 };
 
 interface Props {

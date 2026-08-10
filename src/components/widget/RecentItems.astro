@@ -48,7 +48,7 @@ const allItems = [
 				image =
 					typeof m.data.images[0] === "string"
 						? m.data.images[0]
-						: (m.data.images[0] as any).src;
+						: m.data.images[0].src;
 			} else if (typeof m.data.images === "string") {
 				image = m.data.images;
 			}
@@ -87,9 +87,7 @@ const allItems = [
 				date: b.data.published || new Date(0),
 				url,
 				image:
-					typeof b.data.image === "string"
-						? b.data.image
-						: (b.data.image as any).src,
+					typeof b.data.image === "string" ? b.data.image : b.data.image.src,
 				id: b.id,
 			};
 		}),
