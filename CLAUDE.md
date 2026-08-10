@@ -12,7 +12,7 @@
 | 框架 | Astro 7.1.6 + Svelte 5 + Tailwind CSS v4 |
 | 包管理 | pnpm 9.14.4 (ESM, `preinstall` 强制) |
 | 运行时 | Node.js >= 22 |
-| 部署 | EdgeOne Pages（主，GitHub 集成自动构建）+ GitHub Pages（CI，见第 18 节分支警告） |
+| 部署 | EdgeOne Pages（主，GitHub 集成自动构建） |
 | 线上 | https://blog.tsh520.cn/ |
 | 后台 | PagesCMS 自托管（Vercel + EdgeOne 加速）：https://cms.tsh520.cn/（配置见第 19 节） |
 | 来源 | Fork 自 CuteLeaf/Firefly ← saicaca/fuwari，已深度定制为独立演化 |
@@ -591,7 +591,7 @@ return controller;
 
 | 问题 | 影响 | 建议 |
 |------|------|------|
-| **build.yml / deploy.yml 监听 `master` 但分支是 `main`** | **这两个 CI 从不触发**（biome.yml 已于 2026-08 修复为 `main` 并正常跑） | 启用 GitHub Pages/构建 CI 时改 `on.push.branches` 为 `main`，并升级 action 到 Node 24 版本 |
+| ~~build.yml / deploy.yml 监听 master~~ | 已处理（2026-08）：deploy.yml 删除（不用 GitHub Pages），build.yml 改 `main` + action 升级 Node 24，首次运行中 | 看 CI 结果，若 astro check 报错则修 |
 | `swup-lifecycle-controller.ts` ~540 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
 | Waline 代码散布 3 处 | 改配置需改 3 个文件 | 需要时合并 |
 | Layout.astro 内联脚本含 moments 评论 | 布局包含功能逻辑 | 需要时提取 |
@@ -602,7 +602,7 @@ return controller;
 | HomeHero GSAP 入口动画已跳过 | 首页元素直接显示，无逐个动画 | 恢复需重写 `initHeroOpening()` |
 | `stylus` 依赖 | 已移除（2026-08） | — |
 | 空目录残留（album/daily/admin 等） | 已清理（2026-08） | — |
-| `public/admin/`（Decap 遗留）、`cloud-functions/`（Decap 方案云函数） | `public/admin` 已删除；`cloud-functions` 待确认删除 | 确认 EdgeOne 无依赖后删除 |
+| `public/admin/`、`cloud-functions/`（Decap 遗留） | 均已删除（2026-08，oauth 端点无消费者） | — |
 | AGENTS.md | 已改为指向 CLAUDE.md 的入口（勿复制内容，避免双重维护） | — |
 | `.wrangler/` 误提交 | 已取消跟踪 + 加入 .gitignore | — |
 
