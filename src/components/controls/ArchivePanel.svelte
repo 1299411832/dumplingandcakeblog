@@ -364,7 +364,9 @@ function moveIndicator() {
 	const wrap = tabWrapEl;
 	const ind = indicatorEl;
 	if (!wrap || !ind) return;
-	const active = wrap.querySelector<HTMLButtonElement>(".ap-tab.active");
+	const active = wrap.querySelector<HTMLButtonElement>(
+		'.ap-tab[aria-selected="true"]',
+	);
 	if (!active) {
 		ind.style.opacity = "0";
 		return;
@@ -383,7 +385,7 @@ $effect(() => {
 });
 
 $effect(() => {
-	// flex-wrap 换行后重算指示条位置
+	// 窗口尺寸变化后重算指示条位置
 	const handler = () => moveIndicator();
 	window.addEventListener("resize", handler);
 	return () => window.removeEventListener("resize", handler);
@@ -399,7 +401,6 @@ $effect(() => {
         role="tab"
         aria-selected={activeType === tab.value}
         class="ap-tab"
-        class:active={activeType === tab.value}
         onclick={() => switchType(tab.value)}
       >
         {i18n(tab.labelKey)}
@@ -431,7 +432,7 @@ $effect(() => {
   {#each yearGroups as yg (yg.year)}
     <div class="ap-year-block" use:registerYearBlock={yg.year}>
       <div class="ap-year-header">
-        <div class="ap-col"><div class="ap-node ap-year-node" class:highlighted={highlightedYear === yg.year}></div></div>
+        <div class="ap-col"><div class="ap-node ap-year-node" data-hl={highlightedYear === yg.year || undefined}></div></div>
         <div class="ap-year-label">
           <h2 class="ap-h1">{yg.year}{i18n(I18nKey.year)}</h2>
           <span class="ap-count">共 {yg.totalCount} {i18n(yg.totalCount === 1 ? I18nKey.postCount : I18nKey.postsCount)}</span>
@@ -441,7 +442,7 @@ $effect(() => {
         {#each yg.months as mg (mg.month)}
           <div class="ap-month-block" use:registerMonthBlock={{ year: yg.year, month: mg.month }}>
             <div class="ap-month-header">
-              <div class="ap-col"><div class="ap-hline ap-month-hline"></div><div class="ap-node ap-month-node" class:highlighted={highlightedMonth === `${yg.year}-${mg.month}`}></div></div>
+              <div class="ap-col"><div class="ap-hline ap-month-hline"></div><div class="ap-node ap-month-node" data-hl={highlightedMonth === `${yg.year}-${mg.month}` || undefined}></div></div>
               <div class="ap-month-label">
                 <h3 class="ap-h2">{formatMonth(mg.month)}</h3>
                 <span class="ap-count">{mg.posts.length} {i18n(mg.posts.length === 1 ? I18nKey.postCount : I18nKey.postsCount)}</span>
@@ -451,7 +452,7 @@ $effect(() => {
               <ul class="ap-post-list">
                 {#each mg.posts as post, idx (post.id)}
                   <li class="ap-post-row" class:last={idx === mg.posts.length - 1} use:registerPostRow={post.id}>
-                    <div class="ap-col"><div class="ap-hline ap-post-hline"></div><div class="ap-node ap-post-node" class:hovered={hoveredPostId === post.id}></div></div>
+                    <div class="ap-col"><div class="ap-hline ap-post-hline"></div><div class="ap-node ap-post-node"></div></div>
                     <a href={getItemUrl(post)} aria-label={post.data.title} class="ap-post-link group btn-plain"
                        onmouseenter={() => onPostEnter(post.id)} onmouseleave={onPostLeave}>
                       <span class="ap-date">{formatDate(post.data.published)}</span>
@@ -486,13 +487,23 @@ $effect(() => {
 
 <style>
   .archive-panel { --tw: 2rem; --lc: var(--line-color, oklch(0.82 0 0)); --lh: oklch(0.15 0 0); --nc: var(--line-color, oklch(0.82 0 0)); --nh: oklch(0.15 0 0); --lw: 2.5px; position: relative; }
-  .ap-tabs { position: relative; display: flex; flex-wrap: wrap; gap: 0.375rem; padding: 0.375rem; border-radius: 1rem; border: 2px solid var(--deep-text); margin-bottom: 1.5rem; }
-  .ap-tab-indicator { position: absolute; border-radius: 9999px; background: var(--deep-text); transition: left 0.3s cubic-bezier(0.4,0,0.2,1), top 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1); opacity: 0; pointer-events: none; z-index: 0; }
-  .ap-tab { position: relative; z-index: 1; display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border: none; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; white-space: nowrap; cursor: pointer; background: transparent; color: var(--content-meta); transition: color 0.2s, opacity 0.2s; flex-shrink: 0; font-family: inherit; }
-  .ap-tab:not(.active):hover { opacity: 0.7; }
-  .ap-tab.active { color: var(--page-bg); cursor: default; }
-  .ap-tab-count { font-size: 0.65rem; padding: 0.0625rem 0.375rem; border-radius: 9999px; background: color-mix(in oklch, var(--primary) 12%, transparent); color: var(--primary); line-height: 1.4; font-variant-numeric: tabular-nums; }
-  .ap-tab.active .ap-tab-count { background: color-mix(in oklch, var(--page-bg) 30%, transparent); color: var(--page-bg); }
+  /* 单行容器：永不换行，按钮均分宽度，窄屏时整行等比缩小 */
+  .ap-tabs { position: relative; display: flex; flex-wrap: nowrap; gap: 0.25rem; padding: 0.375rem; border-radius: 1rem; border: 2px solid var(--deep-text); margin-bottom: 1.5rem; min-width: 0; }
+  .ap-tab-indicator { position: absolute; border-radius: 9999px; background: var(--deep-text); transition: left 0.3s cubic-bezier(0.4,0,0.2,1), top 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1); opacity: 0; pointer-events: none; z-index: 10; }
+  .ap-tab { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.25rem; flex: 1 1 0; min-width: 0; padding: 0.375rem 0.375rem; border: none; border-radius: 9999px; font-size: clamp(0.6875rem, 0.6rem + 0.35vw, 0.8125rem); font-weight: 500; white-space: nowrap; cursor: pointer; background: transparent; color: var(--content-meta); transition: color 0.2s, opacity 0.2s; font-family: inherit; }
+  /* 激活态用 [aria-selected="true"] 属性选择器（Svelte CSS 优化不会移除属性选择器规则；
+     用 .active 类名曾被编译器误删导致激活文字看不见） */
+  .ap-tab:not([aria-selected="true"]):hover { opacity: 0.7; }
+  .ap-tab[aria-selected="true"] { color: #fff; cursor: default; }
+  :global(.dark) .ap-tab[aria-selected="true"] { color: #000; }
+  .ap-tab-count { flex-shrink: 0; font-size: clamp(0.5625rem, 0.5rem + 0.25vw, 0.65rem); padding: 0.0625rem 0.375rem; border-radius: 9999px; background: color-mix(in oklch, var(--primary) 12%, transparent); color: var(--primary); line-height: 1.4; font-variant-numeric: tabular-nums; }
+  .ap-tab[aria-selected="true"] .ap-tab-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+  :global(.dark) .ap-tab[aria-selected="true"] .ap-tab-count { background: rgba(0, 0, 0, 0.2); color: #000; }
+  @media (max-width: 380px) {
+    .ap-tabs { gap: 0.125rem; padding: 0.25rem; }
+    .ap-tab { padding: 0.3125rem 0.25rem; }
+    .ap-tab-count { padding: 0.0625rem 0.25rem; }
+  }
   .ap-empty { padding: 2.5rem 1rem; text-align: center; color: var(--content-meta); font-size: 0.9rem; }
   .ap-year-block { position: relative; margin-bottom: 2.5rem; }
   .ap-year-block::before { content: ""; position: absolute; left: calc(var(--tw) / 2); top: calc(var(--tw) / 2); bottom: 1rem; width: 0; border-left: var(--lw) dashed var(--lc); z-index: 0; }
@@ -506,11 +517,11 @@ $effect(() => {
   .ap-col { position: relative; width: var(--tw); flex-shrink: 0; align-self: stretch; }
   .ap-node { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 50%; z-index: 2; transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
   .ap-year-node { top: calc(50% - 0.375rem); width: 0.75rem; height: 0.75rem; border: 2px solid var(--nc); background: var(--page-bg, white); }
-  .ap-year-node.highlighted { background: var(--nh); border-color: var(--nh); }
+  .ap-year-node[data-hl="true"] { background: var(--nh); border-color: var(--nh); }
   .ap-month-node { top: calc(50% - 0.25rem); width: 0.5rem; height: 0.5rem; background: var(--nc); }
-  .ap-month-node.highlighted { background: var(--nh); }
+  .ap-month-node[data-hl="true"] { background: var(--nh); }
   .ap-post-node { top: calc(50% - 0.2rem); width: 0.4rem; height: 0.4rem; background: var(--nc); }
-  .ap-post-node.hovered { background: var(--nh); transform: translateX(-50%) scale(1.6); }
+  .ap-post-row:hover .ap-post-node { background: var(--nh); transform: translateX(-50%) scale(1.6); }
   .ap-hline { position: absolute; height: 0; border-top: var(--lw) dashed var(--lc); z-index: 1; }
   .ap-month-hline { top: 50%; left: calc(-1 * var(--tw) / 2); width: var(--tw); }
   .ap-post-hline { top: 50%; left: calc(-1 * var(--tw) / 2); width: var(--tw); }
