@@ -487,23 +487,6 @@ $effect(() => {
 
 <style>
   .archive-panel { --tw: 2rem; --lc: var(--line-color, oklch(0.82 0 0)); --lh: oklch(0.15 0 0); --nc: var(--line-color, oklch(0.82 0 0)); --nh: oklch(0.15 0 0); --lw: 2.5px; position: relative; }
-  /* 单行容器：永不换行，按钮均分宽度，窄屏时整行等比缩小 */
-  .ap-tabs { position: relative; display: flex; flex-wrap: nowrap; gap: 0.25rem; padding: 0.375rem; border-radius: 1rem; border: 2px solid var(--deep-text); margin-bottom: 1.5rem; min-width: 0; }
-  .ap-tab-indicator { position: absolute; border-radius: 9999px; background: var(--deep-text); transition: left 0.3s cubic-bezier(0.4,0,0.2,1), top 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1); opacity: 0; pointer-events: none; z-index: 10; }
-  .ap-tab { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.25rem; flex: 1 1 0; min-width: 0; padding: 0.375rem 0.375rem; border: none; border-radius: 9999px; font-size: clamp(0.6875rem, 0.6rem + 0.35vw, 0.8125rem); font-weight: 500; white-space: nowrap; cursor: pointer; background: transparent; color: var(--content-meta); transition: color 0.2s, opacity 0.2s; font-family: inherit; }
-  /* 激活态用 [aria-selected="true"] 属性选择器（Svelte CSS 优化不会移除属性选择器规则；
-     用 .active 类名曾被编译器误删导致激活文字看不见） */
-  .ap-tab:not([aria-selected="true"]):hover { opacity: 0.7; }
-  .ap-tab[aria-selected="true"] { color: #fff; cursor: default; }
-  :global(.dark) .ap-tab[aria-selected="true"] { color: #000; }
-  .ap-tab-count { flex-shrink: 0; font-size: clamp(0.5625rem, 0.5rem + 0.25vw, 0.65rem); padding: 0.0625rem 0.375rem; border-radius: 9999px; background: color-mix(in oklch, var(--primary) 12%, transparent); color: var(--primary); line-height: 1.4; font-variant-numeric: tabular-nums; }
-  .ap-tab[aria-selected="true"] .ap-tab-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
-  :global(.dark) .ap-tab[aria-selected="true"] .ap-tab-count { background: rgba(0, 0, 0, 0.2); color: #000; }
-  @media (max-width: 380px) {
-    .ap-tabs { gap: 0.125rem; padding: 0.25rem; }
-    .ap-tab { padding: 0.3125rem 0.25rem; }
-    .ap-tab-count { padding: 0.0625rem 0.25rem; }
-  }
   .ap-empty { padding: 2.5rem 1rem; text-align: center; color: var(--content-meta); font-size: 0.9rem; }
   .ap-year-block { position: relative; margin-bottom: 2.5rem; }
   .ap-year-block::before { content: ""; position: absolute; left: calc(var(--tw) / 2); top: calc(var(--tw) / 2); bottom: 1rem; width: 0; border-left: var(--lw) dashed var(--lc); z-index: 0; }

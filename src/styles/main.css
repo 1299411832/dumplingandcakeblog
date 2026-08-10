@@ -53,6 +53,7 @@
 @import './components/page-loader.css';
 @import './components/friend-card.css';
 @import './components/app-card.css';
+@import './components/archive-panel.css';
 
 /* --- 功能样式 --- */
 @import './features/content.css';
