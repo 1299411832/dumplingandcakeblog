@@ -491,10 +491,8 @@ $effect(() => {
   .ap-tab { position: relative; z-index: 1; display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border: none; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; white-space: nowrap; cursor: pointer; background: transparent; color: var(--content-meta); transition: color 0.2s, opacity 0.2s; flex-shrink: 0; font-family: inherit; }
   .ap-tab:not(.active):hover { opacity: 0.7; }
   .ap-tab.active { color: var(--page-bg); cursor: default; }
-  .ap-tab-count { font-size: 0.65rem; padding: 0.0625rem 0.375rem; border-radius: 9999px; background: oklch(0.92 0 0); color: oklch(0.35 0 0); line-height: 1.4; font-variant-numeric: tabular-nums; }
-  :global(.dark) .ap-tab-count { background: oklch(0.25 0 0); color: oklch(0.65 0 0); }
-  .ap-tab.active .ap-tab-count { background: oklch(1 1 0 / 0.25); color: var(--page-bg); }
-  :global(.dark) .ap-tab.active .ap-tab-count { background: oklch(0 0 0 / 0.2); color: var(--page-bg); }
+  .ap-tab-count { font-size: 0.65rem; padding: 0.0625rem 0.375rem; border-radius: 9999px; background: color-mix(in oklch, var(--primary) 12%, transparent); color: var(--primary); line-height: 1.4; font-variant-numeric: tabular-nums; }
+  .ap-tab.active .ap-tab-count { background: color-mix(in oklch, var(--page-bg) 30%, transparent); color: var(--page-bg); }
   .ap-empty { padding: 2.5rem 1rem; text-align: center; color: var(--content-meta); font-size: 0.9rem; }
   .ap-year-block { position: relative; margin-bottom: 2.5rem; }
   .ap-year-block::before { content: ""; position: absolute; left: calc(var(--tw) / 2); top: calc(var(--tw) / 2); bottom: 1rem; width: 0; border-left: var(--lw) dashed var(--lc); z-index: 0; }
