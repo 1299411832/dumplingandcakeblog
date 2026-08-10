@@ -529,6 +529,7 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 | 删除 `tokens/colors.css` | 主题系统失效 |
 | 修改 `backgroundWallpaper.ts` 的 `mode` | 已移除壁纸切换功能 |
 | 删除 `swup-lifecycle-controller.ts` | 所有页面过渡逻辑丢失 |
+| 使用 Python 脚本操作/修改文件 | 曾因字符串替换逻辑破坏文件内容，一律用 Node 脚本处理 |
 
 ---
 

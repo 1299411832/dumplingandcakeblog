@@ -23,7 +23,7 @@ description: "想用 Claude Code 又不想碰官方 API 的定价？OpenCode Go 
 - ❌ 官方订阅要绑定国外支付，API 按 token 计费贵得肉疼
 - ❌ 第三方中转水太深，隐私没保障，随时跑路
 
-而 OpenCode Go 订阅（首月 $5，之后 $10/月）本身就是「给你 API Key 的订阅制服务」，而且它**原生提供 Anthropic 格式的端点**——也就是说 Claude Code 可以直接把它当官方 API 用，不用任何格式转换。
+而 OpenCode Go 订阅（首月 \$5，之后 \$10/月）本身就是「给你 API Key 的订阅制服务」，而且它**原生提供 Anthropic 格式的端点**——也就是说 Claude Code 可以直接把它当官方 API 用，不用任何格式转换。
 
 再配合 CC Switch 这个开源桌面工具，一键切换 Provider，官方 API、Go、其他中转想用哪个用哪个。
 
@@ -41,7 +41,7 @@ https://opencode.ai/auth
 
 登录后订阅 Go（支持支付宝付款），然后在控制台里复制你的 **API Key**，先存好备用。
 
-> 还没订阅？首月 $5（≈35 元），订阅后模型随便用。可以用我的邀请链接注册，咱俩各得 $5：[https://opencode.ai/go?ref=1MKPWMM7TS](https://opencode.ai/go?ref=1MKPWMM7TS)
+> 还没订阅？首月 \$5（≈35 元），订阅后模型随便用。可以用我的邀请链接注册，咱俩各得 \$5：[https://opencode.ai/go?ref=1MKPWMM7TS](https://opencode.ai/go?ref=1MKPWMM7TS)
 
 ## 2. 安装 CC Switch
 
@@ -127,8 +127,8 @@ Base URL:  https://opencode.ai/zen/go/v1
 
 # 结语
 
-一套 $10/月的 OpenCode Go 订阅，通过 CC Switch 接到 Claude Code 上，等于用订阅价享受了「原生 API」的体验——不碰官方计费、不用中转平台、支付宝就能付款。
+一套 \$10/月的 OpenCode Go 订阅，通过 CC Switch 接到 Claude Code 上，等于用订阅价享受了「原生 API」的体验——不碰官方计费、不用中转平台、支付宝就能付款。
 
-订阅入口（用我的链接注册，咱俩各得 $5）：
+订阅入口（用我的链接注册，咱俩各得 \$5）：
 
 👉 [https://opencode.ai/go?ref=1MKPWMM7TS](https://opencode.ai/go?ref=1MKPWMM7TS)
