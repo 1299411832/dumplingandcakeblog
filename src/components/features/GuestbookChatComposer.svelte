@@ -559,6 +559,7 @@ async function handleImageSelection(event: Event) {
 					<span
 						class:is-admin={authUser.type === "administrator"}
 						class="guestbook-composer__identity-summary"
+						role="button"
 						tabindex="0"
 						aria-label={`当前登录用户：${authName}`}
 					>
@@ -581,6 +582,7 @@ async function handleImageSelection(event: Event) {
 				{:else if loginMode !== "force"}
 					<span
 						class="guestbook-composer__identity-summary"
+						role="button"
 						tabindex="0"
 						aria-label={hasGuestProfile
 							? `游客资料，昵称 ${profile.nick}，邮箱 ${profile.mail || "未填写"}，网址 ${profile.link || "未填写"}`
@@ -727,7 +729,7 @@ async function handleImageSelection(event: Event) {
 		closeGuestProfile();
 	}}
 >
-	<div class="privacy-overlay" onclick={closeGuestProfile}></div>
+	<div class="privacy-overlay" role="button" tabindex="-1" onclick={closeGuestProfile} onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") closeGuestProfile(); }}></div>
 	<form
 		class="privacy-panel guestbook-profile-modal__panel"
 		onsubmit={(event) => {

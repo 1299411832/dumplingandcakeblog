@@ -16,7 +16,8 @@ let { commenters, isOpen, onClose }: Props = $props();
 </script>
 
 {#if isOpen}
-	<div class="backdrop" onclick={onClose}></div>
+	<!-- backdrop 点击关闭遮罩；键盘操作走关闭按钮（aria-label="关闭"），此处补 role/keydown 满足 a11y -->
+	<div class="backdrop" role="button" tabindex="-1" onclick={onClose} onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") onClose(); }}></div>
 {/if}
 
 <aside class="sidebar" class:is-open={isOpen}>

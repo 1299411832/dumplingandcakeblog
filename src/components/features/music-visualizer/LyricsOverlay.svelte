@@ -9,7 +9,7 @@ interface LyricLine {
 type LyricStatus = "loading" | "loaded" | "none" | "failed";
 
 let containerEl: HTMLDivElement;
-let trackEl: HTMLDivElement;
+let trackEl = $state<HTMLDivElement>();
 let lyrics: LyricLine[] = $state([]);
 let currentIndex = $state(-1);
 let lyricsStatus = $state<LyricStatus>("loading");

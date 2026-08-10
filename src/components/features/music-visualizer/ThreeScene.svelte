@@ -782,4 +782,4 @@ onMount(() => {
 onDestroy(cleanup);
 </script>
 
-<div bind:this={container} class="mv-three-container" />
+<div bind:this={container} class="mv-three-container"></div>

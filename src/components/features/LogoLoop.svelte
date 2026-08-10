@@ -50,7 +50,7 @@ let {
 
 let containerEl: HTMLDivElement;
 let trackEl: HTMLDivElement;
-let sequenceEl: HTMLUListElement;
+let sequenceEl = $state<HTMLUListElement>();
 let copyCount = $state(2);
 let isHovered = $state(false);
 let seqWidth = 0;
@@ -248,6 +248,7 @@ onDestroy(stop);
 	onpointerleave={resumeLoop}
 	onmouseover={handleLoopMouseMove}
 	onmousemove={handleLoopMouseMove}
+	onfocus={handleLoopMouseMove}
 >
 	<div class="logo-loop__viewport">
 		<div
@@ -282,6 +283,8 @@ onDestroy(stop);
 										{/if}
 									</a>
 								{:else}
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<!-- tooltip 仅指针交互；键盘用户通过 aria-label 感知内容 -->
 									<span
 										class="logo-loop__pill logo-loop__pill--static"
 										aria-label={getItemAriaLabel(item)}
@@ -333,6 +336,8 @@ onDestroy(stop);
 										{/if}
 									</a>
 								{:else}
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<!-- tooltip 仅指针交互；键盘用户通过 aria-label 感知内容 -->
 									<span
 										class="logo-loop__pill logo-loop__pill--static"
 										data-logo-loop-name={item.name}

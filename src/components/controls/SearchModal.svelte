@@ -13,9 +13,9 @@ let initialized = $state(false);
 let visible = $state(false);
 let debounceTimer: NodeJS.Timeout;
 
-// --- Refs ---
-let inputEl: HTMLInputElement;
-let modalEl: HTMLDivElement;
+// --- Refs（Svelte 5 runes：DOM ref 用 $state 声明）---
+let inputEl = $state<HTMLInputElement>();
+let modalEl = $state<HTMLDivElement>();
 
 // --- Mocks for Dev Mode ---
 const fakeResult: SearchResult[] = [
@@ -160,11 +160,16 @@ $effect(() => {
 </script>
 
 {#if visible}
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<!-- backdrop 点击外部关闭；role/tabindex/keydown 满足 a11y（键盘关闭另有关闭按钮） -->
 <div
 	class="search-modal-backdrop"
 	bind:this={modalEl}
+	role="button"
+	tabindex="-1"
 	onclick={handleBackdropClick}
+	onkeydown={(e) => {
+		if (e.key === "Enter" || e.key === " ") handleBackdropClick();
+	}}
 >
 	<div class="search-modal-content">
 		<!-- Title -->
@@ -188,6 +193,7 @@ $effect(() => {
 				type="submit"
 				disabled={!keyword}
 				class="search-submit-btn"
+				aria-label="搜索"
 			>
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<circle cx="11" cy="11" r="8"/>

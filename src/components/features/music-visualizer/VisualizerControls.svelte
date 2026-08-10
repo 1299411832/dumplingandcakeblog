@@ -114,6 +114,32 @@ function playTrack(index: number) {
 	if (mgr) mgr.playTrackByIndex(index);
 }
 
+// 进度条键盘步进（a11y：slider 需支持方向键）
+function handleProgressKeydown(e: KeyboardEvent) {
+	const mgr = window.__fireflyMusic;
+	if (!mgr) return;
+	if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+		e.preventDefault();
+		mgr.seek(Math.max(0, Math.min(1, progress / 100 - 0.05)));
+	} else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+		e.preventDefault();
+		mgr.seek(Math.max(0, Math.min(1, progress / 100 + 0.05)));
+	}
+}
+
+// 音量条键盘步进（a11y：slider 需支持方向键）
+function handleVolumeKeydown(e: KeyboardEvent) {
+	const mgr = window.__fireflyMusic;
+	if (!mgr) return;
+	if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+		e.preventDefault();
+		mgr.setVolume(Math.max(0, Math.min(1, volume - 0.1)));
+	} else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+		e.preventDefault();
+		mgr.setVolume(Math.max(0, Math.min(1, volume + 0.1)));
+	}
+}
+
 function togglePlaylist() {
 	isPlaylistOpen = !isPlaylistOpen;
 }
@@ -219,11 +245,16 @@ onDestroy(() => {
 			onclick={onProgressClick}
 			role="slider"
 			aria-label="进度"
+			aria-valuenow={progress}
+			aria-valuemin="0"
+			aria-valuemax="100"
+			tabindex="0"
+			onkeydown={handleProgressKeydown}
 		>
 			<div
 				class="music-visualizer__progress-fill"
 				style={`width: ${progress}%`}
-			/>
+			></div>
 		</div>
 		<span class="music-visualizer__time">{durationStr}</span>
 	</div>
@@ -307,11 +338,18 @@ onDestroy(() => {
 			<div
 				class="music-visualizer__volume-bar"
 				onclick={onVolumeClick}
+				role="slider"
+				aria-label="音量"
+				aria-valuenow={Math.round((isMuted ? 0 : volume) * 100)}
+				aria-valuemin="0"
+				aria-valuemax="100"
+				tabindex="0"
+				onkeydown={handleVolumeKeydown}
 			>
 				<div
 					class="music-visualizer__volume-fill"
 					style={`width: ${isMuted ? 0 : volume * 100}%`}
-				/>
+				></div>
 			</div>
 		</div>
 	</div>

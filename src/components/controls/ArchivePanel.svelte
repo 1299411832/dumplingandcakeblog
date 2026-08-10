@@ -407,14 +407,12 @@ onMount(async () => {
   .ap-count { font-size: 0.75rem; color: var(--content-meta); }
   .ap-post-link { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-height: 2.25rem; padding: 0.2rem 0.5rem 0.2rem 0; margin-left: 0; border-radius: 0.5rem; text-decoration: none; overflow: hidden; }
   .ap-date { font-size: 0.875rem; color: var(--content-meta); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; width: 2.8rem; text-align: right; }
-  .ap-category { font-size: 0.8rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; min-width: 3rem; }
   .ap-type-badge { font-size: 0.75rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; min-width: 2.5rem; padding: 0.1rem 0.4rem; border: 1px solid var(--line-divider); border-radius: 0.25rem; color: var(--content-meta); }
   .ap-title { font-size: 0.9rem; font-weight: 500; color: var(--deep-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; transition: color 0.15s ease; display: inline-block; }
   :global(.dark) .archive-panel { --lh: oklch(0.9 0 0); --nh: oklch(0.9 0 0); }
   @media (max-width: 768px) {
     .archive-panel { --tw: 1.5rem; }
     .ap-date { width: 2.4rem; font-size: 0.8rem; }
-    .ap-category { min-width: 2.5rem; font-size: 0.75rem; }
     .ap-title { font-size: 0.82rem; }
     .ap-year-block::before, .ap-month-block::before { content: none; }
     .ap-hline, .ap-node, .ap-col, .ap-highlight-layer { display: none; }

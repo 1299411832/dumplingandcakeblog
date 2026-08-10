@@ -1315,7 +1315,7 @@ onMount(() => {
 			closeAnnouncement();
 		}}
 	>
-		<div class="privacy-overlay" onclick={closeAnnouncement}></div>
+		<div class="privacy-overlay" role="button" tabindex="-1" onclick={closeAnnouncement} onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") closeAnnouncement(); }}></div>
 		{#if selectedAnnouncement}
 			<div class="privacy-panel">
 				<div class="privacy-header">
@@ -1362,7 +1362,7 @@ onMount(() => {
 			closeDeleteDialog();
 		}}
 	>
-		<div class="privacy-overlay" onclick={closeDeleteDialog}></div>
+		<div class="privacy-overlay" role="button" tabindex="-1" onclick={closeDeleteDialog} onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") closeDeleteDialog(); }}></div>
 		{#if deleteTarget}
 			<div class="privacy-panel guestbook-delete-modal__panel">
 				<div class="privacy-header">
