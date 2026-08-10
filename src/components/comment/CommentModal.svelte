@@ -85,7 +85,7 @@ let dataLoaded = false;
 
 declare global {
 	interface Window {
-		__commentModal?: { open: () => void };
+		__commentModal?: { open: (momentId: string, commentPath: string) => void };
 	}
 }
 

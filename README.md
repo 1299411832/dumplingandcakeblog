@@ -7,7 +7,7 @@
 >
 > ![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen) 
 ![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-5.17.2-orange)
+![Astro](https://img.shields.io/badge/Astro-7.1.6-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
 >
 > ![GitHub License](https://img.shields.io/github/license/CuteLeaf/Firefly)

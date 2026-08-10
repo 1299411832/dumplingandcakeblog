@@ -11,14 +11,6 @@ import {
 	siteConfig,
 } from "../config";
 
-// Declare global functions
-declare global {
-	interface Window {
-		initSemifullScrollDetection?: () => void;
-		semifullScrollHandler?: () => void;
-	}
-}
-
 export function getDefaultHue(): number {
 	const fallback = "250";
 	// 检查是否在浏览器环境中

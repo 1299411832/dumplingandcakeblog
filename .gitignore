@@ -54,3 +54,7 @@ src/.trash
 src/notes
 
 .env*
+
+# local tool state
+.wrangler/
+.pnpm-store/

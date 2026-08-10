@@ -28,8 +28,6 @@ declare global {
 		spine: any;
 		closeAnnouncement: () => void;
 		// __fireflyMusic type is defined in global.d.ts
-		semifullScrollHandler?: (() => void) | undefined;
-		initSemifullScrollDetection?: () => void;
 	}
 }
 

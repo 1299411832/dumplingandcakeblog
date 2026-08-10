@@ -214,24 +214,6 @@ export function initSwupLifecycle(): void {
 				}
 			}
 
-			// Reinitialize semifull mode scroll detection
-			const navElForSemifull = document.getElementById("navbar");
-			if (navElForSemifull) {
-				const transparentMode = navElForSemifull.getAttribute(
-					"data-transparent-mode",
-				);
-
-				if (transparentMode === "semifull") {
-					try {
-						if (typeof window.initSemifullScrollDetection === "function") {
-							window.initSemifullScrollDetection();
-						}
-					} catch (e) {
-						console.warn("[swup] semifull scroll detection init failed:", e);
-					}
-				}
-			}
-
 			// Notify Svelte components to re-initialize (synchronous dispatch)
 			window.dispatchEvent(new CustomEvent("swup:content:replaced"));
 		});

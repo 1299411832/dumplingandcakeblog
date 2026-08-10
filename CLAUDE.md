@@ -76,7 +76,7 @@ docs/                     # 部署文档（deploy-pagescms-vercel.md 等）
 ```
 
 **禁止在 `components/` 根目录平铺组件文件，必须放入对应功能域子目录。**
-**注意：`src/pages/admin/`、`src/utils/admin/` 等 admin 相关已删除（fc8599f），只剩空目录残留，勿再创建自研后台（后台用 PagesCMS）。**
+**注意：`src/pages/admin/`、`src/utils/admin/`、`src/components/album|daily/` 等 admin/废弃目录已删除，勿再创建自研后台（后台用 PagesCMS）。**
 
 ---
 
@@ -583,7 +583,7 @@ return controller;
 | pnpm | 9.14.x | 唯一包管理器 |
 | Node.js | >= 22 | 运行时要求 |
 
-> ⚠️ `stylus` 仍残留于 dependencies（Astro 7 构建带 stylus loader），但项目代码已全部用纯 CSS——**勿新建 Stylus 文件**，依赖待清理。
+> ⚠️ `stylus` 依赖已于 2026-08 移除（实测 Astro 7 构建不依赖它）——**勿新建 Stylus 文件**，统一用纯 CSS。
 
 ---
 
@@ -600,8 +600,11 @@ return controller;
 | 52 个 `window.*` 全局变量 | 模块间隐式耦合 | 长期目标 |
 | PageLoader 加载动画已关闭 | 首页无 loading 过渡 | 恢复方法见第 12 节 |
 | HomeHero GSAP 入口动画已跳过 | 首页元素直接显示，无逐个动画 | 恢复需重写 `initHeroOpening()` |
-| `stylus` 依赖残留 | 文档称已迁移，依赖未清 | 需要时从 dependencies 移除 |
-| 空目录残留（album/daily/admin 等） | 代码已删，目录空 | 需要时清理 |
+| `stylus` 依赖 | 已移除（2026-08） | — |
+| 空目录残留（album/daily/admin 等） | 已清理（2026-08） | — |
+| `public/admin/`（Decap 遗留）、`cloud-functions/`（Decap 方案云函数） | `public/admin` 已删除；`cloud-functions` 待确认删除 | 确认 EdgeOne 无依赖后删除 |
+| AGENTS.md | 已改为指向 CLAUDE.md 的入口（勿复制内容，避免双重维护） | — |
+| `.wrangler/` 误提交 | 已取消跟踪 + 加入 .gitignore | — |
 
 ---
 
@@ -638,9 +641,9 @@ Vercel（PagesCMS 实例，绑定 cms-origin.tsh520.cn）
 - **配置声明**：仓库根目录 `.pages.yml` 声明 11 个内容集合（posts 按分类拆 13 个集合、moments/friends/apps/daohang/album/ziyuan 拆 2/life 拆 3），字段与 `src/content.config.ts` 的 zod 对齐
 - **自定义字段**：imgbed（图床上传，走服务端代理）+ amap-geocode（高德坐标，保存时展开为 lat/lng）——在 pagescms 仓库（`E:\GithubProgect\MyRunProject\pagescms`）的 `fields/custom/` 定义，注册在 `fields/registry.ts`
 - **凭证**：Vercel 环境变量（GITHUB_APP_*、IMAGEBED_*、AMAP_KEY 等）；图床/高德代理路由在 pagescms 的 `app/api/` 下（凭证服务端持有）
-- **修改 .pages.yml 后**：字段必须与 zod 对齐（merge: false，未声明字段保存时被丢弃）；用 `node scripts/validate-sveltia-config.mjs`（旧名，实为 .pages.yml 校验）验证——**注意**：该脚本现在校验的是 public/admin/config.yml（Decap 时代遗留），.pages.yml 校验已随脚本删除——**当前 .pages.yml 的字段对齐靠手动检查 + 构建验证**
+- **修改 .pages.yml 后**：字段必须与 zod 对齐（merge: false，未声明字段保存时被丢弃）；校验脚本已随 Decap 遗留一并删除——**当前 .pages.yml 的字段对齐靠手动检查 + 构建验证**
 
-> ⚠️ 曾使用 Decap CMS（public/admin/ 目录 + config.yml，已弃用）；现统一用 PagesCMS。
+> ⚠️ 曾使用 Decap CMS（public/admin/ 目录 + config.yml）；该遗留已随 `validate-sveltia-config.mjs` 等脚本于 2026-08 删除，现统一用 PagesCMS。
 
 ---
 
