@@ -43,7 +43,7 @@ const parseImages = (
 	let rawPaths: string[] = [];
 	if (Array.isArray(imagesData)) {
 		rawPaths = imagesData.map((img) =>
-			typeof img === "string" ? img : img.src || img,
+			typeof img === "string" ? img : img.src,
 		);
 	} else if (typeof imagesData === "string" && imagesData.trim()) {
 		rawPaths = imagesData

@@ -421,7 +421,7 @@ export function initSwupLifecycle(): void {
 					let done = false;
 
 					function items() {
-						return Array.from(feed.querySelectorAll(".wx-feed-item"));
+						return Array.from(feed?.querySelectorAll(".wx-feed-item") ?? []);
 					}
 					function show() {
 						const all = items();
@@ -432,7 +432,7 @@ export function initSwupLifecycle(): void {
 					function check() {
 						const total = items().length;
 						done = count >= total;
-						sentinel.classList[done ? "add" : "remove"]("hidden");
+						sentinel?.classList[done ? "add" : "remove"]("hidden");
 					}
 					function more() {
 						if (loading || done) return;
@@ -450,8 +450,8 @@ export function initSwupLifecycle(): void {
 						}, 300);
 					}
 					function vis() {
-						const r = sentinel.getBoundingClientRect();
-						return r.top < window.innerHeight + 200;
+						const r = sentinel?.getBoundingClientRect();
+						return r !== undefined && r.top < window.innerHeight + 200;
 					}
 					function obs() {
 						if (gs.observer) {
@@ -464,7 +464,7 @@ export function initSwupLifecycle(): void {
 							},
 							{ rootMargin: "200px" },
 						);
-						gs.observer.observe(sentinel);
+						if (sentinel) gs.observer.observe(sentinel);
 					}
 
 					count = BATCH;
