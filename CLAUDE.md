@@ -591,7 +591,7 @@ return controller;
 
 | 问题 | 影响 | 建议 |
 |------|------|------|
-| ~~build.yml / deploy.yml 监听 master~~ | 已处理（2026-08）：deploy.yml 删除（不用 GitHub Pages），build.yml 改 `main` + action 升级 Node 24，首次运行中 | 看 CI 结果，若 astro check 报错则修 |
+| ~~build.yml / deploy.yml 监听 master~~ | 已处理（2026-08）：deploy.yml 删除（不用 GitHub Pages），build.yml 改 `main` + action 升级 Node 24，首次运行发现的 6 个 astro check 类型错误已修复（ba9e712） | CI 应全绿；未来改类型时注意 TS 闭包内不保留 const 窄化（用 `?.` 判空） |
 | `swup-lifecycle-controller.ts` ~540 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
 | Waline 代码散布 3 处 | 改配置需改 3 个文件 | 需要时合并 |
 | Layout.astro 内联脚本含 moments 评论 | 布局包含功能逻辑 | 需要时提取 |
