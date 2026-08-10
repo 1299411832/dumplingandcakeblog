@@ -97,7 +97,9 @@ export function initScrollHandler(): void {
 		// Batch execute DOM operations
 		if (operations.length > 0) {
 			requestAnimationFrame(() => {
-				operations.forEach((op) => op());
+				operations.forEach((op) => {
+					op();
+				});
 			});
 		}
 	}

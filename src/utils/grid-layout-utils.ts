@@ -56,11 +56,13 @@ export function updateMainGridCols(): void {
 		"md:grid-cols-[17.5rem_1fr]",
 		"md:grid-cols-[1fr_17.5rem]",
 		"xl:grid-cols-[17.5rem_1fr_17.5rem]",
-	].forEach((cls) => mainGrid.classList.remove(cls));
+	].forEach((cls) => {
+		mainGrid.classList.remove(cls);
+	});
 
-	newGridClasses
-		.split(" ")
-		.forEach((cls) => cls && mainGrid.classList.add(cls));
+	newGridClasses.split(" ").forEach((cls) => {
+		if (cls) mainGrid.classList.add(cls);
+	});
 
 	// When position is "right", Swup navigation does not replace static elements'
 	// classes (right sidebar, main content container, footer).

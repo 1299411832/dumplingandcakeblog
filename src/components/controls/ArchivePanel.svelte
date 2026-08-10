@@ -140,8 +140,8 @@ function initCategoryColors(ps: Post[]) {
 function groupByYearMonth(ps: Post[]): YearGroup[] {
 	const ym = new Map<number, Map<number, Post[]>>();
 	for (const p of ps) {
-		const y = p.data.published.getFullYear(),
-			mo = p.data.published.getMonth() + 1;
+		const y = p.data.published.getFullYear();
+		const mo = p.data.published.getMonth() + 1;
 		if (!ym.has(y)) ym.set(y, new Map());
 		const mm = ym.get(y)!;
 		if (!mm.has(mo)) mm.set(mo, []);
@@ -197,8 +197,8 @@ async function computeHighlight(postId: string) {
 		highlightHLines = [];
 		return;
 	}
-	let ty: number | null = null,
-		tm: number | null = null;
+	let ty: number | null = null;
+	let tm: number | null = null;
 	for (const yg of yearGroups)
 		for (const mg of yg.months)
 			if (mg.posts.some((p) => p.id === postId)) {
@@ -219,24 +219,24 @@ async function computeHighlight(postId: string) {
 	const pr = panelEl.getBoundingClientRect();
 	const tw =
 		Number.parseFloat(getComputedStyle(panelEl).getPropertyValue("--tw")) * 16;
-	const yb = yearBlockRefs.get(ty),
-		mb = monthBlockRefs.get(`${ty}-${tm}`),
-		prow = postRowRefs.get(postId);
+	const yb = yearBlockRefs.get(ty);
+	const mb = monthBlockRefs.get(`${ty}-${tm}`);
+	const prow = postRowRefs.get(postId);
 	if (!yb || !mb || !prow) {
 		highlightSegs = [];
 		highlightHLines = [];
 		return;
 	}
 
-	const yr = yb.getBoundingClientRect(),
-		mr = mb.getBoundingClientRect(),
-		por = prow.getBoundingClientRect();
-	const ylx = yr.left - pr.left + tw / 2,
-		mlx = mr.left - pr.left + tw / 2,
-		plx = por.left - pr.left + tw / 2;
-	const yncy = yr.top - pr.top + tw / 2,
-		mncy = mr.top - pr.top + tw / 2,
-		pncy = por.top - pr.top + por.height / 2;
+	const yr = yb.getBoundingClientRect();
+	const mr = mb.getBoundingClientRect();
+	const por = prow.getBoundingClientRect();
+	const ylx = yr.left - pr.left + tw / 2;
+	const mlx = mr.left - pr.left + tw / 2;
+	const plx = por.left - pr.left + tw / 2;
+	const yncy = yr.top - pr.top + tw / 2;
+	const mncy = mr.top - pr.top + tw / 2;
+	const pncy = por.top - pr.top + por.height / 2;
 
 	highlightSegs = [
 		{ x: ylx, top: yncy, height: mncy - yncy },

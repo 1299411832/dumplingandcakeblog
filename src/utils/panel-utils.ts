@@ -13,7 +13,7 @@ export function setClickOutsideToClose(panel: string, ignores: string[]): void {
 		if (!(tDom instanceof Node)) return;
 		for (const ig of ignores) {
 			const ie = document.getElementById(ig);
-			if (ie == tDom || ie?.contains(tDom)) {
+			if (ie === tDom || ie?.contains(tDom)) {
 				return;
 			}
 		}

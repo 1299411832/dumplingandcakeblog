@@ -157,75 +157,6 @@ function applyDomState({ document: documentRef, loader }, state) {
 	}, DEFAULT_HIDE_DELAY);
 }
 
-function isInternalPageVisit(targetUrl) {
-	if (!targetUrl) return true;
-	try {
-		const url = new URL(targetUrl, window.location.href);
-		return (
-			url.origin === window.location.origin &&
-			(url.pathname !== window.location.pathname ||
-				url.search !== window.location.search)
-		);
-	} catch {
-		return true;
-	}
-}
-
-function isHomePath(pathname) {
-	return pathname === "/" || pathname === "";
-}
-
-function isHomeUrl(targetUrl, windowRef) {
-	if (!targetUrl) return false;
-	try {
-		const u = new URL(targetUrl, windowRef.location.href);
-		return isHomePath(u.pathname);
-	} catch {
-		return false;
-	}
-}
-
-function getVisitUrl(visit) {
-	const toUrl = visit?.to?.url;
-	return Array.isArray(toUrl) ? toUrl[0] : toUrl;
-}
-
-function bindSwup({ controller, document: documentRef, window: windowRef }) {
-	let isBound = false;
-
-	function bind() {
-		if (isBound || !windowRef.swup?.hooks) return;
-		isBound = true;
-
-		windowRef.swup.hooks.on("link:click", (_visit, { el } = {}) => {
-			const href = el?.getAttribute?.("href");
-			if (isInternalPageVisit(href) && isHomeUrl(href, windowRef))
-				controller.show("swup-link-click");
-		});
-		windowRef.swup.hooks.on("visit:start", (visit) => {
-			if (isHomeUrl(getVisitUrl(visit), windowRef))
-				controller.show("swup-visit-start");
-		});
-		windowRef.swup.hooks.on("content:replace", (visit) => {
-			if (isHomeUrl(getVisitUrl(visit), windowRef))
-				controller.show("swup-content-replace");
-		});
-		windowRef.swup.hooks.on("page:view", () => {
-			void controller.hideWhenReady("swup-page-view");
-		});
-		windowRef.swup.hooks.on("visit:end", () => {
-			void controller.hideWhenReady("swup-visit-end");
-		});
-	}
-
-	bind();
-	documentRef.addEventListener("swup:enable", bind, { once: true });
-}
-
-function isMobile(windowRef) {
-	return windowRef.matchMedia("(max-width: 768px)").matches;
-}
-
 export function initPageLoader({
 	document: documentRef = document,
 	window: windowRef = window,
@@ -249,32 +180,5 @@ export function initPageLoader({
 	documentRef.documentElement.classList.remove("is-page-loading");
 	documentRef.body?.removeAttribute("aria-busy");
 	dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, { timestamp: Date.now() });
-	return controller;
-
-	controller.show("initial");
-
-	const hideInitialLoader = () => {
-		windowRef.requestAnimationFrame(() => {
-			void controller.hideWhenReady("window-load");
-		});
-	};
-
-	if (documentRef.readyState === "complete") hideInitialLoader();
-	else windowRef.addEventListener("load", hideInitialLoader, { once: true });
-
-	// 硬超时：1.5秒后隐藏加载动画
-	setTimeout(() => {
-		if (controller.isVisible()) {
-			controller.hideNow();
-		}
-	}, 1500);
-
-	documentRef.addEventListener("astro:page-load", () => {
-		documentRef.dispatchEvent(new CustomEvent(LOADER_READY_EVENT));
-		void controller.hideWhenReady("astro-page-load");
-	});
-
-	bindSwup({ controller, document: documentRef, window: windowRef });
-
 	return controller;
 }

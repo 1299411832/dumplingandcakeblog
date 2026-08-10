@@ -103,13 +103,15 @@ export function initSwupLifecycle(): void {
 					"md:grid-cols-[17.5rem_1fr]",
 					"md:grid-cols-[1fr_17.5rem]",
 					"xl:grid-cols-[17.5rem_1fr_17.5rem]",
-				].forEach((cls) => mainGrid.classList.remove(cls));
+				].forEach((cls) => {
+					mainGrid.classList.remove(cls);
+				});
 				if (isHome) {
 					mainGrid.classList.add("grid-cols-1");
 				} else {
-					defaultGridClass
-						.split(" ")
-						.forEach((cls) => cls && mainGrid.classList.add(cls));
+					defaultGridClass.split(" ").forEach((cls) => {
+						if (cls) mainGrid.classList.add(cls);
+					});
 				}
 
 				// 2. Remove max-width and padding constraints on home page
