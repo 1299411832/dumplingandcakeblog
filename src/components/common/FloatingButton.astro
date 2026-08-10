@@ -84,19 +84,6 @@ const { id, icon, ariaLabel, onclick, class: className = "" } = Astro.props;
     }
 }
 
-/* 暗色主题样式 */
-:global(.dark) .floating-btn {
-    background-color: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: var(--primary, #60a5fa);
-
-    &:hover {
-        background-color: var(--card-bg);
-        border-color: rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-}
-
 /* 响应式调整 */
 @media (max-width: 768px) {
     .floating-btn {
@@ -162,4 +149,19 @@ const { id, icon, ariaLabel, onclick, class: className = "" } = Astro.props;
         image-rendering: crisp-edges;
     }
 }
+</style>
+
+<!-- 暗色主题样式：is:global 块避免 scoped :global 触发 lightningcss minify 警告 -->
+<style is:global>
+    .dark .floating-btn {
+        background-color: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--primary, #60a5fa);
+
+        &:hover {
+            background-color: var(--card-bg);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+    }
 </style>

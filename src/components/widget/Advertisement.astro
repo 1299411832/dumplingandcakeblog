@@ -263,10 +263,7 @@ const paddingClass = getPaddingStyle();
     -webkit-backdrop-filter: blur(10px);
   }
 
-  /* 深色模式阴影 */
-  :global(.dark) .advertisement-widget {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
+  /* 深色模式阴影（is:global 块处理，避免 scoped :global 触发 minify 警告） */
 
   /* 文字颜色由Tailwind类处理，这里不需要额外的CSS */
 
@@ -373,4 +370,10 @@ const paddingClass = getPaddingStyle();
       transform: none;
     }
   }
+</style>
+
+<style is:global>
+    .dark .advertisement-widget {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
 </style>
