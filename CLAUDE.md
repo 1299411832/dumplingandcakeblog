@@ -475,20 +475,21 @@ export function initMyFeature() {
 ### 12.1 行为（当前状态：加载动画已关闭）
 
 - **所有情况**：立即隐藏（`PageLoader.astro` 默认 `hidden` + `page-loader--hidden`，`page-loader-controller.js` 立即派发 `LOADER_HIDDEN_EVENT`）
-- **恢复加载动画**：将 `PageLoader.astro` 的 class 改回 `page-loader page-loader--visible`，移除 `hidden` 属性，恢复 `page-loader-controller.js` 中的条件逻辑
+- **恢复加载动画**：将 `PageLoader.astro` 的 class 改回 `page-loader page-loader--visible`，移除 `hidden` 属性，恢复 `page-loader-controller.js` 中的条件逻辑。注意：2026-08 死代码清理已删除 `return controller` 后的 `bindSwup`（Swup 钩子绑定显示动画）及辅助函数 `isHomeUrl`/`getVisitUrl`/`isInternalPageVisit`/`isMobile`，恢复动画时需一并重写这些逻辑
 
 ### 12.2 关键：LOADER_HIDDEN_EVENT 必须派发
 
 `HomeHero.astro` 在 `await waitForPageLoaderHidden()` 后才启动 GSAP 动画。如果立即隐藏时不派发事件，动画永远不运行，首页内容 `opacity: 0` 不可见。
 
 ```javascript
-// 立即隐藏时必须派发
-if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
-    loader.hidden = true;
-    loader.classList.add("page-loader--hidden");
-    dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, { timestamp: Date.now() });
-    return controller;
-}
+// 立即隐藏时必须派发（当前所有情况都走此路径）
+loader.hidden = true;
+loader.classList.add("page-loader--hidden");
+loader.classList.remove("page-loader--visible");
+documentRef.documentElement.classList.remove("is-page-loading");
+documentRef.body?.removeAttribute("aria-busy");
+dispatchDomEvent(documentRef, LOADER_HIDDEN_EVENT, { timestamp: Date.now() });
+return controller;
 ```
 
 ### 12.3 禁止
@@ -566,6 +567,7 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 | 修改 `backgroundWallpaper.ts` 的 `mode` | 已移除壁纸切换功能 |
 | 删除 `swup-lifecycle-controller.ts` | 所有页面过渡逻辑丢失 |
 | 使用 Python 脚本操作/修改文件 | 曾因字符串替换逻辑破坏文件内容，一律用 Node 脚本处理 |
+| CI 中 Biome 用 `version: latest` 或版本与 package.json 不一致 | 规则漂移导致"本地绿 CI 红"（2026-08 实测：2.3 vs 2.5 的 useAltText 升级为 error） | setup-biome action 不指定 version，自动读取 package.json 版本 |
 
 ---
 
@@ -577,7 +579,7 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 | Svelte | 5.x | runes API（`$props`, `$state`, `$derived`, `$effect`） |
 | Tailwind CSS | 4.x | CSS-first 配置，无 `tailwind.config.js` |
 | Swup | @swup/astro | 不迁移到 View Transitions |
-| Biome | 2.x | 唯一 linter/formatter |
+| Biome | 2.5.7 | 唯一 linter/formatter，版本需与 package.json 一致（见第 15 节） |
 | pnpm | 9.14.x | 唯一包管理器 |
 | Node.js | >= 22 | 运行时要求 |
 
@@ -589,8 +591,8 @@ if (isMobile(windowRef) || !isHomePath(windowRef.location.pathname)) {
 
 | 问题 | 影响 | 建议 |
 |------|------|------|
-| **CI workflow 监听 `master` 但分支是 `main`** | **CI（biome/build/deploy）从不触发** | 尽快把 3 个 workflow 的 `on.push.branches` 改为 `main` |
-| `swup-lifecycle-controller.ts` 537 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
+| **build.yml / deploy.yml 监听 `master` 但分支是 `main`** | **这两个 CI 从不触发**（biome.yml 已于 2026-08 修复为 `main` 并正常跑） | 启用 GitHub Pages/构建 CI 时改 `on.push.branches` 为 `main`，并升级 action 到 Node 24 版本 |
+| `swup-lifecycle-controller.ts` ~540 行 | 添加 Swup 功能需改此文件 | 需要时顺手拆分 |
 | Waline 代码散布 3 处 | 改配置需改 3 个文件 | 需要时合并 |
 | Layout.astro 内联脚本含 moments 评论 | 布局包含功能逻辑 | 需要时提取 |
 | `page-loader-controller.js` 是纯 JS | 类型不一致 | 需要时转 TS |
