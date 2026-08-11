@@ -164,6 +164,12 @@ const allYearsData: YearData[] = availableYears.map((y) => ({
 </div>
 
 <script>
+  declare global {
+    interface Window {
+      __heatmapNavBound?: boolean;
+    }
+  }
+
   // 年份切换：document 事件委托 + guard（年份按钮可能渲染在组件外部，如归档页标题行）
   if (!window.__heatmapNavBound) {
     window.__heatmapNavBound = true;
