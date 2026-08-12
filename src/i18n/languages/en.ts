@@ -66,9 +66,10 @@ export const en: Translation = {
 	[Key.friends]: "Friends",
 	[Key.friendsDescription]:
 		"Here are my friends, welcome to visit and communicate with each other",
-	[Key.friendsLatest]: "New Friends",
-	[Key.friendsMyFriends]: "My Friends",
-	[Key.friendsMore]: "More Friends",
+	[Key.friendsLatestTitle]: "✨ New Friends · The latest to join!",
+	[Key.friendsMyFriendsTitle]: "🤪 Best Buddies · Always around!",
+	[Key.friendsMoreTitle]: "🤤 Friend Links · Those people, those stories~",
+	[Key.friendsShiningDesc]: "Here are {n} shining little sites.",
 	[Key.friendsTombstone]: "🪵 Friend Link Tombstones · Those who once walked beside us",
 	[Key.friendsTombstoneDesc]: "These links were manually retired after being unreachable for a long time, shut down, losing reciprocal links, or dormant for over a year. If a site returns, feel free to contact us to restore it.",
 	[Key.circle]: "Circle",

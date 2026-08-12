@@ -67,9 +67,10 @@ export const ru: Translation = {
 	[Key.friends]: "Ссылки",
 	[Key.friendsDescription]:
 		"Вот мои друзья, добро пожаловать посетить и общаться друг с другом",
-	[Key.friendsLatest]: "Новые друзья",
-	[Key.friendsMyFriends]: "Мои друзья",
-	[Key.friendsMore]: "Другие друзья",
+	[Key.friendsLatestTitle]: "✨ Новые друзья · Недавно присоединившиеся!",
+	[Key.friendsMyFriendsTitle]: "🤪 Друзья · Те, кто всегда рядом!",
+	[Key.friendsMoreTitle]: "🤤 Дружеские ссылки · Те люди, те истории~",
+	[Key.friendsShiningDesc]: "Здесь {n} сияющих маленьких сайтов.",
 	[Key.friendsTombstone]: "🪵 Надгробия дружеских ссылок · Та, что была, не вернётся",
 	[Key.friendsTombstoneDesc]: "Эти ссылки были вручную сняты после долгой недоступности, закрытия сайта, потери взаимности или более года без обновлений. Если сайт вернётся — свяжитесь с нами для восстановления.",
 	[Key.circle]: "Круг друзей",

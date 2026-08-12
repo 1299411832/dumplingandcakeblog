@@ -67,9 +67,10 @@ export const ja: Translation = {
 	[Key.friends]: "友達",
 	[Key.friendsDescription]:
 		"ここは私の友達です、お互いに訪問して交流することを歓迎します",
-	[Key.friendsLatest]: "新しい友達",
-	[Key.friendsMyFriends]: "仲間たち",
-	[Key.friendsMore]: "その他の仲間",
+	[Key.friendsLatestTitle]: "✨ 新しい友達 · 最近参加した仲間たち！",
+	[Key.friendsMyFriendsTitle]: "🤪 仲間たち · いつも遊びに来てくれる！",
+	[Key.friendsMoreTitle]: "🤤 リンク · あの人たち、あの話~",
+	[Key.friendsShiningDesc]: "ここには {n} 個の輝く小さなサイトがあります。",
 	[Key.friendsTombstone]: "🪵 リンク墓碑 · 出会いはなぜ偶然",
 	[Key.friendsTombstoneDesc]: "ここに記録されたリンクは、長期間アクセス不可・サイト閉鎖・相互リンク消失・一年以上の更新停止などの理由で、管理人により慎重に検討した上で手動で下線されました。技術的な問題によるものであれば、復旧後にいつでもご連絡ください。",
 	[Key.circle]: "友達の輪",

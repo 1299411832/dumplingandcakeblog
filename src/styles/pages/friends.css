@@ -114,6 +114,32 @@
 	backdrop-filter: blur(8px);
 }
 
+/* 区块标题（emoji + 主标题 + 副句 + 计数徽标，参考站 group-header 结构） */
+.friend-group-head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.friend-group-title {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	font-size: 1.12rem;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	color: var(--deep-text);
+}
+
+.friend-group-desc {
+	margin: 0.2rem 0 0;
+	font-size: 0.9375rem;
+	color: color-mix(in oklch, var(--deep-text) 56%, transparent);
+}
+
 .tombstone-name {
 	font-size: 0.9375rem;
 	font-weight: 500;

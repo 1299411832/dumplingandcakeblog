@@ -64,7 +64,7 @@ src/
 │   ├── album/ apps/ bangumi/ changelog/ daohang/
 │   ├── friends/ life/ moments/ posts/ spec/ ziyuan/
 │   └── life/notebooks/  # notebooks 集合物理位置（life 的子目录）
-├── i18n/                # 国际化（5 种语言，295 个翻译键）
+├── i18n/                # 国际化（5 种语言，296 个翻译键）
 │   └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ├── layouts/             # Layout.astro (591行), MainGridLayout.astro (305行)
 ├── notes/               # Obsidian 笔记（不发布）
@@ -298,7 +298,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ```
 src/i18n/
-├── i18nKey.ts       # 295 个翻译键枚举
+├── i18nKey.ts       # 296 个翻译键枚举
 ├── translation.ts   # 翻译加载器（回退链：当前语言 → zh_CN → en）
 └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ```

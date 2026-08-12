@@ -60,11 +60,6 @@ const hostOf = (siteurl: string) => {
 // 页面标题和描述
 const title = i18n(I18nKey.friends);
 const description = i18n(I18nKey.friendsDescription);
-
-// 区块标题（图标 + 标题 + 计数徽标）的公共 class
-const sectionHeadClass = "flex items-center gap-3 mb-5";
-const sectionIconClass = "text-lg text-neutral-900 dark:text-neutral-100";
-const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-100";
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -102,9 +97,14 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
       {
         latestItems.length > 0 && (
           <section class="friend-section">
-            <div class={sectionHeadClass}>
-              <Icon name="material-symbols:auto-awesome-rounded" class={sectionIconClass} />
-              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsLatest)}</h2>
+            <div class="friend-group-head">
+              <div>
+                <h2 class="friend-group-title">
+                  <Icon name="material-symbols:auto-awesome-rounded" class="text-lg" />
+                  {i18n(I18nKey.friendsLatestTitle)}
+                </h2>
+                <p class="friend-group-desc">{i18n(I18nKey.friendsShiningDesc).replace("{n}", String(latestItems.length))}</p>
+              </div>
               <span class="friend-group-badge">{latestItems.length}</span>
             </div>
             <div class="friends-grid" data-friends-grid>
@@ -129,9 +129,14 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
       {
         myFriends.length > 0 && (
           <section class="friend-section mt-8">
-            <div class={sectionHeadClass}>
-              <Icon name="material-symbols:group-rounded" class={sectionIconClass} />
-              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMyFriends)}</h2>
+            <div class="friend-group-head">
+              <div>
+                <h2 class="friend-group-title">
+                  <Icon name="material-symbols:group-rounded" class="text-lg" />
+                  {i18n(I18nKey.friendsMyFriendsTitle)}
+                </h2>
+                <p class="friend-group-desc">{i18n(I18nKey.friendsShiningDesc).replace("{n}", String(myFriends.length))}</p>
+              </div>
               <span class="friend-group-badge">{myFriends.length}</span>
             </div>
             <div class="friends-grid" data-friends-grid>
@@ -156,9 +161,14 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
       {
         moreFriends.length > 0 && (
           <section class="friend-section mt-8">
-            <div class={sectionHeadClass}>
-              <Icon name="material-symbols:public-rounded" class={sectionIconClass} />
-              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMore)}</h2>
+            <div class="friend-group-head">
+              <div>
+                <h2 class="friend-group-title">
+                  <Icon name="material-symbols:public-rounded" class="text-lg" />
+                  {i18n(I18nKey.friendsMoreTitle)}
+                </h2>
+                <p class="friend-group-desc">{i18n(I18nKey.friendsShiningDesc).replace("{n}", String(moreFriends.length))}</p>
+              </div>
               <span class="friend-group-badge">{moreFriends.length}</span>
             </div>
             <div class="friends-grid" data-friends-grid>
