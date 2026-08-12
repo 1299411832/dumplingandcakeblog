@@ -1,4 +1,6 @@
 ---
+import fs from "node:fs";
+import path from "node:path";
 import { getCollection, getEntry, render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
@@ -40,16 +42,18 @@ const moreFriends = items.filter(
 // 友链墓碑（纪念下线的友链，空集合时不渲染区块）
 const tombstoneEntries = await getCollection("tombstones");
 
+// 站点截图：public/assets/friends-shots/{contentId}.webp，不存在则不传（卡片退化为纯头像卡）
+const shotsDir = path.join(process.cwd(), "public", "assets", "friends-shots");
+const shotExists = (id: string) => fs.existsSync(path.join(shotsDir, `${id}.webp`));
+
 // 页面标题和描述
 const title = i18n(I18nKey.friends);
 const description = i18n(I18nKey.friendsDescription);
 
-// 区块标题（图标 + 标题 + 计数）的公共 class
+// 区块标题（图标 + 标题 + 计数徽标）的公共 class
 const sectionHeadClass = "flex items-center gap-3 mb-5";
 const sectionIconClass = "text-lg text-neutral-900 dark:text-neutral-100";
 const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-100";
-const sectionCountClass =
-	"text-xs font-medium px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300";
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -90,20 +94,19 @@ const sectionCountClass =
             <div class={sectionHeadClass}>
               <Icon name="material-symbols:auto-awesome-rounded" class={sectionIconClass} />
               <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsLatest)}</h2>
-              <span class={sectionCountClass}>{latestItems.length}</span>
+              <span class="friend-group-badge">{latestItems.length}</span>
             </div>
-            <div class="friends-grid">
+            <div class="friends-grid" data-friends-grid>
               {
                 latestItems.map((item) => (
-                  <div class="friend-card">
-                    <FriendCard
-                      title={item.data.title}
-                      href={item.data.siteurl}
-                      imgurl={item.data.imgurl}
-                      desc={item.data.desc}
-                      tags={item.data.tags}
-                    />
-                  </div>
+                  <FriendCard
+                    title={item.data.title}
+                    href={item.data.siteurl}
+                    imgurl={item.data.imgurl}
+                    desc={item.data.desc}
+                    tags={item.data.tags}
+                    screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                  />
                 ))
               }
             </div>
@@ -118,20 +121,19 @@ const sectionCountClass =
             <div class={sectionHeadClass}>
               <Icon name="material-symbols:group-rounded" class={sectionIconClass} />
               <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMyFriends)}</h2>
-              <span class={sectionCountClass}>{myFriends.length}</span>
+              <span class="friend-group-badge">{myFriends.length}</span>
             </div>
-            <div class="friends-grid">
+            <div class="friends-grid" data-friends-grid>
               {
                 myFriends.map((item) => (
-                  <div class="friend-card">
-                    <FriendCard
-                      title={item.data.title}
-                      href={item.data.siteurl}
-                      imgurl={item.data.imgurl}
-                      desc={item.data.desc}
-                      tags={item.data.tags}
-                    />
-                  </div>
+                  <FriendCard
+                    title={item.data.title}
+                    href={item.data.siteurl}
+                    imgurl={item.data.imgurl}
+                    desc={item.data.desc}
+                    tags={item.data.tags}
+                    screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                  />
                 ))
               }
             </div>
@@ -146,20 +148,19 @@ const sectionCountClass =
             <div class={sectionHeadClass}>
               <Icon name="material-symbols:public-rounded" class={sectionIconClass} />
               <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMore)}</h2>
-              <span class={sectionCountClass}>{moreFriends.length}</span>
+              <span class="friend-group-badge">{moreFriends.length}</span>
             </div>
-            <div class="friends-grid">
+            <div class="friends-grid" data-friends-grid>
               {
                 moreFriends.map((item) => (
-                  <div class="friend-card">
-                    <FriendCard
-                      title={item.data.title}
-                      href={item.data.siteurl}
-                      imgurl={item.data.imgurl}
-                      desc={item.data.desc}
-                      tags={item.data.tags}
-                    />
-                  </div>
+                  <FriendCard
+                    title={item.data.title}
+                    href={item.data.siteurl}
+                    imgurl={item.data.imgurl}
+                    desc={item.data.desc}
+                    tags={item.data.tags}
+                    screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                  />
                 ))
               }
             </div>
@@ -212,29 +213,26 @@ const sectionCountClass =
     });
   </script>
 
-  <!-- 头像懒加载：卡片进入视口时才把 data-src 注入 src 触发请求
-       （Swup 导航后新 DOM 的 inline script 会重新执行，guard 只防 document 级监听重复注册） -->
+  <!-- 友链卡片交互：光晕跟随 / 整卡点击 / 头像懒加载 / 状态注入
+       （守卫防 document 级监听重复注册；Swup 导航后新 DOM 的 inline script 会重新执行，
+        init 由 astro:page-load / swup:content:replaced 驱动重新绑定） -->
   <script is:inline>
     (function() {
-      if (window.__friendAvatarInited) return;
-      window.__friendAvatarInited = true;
+      if (window.__friendCardReady) return;
+      window.__friendCardReady = true;
 
+      /* --- 头像懒加载（data-src → src，失败显示涂鸦） --- */
       function loadAvatar(card) {
         var img = card.querySelector(".friend-card-avatar__img");
         if (!img || img.dataset.avatarLoaded) return;
         img.dataset.avatarLoaded = "1";
-
         var wrap = img.parentElement;
         var src = img.dataset.src;
         if (!wrap || !src) return;
-
         var TIMEOUT = 5000;
         var timer = setTimeout(function() {
-          if (!wrap.classList.contains("is-loaded")) {
-            wrap.classList.add("is-error");
-          }
+          if (!wrap.classList.contains("is-loaded")) wrap.classList.add("is-error");
         }, TIMEOUT);
-
         img.addEventListener("load", function() {
           clearTimeout(timer);
           wrap.classList.remove("is-error");
@@ -244,7 +242,6 @@ const sectionCountClass =
           clearTimeout(timer);
           wrap.classList.add("is-error");
         });
-
         img.src = src;
         if (img.complete && img.naturalWidth > 0) {
           clearTimeout(timer);
@@ -254,7 +251,7 @@ const sectionCountClass =
       }
 
       var io = null;
-      function bindObserver() {
+      function bindAvatarObserver() {
         if (io) io.disconnect();
         var cards = document.querySelectorAll(".friend-card");
         if (!cards.length) return;
@@ -268,9 +265,69 @@ const sectionCountClass =
         cards.forEach(function(card) { io.observe(card); });
       }
 
-      bindObserver();
-      document.addEventListener("astro:page-load", bindObserver);
-      document.addEventListener("swup:content:replaced", bindObserver);
+      /* --- 鼠标跟随光晕（事件委托到网格容器，一次绑定） --- */
+      function bindGlow() {
+        document.querySelectorAll("[data-friends-grid]").forEach(function(grid) {
+          if (grid.dataset.glowBound) return;
+          grid.dataset.glowBound = "1";
+          grid.addEventListener("mousemove", function(e) {
+            var card = e.target.closest(".friend-card");
+            if (!card) return;
+            var rect = card.getBoundingClientRect();
+            card.style.setProperty("--mouse-x", (e.clientX - rect.left) + "px");
+            card.style.setProperty("--mouse-y", (e.clientY - rect.top) + "px");
+          });
+        });
+      }
+
+      /* --- 整卡点击（事件委托：click / Enter / Space；头像 overlay 链接优先） --- */
+      function bindCardClick() {
+        document.addEventListener("click", function(e) {
+          var card = e.target.closest(".friend-card");
+          if (!card || e.target.closest("a")) return;
+          var href = card.dataset.href;
+          if (href) window.open(href, "_blank", "noopener,noreferrer");
+        });
+        document.addEventListener("keydown", function(e) {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          var card = e.target.closest(".friend-card");
+          if (!card) return;
+          var href = card.dataset.href;
+          if (href) { e.preventDefault(); window.open(href, "_blank", "noopener,noreferrer"); }
+        });
+      }
+
+      /* --- 状态注入：fetch friends-status.json 按 siteurl 匹配（无 JSON 静默隐藏） --- */
+      var statusFetched = false;
+      function bindStatus() {
+        if (statusFetched) return;
+        statusFetched = true;
+        fetch("/friends-status.json")
+          .then(function(r) { if (!r.ok) throw new Error("status json missing"); return r.json(); })
+          .then(function(data) {
+            var sites = data.sites || {};
+            document.querySelectorAll(".friend-card").forEach(function(card) {
+              var info = sites[card.dataset.siteurl];
+              var tag = card.querySelector(".friend-status-tag");
+              if (!tag || !info) return;
+              tag.classList.add("friend-status-tag--" + info.status);
+              tag.querySelector(".friend-status-text").textContent =
+                info.status === "down" ? "DOWN" : (info.ms + " MS");
+              tag.hidden = false;
+            });
+          })
+          .catch(function() { /* 无 JSON：静默隐藏徽标 */ });
+      }
+
+      function init() {
+        bindAvatarObserver();
+        bindGlow();
+        bindStatus();
+      }
+
+      init();
+      document.addEventListener("astro:page-load", init);
+      document.addEventListener("swup:content:replaced", init);
     })();
   </script>
 

@@ -4,10 +4,10 @@
 
 .friends-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	/* 卡片悬停会向下扩展，顶部对齐避免整行被拉伸 */
 	align-items: start;
-	gap: 1rem 0.75rem;
+	gap: 1rem 0.85rem;
 	padding-top: 1rem;
 	padding-bottom: 1rem;
 }
@@ -100,6 +100,18 @@
 	flex-shrink: 0;
 	border-radius: 50%;
 	object-fit: cover;
+}
+
+/* 区块计数徽标（毛玻璃 + 主题色，参考站 group-badge） */
+.friend-group-badge {
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+	border: 1px solid color-mix(in oklch, var(--primary) 15%, transparent);
+	background: color-mix(in oklch, var(--primary) 8%, transparent);
+	color: var(--primary);
+	font-size: 0.875rem;
+	font-weight: 600;
+	backdrop-filter: blur(8px);
 }
 
 .tombstone-name {

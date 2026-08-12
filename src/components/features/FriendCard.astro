@@ -23,12 +23,13 @@ const initial = title.trim().slice(0, 1);
 ---
 
 <div
-  class="friend-card"
+  class={"friend-card" + (screenshot ? "" : " friend-card--no-shot")}
   role="link"
   tabindex="0"
   data-href={href}
   data-siteurl={href}
   data-title={title}
+  title={desc}
 >
   {/* 鼠标跟随光晕 */}
   <div class="friend-card-glow" aria-hidden="true"></div>

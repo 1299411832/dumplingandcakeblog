@@ -78,8 +78,8 @@
 	margin-top: auto;
 	background: linear-gradient(
 		to top,
-		var(--card-bg) 55%,
-		color-mix(in oklch, var(--card-bg) 85%, transparent) 85%,
+		var(--float-panel-bg) 60%,
+		color-mix(in oklch, var(--float-panel-bg) 88%, transparent) 90%,
 		transparent
 	);
 }
@@ -87,6 +87,11 @@
 .friend-card--no-shot .friend-body {
 	padding-top: 0.8rem;
 	background: none;
+}
+
+/* JS 注入前空徽标不可见（display:inline-flex 会覆盖 UA 的 [hidden]） */
+.friend-status-tag[hidden] {
+	display: none;
 }
 
 .friend-main {
