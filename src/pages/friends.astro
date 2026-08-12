@@ -46,6 +46,15 @@ const tombstoneEntries = await getCollection("tombstones");
 const shotsDir = path.join(process.cwd(), "public", "assets", "friends-shots");
 const shotExists = (id: string) => fs.existsSync(path.join(shotsDir, `${id}.webp`));
 
+// 域名（new URL().host，取不到时回退空串）
+const hostOf = (siteurl: string) => {
+	try {
+		return new URL(siteurl).host;
+	} catch {
+		return "";
+	}
+};
+
 // 页面标题和描述
 const title = i18n(I18nKey.friends);
 const description = i18n(I18nKey.friendsDescription);
@@ -104,8 +113,8 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
                     href={item.data.siteurl}
                     imgurl={item.data.imgurl}
                     desc={item.data.desc}
-                    tags={item.data.tags}
                     screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                    host={hostOf(item.data.siteurl)}
                   />
                 ))
               }
@@ -131,8 +140,8 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
                     href={item.data.siteurl}
                     imgurl={item.data.imgurl}
                     desc={item.data.desc}
-                    tags={item.data.tags}
                     screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                    host={hostOf(item.data.siteurl)}
                   />
                 ))
               }
@@ -158,8 +167,8 @@ const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-
                     href={item.data.siteurl}
                     imgurl={item.data.imgurl}
                     desc={item.data.desc}
-                    tags={item.data.tags}
                     screenshot={shotExists(item.id) ? `/assets/friends-shots/${item.id}.webp` : undefined}
+                    host={hostOf(item.data.siteurl)}
                   />
                 ))
               }

@@ -4,19 +4,11 @@ export interface Props {
 	href: string;
 	imgurl: string;
 	desc: string;
-	tags?: string[];
 	screenshot?: string;
+	host?: string;
 }
 
-const { title, href, imgurl, desc, tags = [], screenshot } = Astro.props;
-
-// 类型标签：标明是文档还是博客（沿用旧逻辑）
-const tagLabels: Record<string, string> = {
-	Blog: "博客",
-	Docs: "文档",
-};
-const primaryTag = tags[0] || "Blog";
-const tagLabel = tagLabels[primaryTag] || primaryTag;
+const { title, href, imgurl, desc, screenshot, host = "" } = Astro.props;
 
 // 头像加载失败 / 骨架占位使用的首字
 const initial = title.trim().slice(0, 1);
@@ -34,7 +26,7 @@ const initial = title.trim().slice(0, 1);
   {/* 鼠标跟随光晕 */}
   <div class="friend-card-glow" aria-hidden="true"></div>
 
-  {/* 整卡背景：站点截图（无截图时不渲染此层） */}
+  {/* 整卡背景：站点截图，下缘白色渐变遮罩渐隐（无截图时不渲染此层） */}
   {screenshot && (
     <div class="friend-siteshot" aria-hidden="true">
       <img src={screenshot} alt="" loading="lazy" />
@@ -42,6 +34,7 @@ const initial = title.trim().slice(0, 1);
   )}
 
   <div class="friend-body">
+    {/* 头像 + 名字 + 域名：叠在截图渐隐区（无截图时移到顶部） */}
     <div class="friend-main">
       {/* 头像（沿用 data-src 懒加载 + 涂鸦 fallback 机制） */}
       <div class="friend-avatar-wrap">
@@ -65,9 +58,11 @@ const initial = title.trim().slice(0, 1);
       </div>
       <div class="friend-name-wrap">
         <span class="friend-name">{title}</span>
+        {host && <span class="friend-host">{host}</span>}
       </div>
     </div>
 
+    {/* 描述：底部黑字，无框（参考站同款） */}
     <p class="friend-desc">{desc}</p>
 
     {/* 访问状态徽标：页面 JS 注入，无数据时隐藏 */}
@@ -76,7 +71,4 @@ const initial = title.trim().slice(0, 1);
       <span class="friend-status-text"></span>
     </span>
   </div>
-
-  {/* 顶部类型标签（胶带样式缩小版，保留手绘基因） */}
-  <span class="friend-card-tab">{tagLabel}</span>
 </div>
