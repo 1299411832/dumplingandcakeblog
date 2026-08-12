@@ -1,7 +1,7 @@
 ---
+import { getCollection, getEntry, render } from "astro:content";
 import fs from "node:fs";
 import path from "node:path";
-import { getCollection, getEntry, render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
 import FriendCard from "@components/features/FriendCard.astro";
@@ -27,26 +27,34 @@ const items = friendsEntries
 // 新朋友：按添加日期（added）降序取最近 3 个；无 added 的不参与
 const latestItems = [...items]
 	.filter((item) => item.data.added)
-	.sort((a, b) => +b.data.added! - +a.data.added!)
+	.sort(
+		(a, b) => (b.data.added?.getTime() ?? 0) - (a.data.added?.getTime() ?? 0),
+	)
 	.slice(0, 3);
 
 // 新朋友区块独立展示后，从分组中排除，避免同一站点出现两次
 const latestIds = new Set(latestItems.map((item) => item.id));
 
 // 我的朋友们 / 更多伙伴（group 缺省为 other）
-const myFriends = items.filter((item) => (item.data.group ?? "other") === "friend");
+const myFriends = items.filter(
+	(item) => (item.data.group ?? "other") === "friend",
+);
 const moreFriends = items.filter(
-	(item) => (item.data.group ?? "other") !== "friend" && !latestIds.has(item.id),
+	(item) =>
+		(item.data.group ?? "other") !== "friend" && !latestIds.has(item.id),
 );
 
 // 友链墓碑（纪念下线的友链）：目录无数据时不调用 getCollection（避免 Astro 空集合警告），区块自动隐藏
 const tombstonesDir = path.join(process.cwd(), "src", "content", "tombstones");
-const hasTombstones = fs.readdirSync(tombstonesDir).some((f) => f.endsWith(".md"));
+const hasTombstones = fs
+	.readdirSync(tombstonesDir)
+	.some((f) => f.endsWith(".md"));
 const tombstoneEntries = hasTombstones ? await getCollection("tombstones") : [];
 
 // 站点截图：public/assets/friends-shots/{contentId}.webp，不存在则不传（卡片退化为纯头像卡）
 const shotsDir = path.join(process.cwd(), "public", "assets", "friends-shots");
-const shotExists = (id: string) => fs.existsSync(path.join(shotsDir, `${id}.webp`));
+const shotExists = (id: string) =>
+	fs.existsSync(path.join(shotsDir, `${id}.webp`));
 
 // 域名（new URL().host，取不到时回退空串）
 const hostOf = (siteurl: string) => {
