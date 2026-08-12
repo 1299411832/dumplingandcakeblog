@@ -69,6 +69,7 @@ export const zh_TW: Translation = {
 	[Key.friendsMyFriendsTitle]: "🤪 好盆友 · 有些人呀，天天到處轉！",
 	[Key.friendsMoreTitle]: "🤤 友情鏈結 · 那些人，那些事兒~",
 	[Key.friendsShiningDesc]: "這裡有 {n} 個正在發光的小站點。",
+	[Key.friendsSites]: "sites",
 	[Key.friendsTombstone]: "🪵 友鏈墓碑 · 相逢何必曾相識",
 	[Key.friendsTombstoneDesc]: "此處記錄的友鏈因長期無法訪問、站點關閉、或友鏈反鏈丟失，長期未更新(一年)等原因，由站長慎重考慮後，手動下線。若因技術問題導致下線，歡迎站長修復後隨時聯繫恢復。",
 	[Key.circle]: "朋友圈",

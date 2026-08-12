@@ -70,6 +70,7 @@ export const en: Translation = {
 	[Key.friendsMyFriendsTitle]: "🤪 Best Buddies · Always around!",
 	[Key.friendsMoreTitle]: "🤤 Friend Links · Those people, those stories~",
 	[Key.friendsShiningDesc]: "Here are {n} shining little sites.",
+	[Key.friendsSites]: "sites",
 	[Key.friendsTombstone]: "🪵 Friend Link Tombstones · Those who once walked beside us",
 	[Key.friendsTombstoneDesc]: "These links were manually retired after being unreachable for a long time, shut down, losing reciprocal links, or dormant for over a year. If a site returns, feel free to contact us to restore it.",
 	[Key.circle]: "Circle",

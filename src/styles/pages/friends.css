@@ -102,16 +102,24 @@
 	object-fit: cover;
 }
 
-/* 区块计数徽标（毛玻璃 + 主题色，参考站 group-badge） */
+/* 区块计数徽标（蓝色字体 + 淡蓝毛玻璃底） */
 .friend-group-badge {
 	padding: 0.2rem 0.55rem;
 	border-radius: 999px;
-	border: 1px solid color-mix(in oklch, var(--primary) 15%, transparent);
-	background: color-mix(in oklch, var(--primary) 8%, transparent);
-	color: var(--primary);
+	border: 1px solid color-mix(in oklch, var(--friend-badge-blue) 15%, transparent);
+	background: color-mix(in oklch, var(--friend-badge-blue) 8%, transparent);
+	color: var(--friend-badge-blue);
 	font-size: 0.875rem;
 	font-weight: 600;
 	backdrop-filter: blur(8px);
+}
+
+.friend-group-badge {
+	--friend-badge-blue: oklch(0.55 0.18 0.26);
+}
+
+:root.dark .friend-group-badge {
+	--friend-badge-blue: oklch(0.72 0.16 0.26);
 }
 
 /* 区块标题（emoji + 主标题 + 副句 + 计数徽标，参考站 group-header 结构） */
