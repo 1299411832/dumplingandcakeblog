@@ -37,6 +37,9 @@ const moreFriends = items.filter(
 	(item) => (item.data.group ?? "other") !== "friend" && !latestIds.has(item.id),
 );
 
+// 友链墓碑（纪念下线的友链，空集合时不渲染区块）
+const tombstoneEntries = await getCollection("tombstones");
+
 // 页面标题和描述
 const title = i18n(I18nKey.friends);
 const description = i18n(I18nKey.friendsDescription);
@@ -157,6 +160,30 @@ const sectionCountClass =
                       tags={item.data.tags}
                     />
                   </div>
+                ))
+              }
+            </div>
+          </section>
+        )
+      }
+
+      <!-- 友链墓碑：纪念因失联/关闭而下线的友链 -->
+      {
+        tombstoneEntries.length > 0 && (
+          <section class="tombstone-section">
+            <h2 class="tombstone-title">{i18n(I18nKey.friendsTombstone)}</h2>
+            <div class="tombstone-desc">
+              <blockquote>
+                <p>{i18n(I18nKey.friendsTombstoneDesc)}</p>
+              </blockquote>
+            </div>
+            <div class="tombstone-list">
+              {
+                tombstoneEntries.map((entry) => (
+                  <span class="tombstone-item">
+                    {entry.data.avatar && <img class="tombstone-avatar" src={entry.data.avatar} alt="" loading="lazy" />}
+                    <span class="tombstone-name">{entry.data.title}</span>
+                  </span>
                 ))
               }
             </div>
