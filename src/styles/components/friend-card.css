@@ -9,7 +9,7 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	aspect-ratio: 7 / 5; /* 截图 2/3 + 白卡 1/3 的比例（子元素 absolute，需固定高度） */
+	aspect-ratio: 7 / 5; /* 横长形（参考站同款 1.4:1，子元素 absolute，需固定高度） */
 	overflow: hidden;
 	border-radius: 16px;
 	background: color-mix(in oklch, var(--card-bg) 55%, transparent);
@@ -53,11 +53,14 @@
 	opacity: 1;
 }
 
-/* 站点截图：整卡背景，hover 放大 6%，下缘白色渐变遮罩渐隐（参考站同款） */
+/* 站点截图：占卡片上部 2/3，hover 放大 6%，下缘渐隐融入背景 */
 .friend-siteshot {
 	position: absolute;
-	inset: 0;
+	top: 0;
+	left: 0;
+	right: 0;
 	z-index: 0;
+	height: 66.67%;
 	overflow: hidden;
 }
 
@@ -73,12 +76,12 @@
 	transform: scale(1.06);
 }
 
-/* 朦胧过渡：截图从 ~45% 处开始渐隐到卡片底色（参考站"上图融入下图"效果） */
+/* 朦胧过渡：截图区内下部渐隐到白（与下方 1/3 白色区衔接） */
 .friend-siteshot::after {
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(to bottom, transparent 45%, var(--float-panel-bg) 88%);
+	background: linear-gradient(to bottom, transparent 62%, var(--float-panel-bg) 100%);
 	pointer-events: none;
 }
 
@@ -90,10 +93,10 @@
 	pointer-events: none;
 }
 
-/* 头像 + 名字 + 域名：叠在截图渐隐区（卡片 ~38% 处，参考站同款） */
+/* 头像 + 名字 + 域名：叠在网站截图上（卡片 ~42% 处，截图区下部渐隐带内） */
 .friend-main {
 	position: absolute;
-	top: 38%;
+	top: 42%;
 	left: 0.8rem;
 	right: 0.8rem;
 	display: flex;
@@ -101,27 +104,41 @@
 	gap: 0.6rem;
 }
 
-/* 描述：底部直接黑字，无框（参考站同款） */
+/* 描述：白色区顶部开始，区域固定两行高（单行时文字在第一行、下方留一行空位，两行占满） */
 .friend-desc {
 	position: absolute;
 	left: 0.8rem;
 	right: 0.8rem;
-	bottom: 0.7rem;
+	top: 70%; /* 截图区（66.7%）下方，白色区内 */
+	height: 2.1rem; /* 两行空间（line-height 1.3 × 2） */
 	margin: 0;
-	font-size: 0.875rem;
-	font-weight: 600;
-	line-height: 1.4;
+	font-size: 0.8125rem;
+	font-weight: 400;
+	line-height: 1.3;
 	color: var(--deep-text);
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 1;
-	line-clamp: 1;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	overflow: hidden;
 }
 
-/* 无截图：头像名字移到顶部，无渐隐遮罩 */
+/* 无截图：恢复静态流普通卡片（高度由内容决定），无渐隐遮罩 */
+.friend-card--no-shot .friend-body {
+	position: static;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 0.8rem;
+}
+
 .friend-card--no-shot .friend-main {
-	top: 0.8rem;
+	position: static;
+}
+
+.friend-card--no-shot .friend-desc {
+	position: static;
+	height: auto;
 }
 
 .friend-card--no-shot .friend-siteshot::after {
@@ -133,11 +150,11 @@
 	display: none;
 }
 
-/* 头像（38px 圆，沿用涂鸦 fallback） */
+/* 头像（30px 圆，沿用涂鸦 fallback） */
 .friend-avatar-wrap {
 	position: relative;
-	width: 2.35rem;
-	height: 2.35rem;
+	width: 1.875rem;
+	height: 1.875rem;
 	flex-shrink: 0;
 	border-radius: 999px;
 	overflow: hidden;
@@ -148,7 +165,9 @@
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
-	border: 2px solid color-mix(in oklch, var(--border) 60%, transparent);
+	/* 白色描边：叠在截图上更醒目（参考站同款，主题色随浅深模式） */
+	border: 2px solid var(--float-panel-bg);
+	box-shadow: 0 0 0 1px color-mix(in oklch, var(--border) 35%, transparent);
 	transition: border-color 300ms ease;
 	overflow: hidden;
 }
