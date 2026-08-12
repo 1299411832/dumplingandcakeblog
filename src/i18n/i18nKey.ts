@@ -92,6 +92,8 @@ enum I18nKey {
 	friendsLatest = "friendsLatest",
 	friendsMyFriends = "friendsMyFriends",
 	friendsMore = "friendsMore",
+	friendsTombstone = "friendsTombstone",
+	friendsTombstoneDesc = "friendsTombstoneDesc",
 	circle = "circle",
 	circleTitle = "circleTitle",
 	circleSubtitle = "circleSubtitle",

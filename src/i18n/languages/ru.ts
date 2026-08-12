@@ -70,6 +70,8 @@ export const ru: Translation = {
 	[Key.friendsLatest]: "Новые друзья",
 	[Key.friendsMyFriends]: "Мои друзья",
 	[Key.friendsMore]: "Другие друзья",
+	[Key.friendsTombstone]: "🪵 Надгробия дружеских ссылок · Та, что была, не вернётся",
+	[Key.friendsTombstoneDesc]: "Эти ссылки были вручную сняты после долгой недоступности, закрытия сайта, потери взаимности или более года без обновлений. Если сайт вернётся — свяжитесь с нами для восстановления.",
 	[Key.circle]: "Круг друзей",
 	[Key.circleTitle]: "Круг друзей",
 	[Key.circleSubtitle]: "Последние статьи друзей",

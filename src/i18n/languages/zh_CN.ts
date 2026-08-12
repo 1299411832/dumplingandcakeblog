@@ -68,6 +68,8 @@ export const zh_CN: Translation = {
 	[Key.friendsLatest]: "新朋友",
 	[Key.friendsMyFriends]: "我的朋友们",
 	[Key.friendsMore]: "更多伙伴",
+	[Key.friendsTombstone]: "🪵 友链墓碑 · 相逢何必曾相识",
+	[Key.friendsTombstoneDesc]: "此处记录的友链因长期无法访问、站点关闭、或友链反链丢失，长期未更新(一年)等原因，由站长慎重考虑后，手动下线。若因技术问题导致下线，欢迎站长修复后随时联系恢复。若站点已停止维护，则可能不再接受恢复请求。",
 	[Key.circle]: "朋友圈",
 	[Key.circleTitle]: "朋友圈",
 	[Key.circleSubtitle]: "好友们的最新文章动态",

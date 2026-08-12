@@ -253,6 +253,15 @@ const appsCollection = defineCollection({
 	}),
 });
 
+const tombstonesCollection = defineCollection({
+	loader: glob({ pattern: "**/*.md", base: "./src/content/tombstones" }),
+	schema: z.object({
+		title: z.string(),
+		avatar: z.string().optional(),
+		note: z.string().optional(),
+	}),
+});
+
 const daohangCollection = defineCollection({
 	loader: glob({ pattern: "**/*.md", base: "./src/content/daohang" }),
 	schema: z.object({
@@ -293,4 +302,5 @@ export const collections = {
 	friends: friendsCollection,
 	apps: appsCollection,
 	changelog: changelogCollection,
+	tombstones: tombstonesCollection,
 };

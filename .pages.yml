@@ -384,6 +384,33 @@ content:
             type: boolean
             default: true
 
+      - name: tombstones
+        label: 🪦 友链墓碑
+        type: collection
+        path: src/content/tombstones
+        format: yaml-frontmatter
+        filename:
+          template: "{primary}.md"
+          field: create
+        view:
+          primary: title
+          fields: [title, note]
+          sort: ["title asc"]
+        fields:
+          - name: title
+            label: 站点名
+            type: string
+            required: true
+
+          - name: avatar
+            label: 头像链接
+            type: string
+
+          - name: note
+            label: 备注
+            type: string
+            description: 下线原因、时间等
+
   # ============================================================
   # 🌱 生活记录
   # ============================================================

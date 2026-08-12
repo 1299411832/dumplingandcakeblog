@@ -69,6 +69,8 @@ export const en: Translation = {
 	[Key.friendsLatest]: "New Friends",
 	[Key.friendsMyFriends]: "My Friends",
 	[Key.friendsMore]: "More Friends",
+	[Key.friendsTombstone]: "🪵 Friend Link Tombstones · Those who once walked beside us",
+	[Key.friendsTombstoneDesc]: "These links were manually retired after being unreachable for a long time, shut down, losing reciprocal links, or dormant for over a year. If a site returns, feel free to contact us to restore it.",
 	[Key.circle]: "Circle",
 	[Key.circleTitle]: "Friends Circle",
 	[Key.circleSubtitle]: "Latest articles from friends",
