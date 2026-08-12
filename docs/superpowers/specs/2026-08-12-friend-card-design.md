@@ -115,16 +115,72 @@
 | `src/components/features/FriendCard.astro` | 重写为截图卡结构（1.1） |
 | `src/styles/components/friend-card.css` | 全部重写（1.2），涂鸦头像机制保留 |
 | `src/styles/pages/friends.css` | `.friends-grid` 改 4 列 + 区块徽标样式；新增 `.friend-group-badge` |
-| `src/pages/friends.astro` | 传 `screenshot`/`host`/`siteurl` props；区块标题加计数徽标；新增光晕/点击/状态注入 JS（守卫 + 事件委托） |
+| `src/pages/friends.astro` | 传 `screenshot`/`host`/`siteurl` props；区块标题加计数徽标；新增光晕/点击/状态注入 JS（守卫 + 事件委托）；渲染墓碑区块 |
 | `src/utils/friends-status.ts`（可选） | 状态 JSON 类型定义 + 解析工具 |
+| `src/content.config.ts` + `src/content/tombstones/` | 新集合 tombstones（§6.1） |
+| `.pages.yml` | 同步声明 tombstones 集合 |
+| `src/i18n/i18nKey.ts` + 5 语言文件 | 新增 2 键：friendsTombstone（标题）、friendsTombstoneDesc（说明文案） |
 | `.github/workflows/friend-screenshots.yml` | 新建 |
 | `.github/workflows/friend-status.yml` | 新建 |
 | `scripts/友链截图/index.mjs` + `scripts/友链状态检测/index.mjs` | 新建 |
-| `CLAUDE.md` | 第 2 节 scripts 清单 + 第 0 节命令 + 反模式/架构说明同步 |
+| `CLAUDE.md` | 第 2 节 scripts 清单 + 第 0 节命令 + 第 3.4 节集合表（+tombstones）+ 反模式/架构说明同步 |
 
-**不改动**：content schema、.pages.yml、i18n、区块数据逻辑（added/group 已上线）。
+**不改动**：friends 集合 schema（added/group 已上线）、区块数据逻辑。
 
-## 6. 验证
+## 6. 友链墓碑区块（用户追加需求，2026-08-12 确认）
+
+复刻参考站页面底部的「🪵 友链墓碑 · 相逢何必曾相识」区块：纪念因失联/关闭/反链丢失而手动下线的友链。
+
+### 6.1 数据：新内容集合 `tombstones`
+
+- 新建 `src/content/tombstones/` 集合（12 集合 → 13），schema：
+  ```ts
+  const tombstonesCollection = defineCollection({
+      loader: glob({ pattern: "**/*.md", base: "./src/content/tombstones" }),
+      schema: z.object({
+          title: z.string(),          // 站点名（必填）
+          avatar: z.string().optional(),  // 头像 URL（可选，无头像只显示名字）
+          note: z.string().optional(),    // 备注（可选，如下线原因/时间）
+      }),
+  });
+  ```
+- `src/content.config.ts` `collections` 注册 + **`.pages.yml` 同步声明新集合**（title 必填 / avatar / note 可选），CMS 后台可维护
+- 初始为空目录（可加 `README.md` 说明？不需要，CMS 管理即可）；**空集合时区块不渲染**，不影响现有页面
+
+### 6.2 页面与样式（friends.astro + 新 CSS）
+
+```
+<section class="tombstone-section">        ← margin-top: 3rem
+  <h2>🪵 友链墓碑 · 相逢何必曾相识</h2>     ← 复用 friend-group-title 风格（1.12rem/800）
+  <div class="tombstone-desc">             ← 灰字 0.9375rem/1.65，margin-bottom 1rem
+    <blockquote>                           ← border-left 3px var(--primary) 30%，padding-left 0.85rem
+      💡 说明：此处记录的友链因长期无法访问、站点关闭、或友链反链丢失，长期未更新(一年)等原因，由站长慎重考虑后，手动下线。
+      若因技术问题导致下线，欢迎站长修复后随时联系恢复。…
+    </blockquote>
+  </div>
+  <div class="tombstone-list">             ← flex wrap，gap 0.75rem
+    <span class="tombstone-item">          ← 下划线 text-decoration（30% 前景色），hover 上浮 2px + 主题色
+      <img class="tombstone-avatar">       ← 14px 圆（可选字段，无 avatar 只渲染名字）
+      <span class="tombstone-name">luo</span>
+    </span>
+    …
+  </div>
+</section>
+```
+
+- 位置：`friends.astro` 中「更多伙伴」区块之后、`<Markdown>` 内容之前
+- 区块标题文案走 i18n（`friendsTombstone` 键），说明文案也走 i18n（`friendsTombstoneDesc`，5 语言同步）
+- 墓碑项 hover：`color: var(--primary)` + `text-decoration-color: var(--primary)` + `translateY(-2px)`
+- 样式放 `src/styles/pages/friends.css`（tombstone 系列）
+
+### 6.3 验证
+
+- 空集合时页面无墓碑区块；添加一个测试条目后区块出现、hover 效果正常
+- `pnpm check` / `pnpm build` 通过（新集合 schema 校验）
+
+---
+
+## 7. 验证
 
 1. `pnpm check` + `pnpm build` 全绿
 2. `pnpm dev` 浏览器验证：
