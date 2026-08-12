@@ -5,16 +5,16 @@ export interface Props {
 	imgurl: string;
 	desc: string;
 	tags?: string[];
+	screenshot?: string;
 }
 
-const { title, href, imgurl, desc, tags = [] } = Astro.props;
+const { title, href, imgurl, desc, tags = [], screenshot } = Astro.props;
 
-// 类型标签：标明是文档还是博客
+// 类型标签：标明是文档还是博客（沿用旧逻辑）
 const tagLabels: Record<string, string> = {
 	Blog: "博客",
 	Docs: "文档",
 };
-
 const primaryTag = tags[0] || "Blog";
 const tagLabel = tagLabels[primaryTag] || primaryTag;
 
@@ -22,31 +22,60 @@ const tagLabel = tagLabels[primaryTag] || primaryTag;
 const initial = title.trim().slice(0, 1);
 ---
 
-<a
-  class="friend-card-link"
-  href={href}
-  target="_blank"
-  rel="noopener noreferrer"
-  title={desc}
+<div
+  class="friend-card"
+  role="link"
+  tabindex="0"
+  data-href={href}
+  data-siteurl={href}
+  data-title={title}
 >
-  {/* 顶部标签：胶带样式 */}
+  {/* 鼠标跟随光晕 */}
+  <div class="friend-card-glow" aria-hidden="true"></div>
+
+  {/* 整卡背景：站点截图（无截图时不渲染此层） */}
+  {screenshot && (
+    <div class="friend-siteshot" aria-hidden="true">
+      <img src={screenshot} alt="" loading="lazy" />
+    </div>
+  )}
+
+  <div class="friend-body">
+    <div class="friend-main">
+      {/* 头像（沿用 data-src 懒加载 + 涂鸦 fallback 机制） */}
+      <div class="friend-avatar-wrap">
+        <div class="friend-card-avatar" data-initial={initial}>
+          <span class="friend-card-avatar__face" aria-hidden="true"></span>
+          <img
+            alt={title}
+            class="friend-card-avatar__img"
+            data-src={imgurl}
+          />
+        </div>
+        <a
+          class="friend-avatar-overlay"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={title}
+        >
+          <span class="friend-avatar-overlay__icon" aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <div class="friend-name-wrap">
+        <span class="friend-name">{title}</span>
+      </div>
+    </div>
+
+    <p class="friend-desc">{desc}</p>
+
+    {/* 访问状态徽标：页面 JS 注入，无数据时隐藏 */}
+    <span class="friend-status-tag" data-siteurl={href} hidden>
+      <span class="friend-status-dot" aria-hidden="true"></span>
+      <span class="friend-status-text"></span>
+    </span>
+  </div>
+
+  {/* 顶部类型标签（胶带样式缩小版，保留手绘基因） */}
   <span class="friend-card-tab">{tagLabel}</span>
-
-  {/* 第一层：头像（未加载/失败时显示手绘涂鸦头像，加载成功后淡入替换） */}
-  <div class="friend-card-avatar" data-initial={initial}>
-    <span class="friend-card-avatar__face" aria-hidden="true"></span>
-    <img
-      alt={title}
-      class="friend-card-avatar__img"
-      data-src={imgurl}
-    />
-  </div>
-
-  {/* 第二层：名字 */}
-  <h3 class="friend-card-name">{title}</h3>
-
-  {/* 第三层：介绍框（默认一行，悬停向下扩展显示更多，超出截断） */}
-  <div class="friend-card-intro">
-    <p class="friend-card-intro__text">{desc}</p>
-  </div>
-</a>
+</div>
