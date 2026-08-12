@@ -18,6 +18,8 @@
 | `pnpm icons` | 重新生成图标（scripts/生成图标，build 自动前置执行） |
 | `pnpm compress-images` | 压缩图片（`--dry-run` 预检）；另有 rename-images / import-wallpapers 图片脚本 |
 | `pnpm cli` | 仓库工具 CLI（scripts/cli.js） |
+| `node scripts/友链截图/index.mjs` | 站点截图（Playwright，产物 public/assets/friends-shots/；Action 每周日自动跑） |
+| `node scripts/友链状态检测/index.mjs` | 友链延迟检测（产物 public/friends-status.json；Action 每天自动跑） |
 
 > 包管理器仅限 pnpm（preinstall 强制 `only-allow`）。本项目无测试框架，验证手段 = `pnpm build` + `pnpm check`。
 
@@ -58,11 +60,11 @@ src/
 │   └── widget/          # 侧栏 Widget (27)
 ├── config/              # 站点配置（26 个 .ts，index.ts barrel export）
 ├── constants/           # 常量：页面尺寸、主题模式、图标、链接预设
-├── content/             # Astro Content Collections（12 个集合）
+├── content/             # Astro Content Collections（13 个集合）
 │   ├── album/ apps/ bangumi/ changelog/ daohang/
 │   ├── friends/ life/ moments/ posts/ spec/ ziyuan/
 │   └── life/notebooks/  # notebooks 集合物理位置（life 的子目录）
-├── i18n/                # 国际化（5 种语言，293 个翻译键）
+├── i18n/                # 国际化（5 种语言，295 个翻译键）
 │   └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ├── layouts/             # Layout.astro (591行), MainGridLayout.astro (305行)
 ├── notes/               # Obsidian 笔记（不发布）
@@ -91,7 +93,7 @@ src/
 .pages.yml                # PagesCMS 后台配置（11 集合声明，见第 19 节）
 .claude/settings.json     # 命令白名单（分类器不可用时不卡 Bash）
 pagefind.yml              # Pagefind 索引排除配置（katex、搜索面板等）
-scripts/                  # 开发脚本：8 个中文命名脚本目录（生成图标/新建文章/生成摘要/转WebP/添加导航/下载影视/下载音乐/回填友链字段）+ cli.js、vision.mjs（图片识别）、compress-images.mjs、rename-images.mjs、import-wallpapers.mjs、check-svelte-warnings.mjs（脚本清单见第 0 节）
+scripts/                  # 开发脚本：10 个中文命名脚本目录（生成图标/新建文章/生成摘要/转WebP/添加导航/下载影视/下载音乐/回填友链字段/友链截图/友链状态检测）+ cli.js、vision.mjs（图片识别）、compress-images.mjs、rename-images.mjs、import-wallpapers.mjs、check-svelte-warnings.mjs（脚本清单见第 0 节）
 docs/                     # 部署文档（deploy-pagescms-vercel.md 等）
 write_places.cjs          # 一次性脚本：生成 life/places 足迹页
 ```
@@ -135,7 +137,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ### 3.4 Content Collections
 
-12 个集合定义在 `src/content.config.ts`，使用 Zod schema 校验：
+13 个集合定义在 `src/content.config.ts`，使用 Zod schema 校验：
 
 | 集合 | 用途 |
 |------|------|
@@ -149,8 +151,11 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 | daohang | 导航链接 |
 | ziyuan | 资源/公告 |
 | friends | 友链（added 添加日期 + group 分组 friend\|other，2026-08 区块化改版：新朋友/我的朋友们/更多伙伴） |
+| tombstones | 友链墓碑（title/avatar/note，2026-08 新增，纪念下线友链） |
 | apps | 应用 |
 | changelog | 更新日志 |
+
+> 友链页支撑系统（2026-08）：`.github/workflows/friend-status.yml`（每天 5:17 检测友链延迟 → public/friends-status.json，四档 fast/ok/slow/down）与 `friend-screenshots.yml`（每周日 3:23 Playwright 截图 → public/assets/friends-shots/{contentId}.webp）。前端 fetch 状态 JSON 注入徽标，无 JSON/无截图时优雅降级（卡片退化为纯头像卡）。改 friends 集合结构时注意同步这两个脚本（正则读 frontmatter）。
 
 ---
 
@@ -293,7 +298,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 
 ```
 src/i18n/
-├── i18nKey.ts       # 293 个翻译键枚举
+├── i18nKey.ts       # 295 个翻译键枚举
 ├── translation.ts   # 翻译加载器（回退链：当前语言 → zh_CN → en）
 └── languages/       # en.ts, zh_CN.ts, zh_TW.ts, ja.ts, ru.ts
 ```
@@ -603,6 +608,7 @@ return controller;
 | Biome | 2.5.7 | 唯一 linter/formatter，版本需与 package.json 一致（见第 15 节） |
 | pnpm | 9.14.x | 唯一包管理器 |
 | Node.js | >= 22 | 运行时要求 |
+| Playwright | devDep（2026-08） | 友链截图脚本用（scripts/友链截图，chromium） |
 
 > ⚠️ `stylus` 依赖已于 2026-08 移除（实测 Astro 7 构建不依赖它）——**勿新建 Stylus 文件**，统一用纯 CSS。
 
@@ -660,7 +666,7 @@ Vercel（PagesCMS 实例，绑定 cms-origin.tsh520.cn）
 ```
 
 - **源站域名分离**：Vercel 绑定 `cms-origin.tsh520.cn`（DNS → vercel.app），用户域名 `cms.tsh520.cn` 走 EdgeOne（回源 Host = cms-origin）——Vercel 的域名验证机制要求 DNS 持续指向它，不能直接套 CDN
-- **配置声明**：仓库根目录 `.pages.yml` 声明 11 个内容集合（posts 按分类拆 13 个集合、moments/friends/apps/daohang/album/ziyuan 拆 2/life 拆 3），字段与 `src/content.config.ts` 的 zod 对齐
+- **配置声明**：仓库根目录 `.pages.yml` 声明 12 个内容集合（posts 按分类拆 13 个集合、moments/friends/apps/daohang/album/ziyuan 拆 2/life 拆 3、tombstones 2026-08 新增），字段与 `src/content.config.ts` 的 zod 对齐
 - **自定义字段**：imgbed（图床上传，走服务端代理）+ amap-geocode（高德坐标，保存时展开为 lat/lng）——在 pagescms 仓库（`E:\GithubProgect\MyRunProject\pagescms`）的 `fields/custom/` 定义，注册在 `fields/registry.ts`
 - **凭证**：Vercel 环境变量（GITHUB_APP_*、IMAGEBED_*、AMAP_KEY 等）；图床/高德代理路由在 pagescms 的 `app/api/` 下（凭证服务端持有）
 - **修改 .pages.yml 后**：字段必须与 zod 对齐（merge: false，未声明字段保存时被丢弃）；校验脚本已随 Decap 遗留一并删除——**当前 .pages.yml 的字段对齐靠手动检查 + 构建验证**
