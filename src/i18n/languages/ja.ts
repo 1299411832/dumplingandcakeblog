@@ -67,6 +67,9 @@ export const ja: Translation = {
 	[Key.friends]: "友達",
 	[Key.friendsDescription]:
 		"ここは私の友達です、お互いに訪問して交流することを歓迎します",
+	[Key.friendsLatest]: "新しい友達",
+	[Key.friendsMyFriends]: "仲間たち",
+	[Key.friendsMore]: "その他の仲間",
 	[Key.circle]: "友達の輪",
 	[Key.circleTitle]: "友達の輪",
 	[Key.circleSubtitle]: "友達の最新記事",

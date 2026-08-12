@@ -4,6 +4,25 @@
 
 ---
 
+## 0. 常用命令
+
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` / `pnpm start` | 本地开发（astro dev） |
+| `pnpm build` | 生产构建：生成图标 → astro build → pagefind 索引（**提交前必跑**，见第 18 节） |
+| `pnpm preview` | 预览构建产物 |
+| `pnpm check` | astro check（类型 + 诊断） |
+| `pnpm type-check` | tsc --noEmit 类型检查 |
+| `pnpm lint` / `pnpm format` | Biome 检查自动修复 / 格式化（针对 ./src） |
+| `pnpm new-post` | 交互式新建文章（scripts/新建文章） |
+| `pnpm icons` | 重新生成图标（scripts/生成图标，build 自动前置执行） |
+| `pnpm compress-images` | 压缩图片（`--dry-run` 预检）；另有 rename-images / import-wallpapers 图片脚本 |
+| `pnpm cli` | 仓库工具 CLI（scripts/cli.js） |
+
+> 包管理器仅限 pnpm（preinstall 强制 `only-allow`）。本项目无测试框架，验证手段 = `pnpm build` + `pnpm check`。
+
+---
+
 ## 1. 项目概览
 
 | 项 | 值 |
@@ -71,8 +90,10 @@ src/
 # 根目录其他重要文件
 .pages.yml                # PagesCMS 后台配置（11 集合声明，见第 19 节）
 .claude/settings.json     # 命令白名单（分类器不可用时不卡 Bash）
-scripts/                  # 开发脚本：vision.mjs（图片识别）、check-svelte-warnings.mjs 等
+pagefind.yml              # Pagefind 索引排除配置（katex、搜索面板等）
+scripts/                  # 开发脚本：8 个中文命名脚本目录（生成图标/新建文章/生成摘要/转WebP/添加导航/下载影视/下载音乐/回填友链字段）+ cli.js、vision.mjs（图片识别）、compress-images.mjs、rename-images.mjs、import-wallpapers.mjs、check-svelte-warnings.mjs（脚本清单见第 0 节）
 docs/                     # 部署文档（deploy-pagescms-vercel.md 等）
+write_places.cjs          # 一次性脚本：生成 life/places 足迹页
 ```
 
 **禁止在 `components/` 根目录平铺组件文件，必须放入对应功能域子目录。**
@@ -127,7 +148,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 | album | 相册 |
 | daohang | 导航链接 |
 | ziyuan | 资源/公告 |
-| friends | 友链 |
+| friends | 友链（added 添加日期 + group 分组 friend\|other，2026-08 区块化改版：新朋友/我的朋友们/更多伙伴） |
 | apps | 应用 |
 | changelog | 更新日志 |
 
@@ -604,6 +625,7 @@ return controller;
 | 空目录残留（album/daily/admin 等） | 已清理（2026-08） | — |
 | `public/admin/`、`cloud-functions/`（Decap 遗留） | 均已删除（2026-08，oauth 端点无消费者） | — |
 | AGENTS.md | 已改为指向 CLAUDE.md 的入口（勿复制内容，避免双重维护） | — |
+| `satteri` / `@astrojs/markdown-satteri` 依赖 | 源码零引用（grep 仅命中 package.json），疑似实验残留 | 确认后移除 |
 | `.wrangler/` 误提交 | 已取消跟踪 + 加入 .gitignore | — |
 
 ---

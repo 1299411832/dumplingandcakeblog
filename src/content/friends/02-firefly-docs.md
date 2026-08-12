@@ -6,4 +6,6 @@ siteurl: "https://docs-firefly.cuteleaf.cn"
 tags: ["Docs"]
 weight: 9
 enabled: true
+added: 2026-04-22
+group: other
 ---

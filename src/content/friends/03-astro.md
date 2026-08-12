@@ -6,4 +6,6 @@ siteurl: "https://github.com/withastro/astro"
 tags: ["Framework"]
 weight: 8
 enabled: true
+added: 2026-04-22
+group: other
 ---

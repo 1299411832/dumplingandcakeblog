@@ -4,7 +4,6 @@ import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
 import FriendCard from "@components/features/FriendCard.astro";
 import { Icon } from "astro-icon/components";
-import { friendsPageConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
@@ -23,13 +22,31 @@ const items = friendsEntries
 	.filter((item) => item.data.enabled !== false)
 	.sort((a, b) => (b.data.weight || 0) - (a.data.weight || 0));
 
-const allTags = [
-	...new Set(items.flatMap((item) => item.data.tags || [])),
-].sort();
+// 新朋友：按添加日期（added）降序取最近 3 个；无 added 的不参与
+const latestItems = [...items]
+	.filter((item) => item.data.added)
+	.sort((a, b) => +b.data.added! - +a.data.added!)
+	.slice(0, 3);
+
+// 新朋友区块独立展示后，从分组中排除，避免同一站点出现两次
+const latestIds = new Set(latestItems.map((item) => item.id));
+
+// 我的朋友们 / 更多伙伴（group 缺省为 other）
+const myFriends = items.filter((item) => (item.data.group ?? "other") === "friend");
+const moreFriends = items.filter(
+	(item) => (item.data.group ?? "other") !== "friend" && !latestIds.has(item.id),
+);
 
 // 页面标题和描述
 const title = i18n(I18nKey.friends);
 const description = i18n(I18nKey.friendsDescription);
+
+// 区块标题（图标 + 标题 + 计数）的公共 class
+const sectionHeadClass = "flex items-center gap-3 mb-5";
+const sectionIconClass = "text-lg text-neutral-900 dark:text-neutral-100";
+const sectionTitleClass = "text-xl font-bold text-neutral-900 dark:text-neutral-100";
+const sectionCountClass =
+	"text-xs font-medium px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300";
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -63,56 +80,89 @@ const description = i18n(I18nKey.friendsDescription);
         }
       </div>
 
-      <!-- 标签筛选（胶囊 + 滑动指示器） -->
+      <!-- 新朋友：最近添加的 3 个 -->
       {
-        items.length > 0 && (
-          <div class="friend-filter-tabs flex flex-wrap gap-1 mb-6 p-1 rounded-full border border-neutral-900 dark:border-neutral-100" data-friend-filter>
-            <button
-              data-tag="all"
-              class="friend-tab-btn relative z-10 px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 text-white dark:text-neutral-900"
-            >
-              {i18n(I18nKey.all)}
-            </button>
-            {allTags.map((tag) => (
-              <button
-                data-tag={tag}
-                class="friend-tab-btn relative z-10 px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 text-neutral-900 dark:text-neutral-100"
-              >
-                {tag}
-              </button>
-            ))}
-            <!-- 滑动指示器 -->
-            <div class="friend-tab-indicator absolute top-1 bottom-1 bg-neutral-900 dark:bg-neutral-100 rounded-full transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] pointer-events-none" style="left: 4px; width: 0px;"></div>
-          </div>
+        latestItems.length > 0 && (
+          <section class="friend-section">
+            <div class={sectionHeadClass}>
+              <Icon name="material-symbols:auto-awesome-rounded" class={sectionIconClass} />
+              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsLatest)}</h2>
+              <span class={sectionCountClass}>{latestItems.length}</span>
+            </div>
+            <div class="friends-grid">
+              {
+                latestItems.map((item) => (
+                  <div class="friend-card">
+                    <FriendCard
+                      title={item.data.title}
+                      href={item.data.siteurl}
+                      imgurl={item.data.imgurl}
+                      desc={item.data.desc}
+                      tags={item.data.tags}
+                    />
+                  </div>
+                ))
+              }
+            </div>
+          </section>
         )
       }
 
-      <div class="friends-grid" data-friends-grid data-page-size="9">
-        {
-          items.map((item) => (
-            <div class="friend-card" data-tags={item.data.tags?.join(",")} data-title={item.data.title}>
-              <FriendCard
-                title={item.data.title}
-                href={item.data.siteurl}
-                imgurl={item.data.imgurl}
-                desc={item.data.desc}
-                tags={item.data.tags}
-              />
+      <!-- 我的朋友们 -->
+      {
+        myFriends.length > 0 && (
+          <section class="friend-section mt-8">
+            <div class={sectionHeadClass}>
+              <Icon name="material-symbols:group-rounded" class={sectionIconClass} />
+              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMyFriends)}</h2>
+              <span class={sectionCountClass}>{myFriends.length}</span>
             </div>
-          ))
-        }
-      </div>
+            <div class="friends-grid">
+              {
+                myFriends.map((item) => (
+                  <div class="friend-card">
+                    <FriendCard
+                      title={item.data.title}
+                      href={item.data.siteurl}
+                      imgurl={item.data.imgurl}
+                      desc={item.data.desc}
+                      tags={item.data.tags}
+                    />
+                  </div>
+                ))
+              }
+            </div>
+          </section>
+        )
+      }
 
-      <!-- 分页控件（默认每页 9 个） -->
-      <nav class="friends-pagination" data-friends-pagination hidden aria-label="友链分页">
-        <button type="button" class="friends-page-btn" data-page-prev aria-label="上一页">
-          <Icon name="material-symbols:chevron-left-rounded" class="text-lg" />
-        </button>
-        <div class="friends-page-nums" data-page-nums></div>
-        <button type="button" class="friends-page-btn" data-page-next aria-label="下一页">
-          <Icon name="material-symbols:chevron-right-rounded" class="text-lg" />
-        </button>
-      </nav>
+      <!-- 更多伙伴 -->
+      {
+        moreFriends.length > 0 && (
+          <section class="friend-section mt-8">
+            <div class={sectionHeadClass}>
+              <Icon name="material-symbols:public-rounded" class={sectionIconClass} />
+              <h2 class={sectionTitleClass}>{i18n(I18nKey.friendsMore)}</h2>
+              <span class={sectionCountClass}>{moreFriends.length}</span>
+            </div>
+            <div class="friends-grid">
+              {
+                moreFriends.map((item) => (
+                  <div class="friend-card">
+                    <FriendCard
+                      title={item.data.title}
+                      href={item.data.siteurl}
+                      imgurl={item.data.imgurl}
+                      desc={item.data.desc}
+                      tags={item.data.tags}
+                    />
+                  </div>
+                ))
+              }
+            </div>
+          </section>
+        )
+      }
 
       <Markdown class="mt-2">
         <Content />
@@ -135,150 +185,13 @@ const description = i18n(I18nKey.friendsDescription);
     });
   </script>
 
-  <!-- 标签筛选 + 分页 + 头像懒加载 -->
+  <!-- 头像懒加载：卡片进入视口时才把 data-src 注入 src 触发请求
+       （Swup 导航后新 DOM 的 inline script 会重新执行，guard 只防 document 级监听重复注册） -->
   <script is:inline>
     (function() {
-      if (window.__friendFilterReady) return;
-      window.__friendFilterReady = true;
+      if (window.__friendAvatarInited) return;
+      window.__friendAvatarInited = true;
 
-      var state = new WeakMap();
-
-      function getState(root) {
-        var s = state.get(root);
-        if (!s) {
-          s = { tag: "all", page: 1 };
-          state.set(root, s);
-        }
-        return s;
-      }
-
-      function updateIndicator(container, button) {
-        var indicator = container.querySelector(".friend-tab-indicator");
-        if (!indicator || !button) return;
-        var parentRect = container.getBoundingClientRect();
-        var btnRect = button.getBoundingClientRect();
-        indicator.style.left = (btnRect.left - parentRect.left) + "px";
-        indicator.style.width = btnRect.width + "px";
-        indicator.style.opacity = "1";
-      }
-
-      function render(root) {
-        var grid = root.querySelector("[data-friends-grid]");
-        if (!grid) return;
-        var s = getState(root);
-        var pageSize = parseInt(grid.dataset.pageSize, 10) || 9;
-
-        var cards = Array.prototype.slice.call(grid.querySelectorAll(".friend-card"));
-        var matched = cards.filter(function(card) {
-          if (s.tag === "all") return true;
-          var tags = (card.dataset.tags || "").split(",");
-          return tags.indexOf(s.tag) !== -1;
-        });
-
-        var totalPages = Math.max(1, Math.ceil(matched.length / pageSize));
-        if (s.page > totalPages) s.page = totalPages;
-        if (s.page < 1) s.page = 1;
-
-        var start = (s.page - 1) * pageSize;
-        var end = start + pageSize;
-        var matchedSet = new Set(matched);
-
-        cards.forEach(function(card) {
-          var idx = matched.indexOf(card);
-          var visible = matchedSet.has(card) && idx >= start && idx < end;
-          if (visible) {
-            card.style.display = "block";
-            card.classList.add("animate-fade-in-up");
-            loadAvatar(card);
-          } else {
-            card.style.display = "none";
-            card.classList.remove("animate-fade-in-up");
-          }
-        });
-
-        renderPagination(root, s.page, totalPages);
-      }
-
-      function renderPagination(root, page, totalPages) {
-        var nav = root.querySelector("[data-friends-pagination]");
-        if (!nav) return;
-        if (totalPages <= 1) {
-          nav.hidden = true;
-          return;
-        }
-        nav.hidden = false;
-
-        var prev = nav.querySelector("[data-page-prev]");
-        var next = nav.querySelector("[data-page-next]");
-        if (prev) prev.disabled = page <= 1;
-        if (next) next.disabled = page >= totalPages;
-
-        var nums = nav.querySelector("[data-page-nums]");
-        if (!nums) return;
-        nums.innerHTML = "";
-        for (var i = 1; i <= totalPages; i++) {
-          var btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "friends-page-num" + (i === page ? " is-active" : "");
-          btn.dataset.pageGo = String(i);
-          btn.textContent = String(i);
-          nums.appendChild(btn);
-        }
-      }
-
-      // 事件委托：标签切换
-      document.addEventListener("click", function(e) {
-        var button = e.target.closest(".friend-tab-btn");
-        if (!button) return;
-        var container = button.closest("[data-friend-filter]");
-        if (!container) return;
-        var root = container.closest(".card-base");
-        if (!root) return;
-
-        var s = getState(root);
-        s.tag = button.dataset.tag;
-        s.page = 1;
-
-        updateIndicator(container, button);
-
-        var filters = container.querySelectorAll(".friend-tab-btn");
-        filters.forEach(function(f) {
-          if (f === button) {
-            f.classList.remove("text-neutral-900", "dark:text-neutral-100");
-            f.classList.add("text-white", "dark:text-neutral-900");
-          } else {
-            f.classList.remove("text-white", "dark:text-neutral-900");
-            f.classList.add("text-neutral-900", "dark:text-neutral-100");
-          }
-        });
-
-        render(root);
-      });
-
-      // 事件委托：分页按钮
-      document.addEventListener("click", function(e) {
-        var nav = e.target.closest("[data-friends-pagination]");
-        if (!nav) return;
-        var root = nav.closest(".card-base");
-        if (!root) return;
-        var s = getState(root);
-
-        var go = e.target.closest("[data-page-go]");
-        if (go) {
-          s.page = parseInt(go.dataset.pageGo, 10) || 1;
-        } else if (e.target.closest("[data-page-prev]")) {
-          s.page = Math.max(1, s.page - 1);
-        } else if (e.target.closest("[data-page-next]")) {
-          s.page = s.page + 1;
-        } else {
-          return;
-        }
-
-        render(root);
-        root.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-
-      // 头像按需加载：卡片可见时才把 data-src 注入 src 触发请求
       function loadAvatar(card) {
         var img = card.querySelector(".friend-card-avatar__img");
         if (!img || img.dataset.avatarLoaded) return;
@@ -313,39 +226,24 @@ const description = i18n(I18nKey.friendsDescription);
         }
       }
 
-      function init() {
-        document.querySelectorAll(".card-base").forEach(function(root) {
-          var container = root.querySelector("[data-friend-filter]");
-          if (container) {
-            var s = getState(root);
-            var activeBtn = container.querySelector('[data-tag="' + s.tag + '"]')
-              || container.querySelector('[data-tag="all"]');
-            // 延迟定位指示器，等 Swup 过渡动画完成后再计算
-            requestAnimationFrame(function() {
-              requestAnimationFrame(function() {
-                if (activeBtn) updateIndicator(container, activeBtn);
-              });
-            });
-          }
-          if (root.querySelector("[data-friends-grid]")) {
-            render(root);
-          }
-        });
+      var io = null;
+      function bindObserver() {
+        if (io) io.disconnect();
+        var cards = document.querySelectorAll(".friend-card");
+        if (!cards.length) return;
+        io = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            loadAvatar(entry.target);
+            io.unobserve(entry.target);
+          });
+        }, { rootMargin: "200px 0px" });
+        cards.forEach(function(card) { io.observe(card); });
       }
 
-      init();
-      document.addEventListener("astro:page-load", init);
-
-      // 窗口大小变化时重新定位指示器
-      window.addEventListener("resize", function() {
-        document.querySelectorAll(".card-base").forEach(function(root) {
-          var container = root.querySelector("[data-friend-filter]");
-          if (!container) return;
-          var activeBtn = container.querySelector(".friend-tab-btn.text-white, .friend-tab-btn.text-neutral-900");
-          if (!activeBtn) activeBtn = container.querySelector('[data-tag="all"]');
-          if (activeBtn) updateIndicator(container, activeBtn);
-        });
-      });
+      bindObserver();
+      document.addEventListener("astro:page-load", bindObserver);
+      document.addEventListener("swup:content:replaced", bindObserver);
     })();
   </script>
 

@@ -66,6 +66,9 @@ export const en: Translation = {
 	[Key.friends]: "Friends",
 	[Key.friendsDescription]:
 		"Here are my friends, welcome to visit and communicate with each other",
+	[Key.friendsLatest]: "New Friends",
+	[Key.friendsMyFriends]: "My Friends",
+	[Key.friendsMore]: "More Friends",
 	[Key.circle]: "Circle",
 	[Key.circleTitle]: "Friends Circle",
 	[Key.circleSubtitle]: "Latest articles from friends",

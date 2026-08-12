@@ -235,6 +235,8 @@ const friendsCollection = defineCollection({
 		tags: z.array(z.string()).optional().default([]),
 		weight: z.number().optional().default(0),
 		enabled: z.boolean().optional().default(true),
+		added: z.date().optional(),
+		group: z.enum(["friend", "other"]).optional().default("other"),
 	}),
 });
 

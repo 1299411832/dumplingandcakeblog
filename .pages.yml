@@ -320,6 +320,22 @@ content:
             type: boolean
             default: true
 
+          - name: added
+            label: 添加日期
+            type: date
+            options:
+              time: false
+              format: yyyy-MM-dd
+
+          - name: group
+            label: 分组
+            type: select
+            default: other
+            options:
+              values:
+                - { label: 我的朋友们, value: friend }
+                - { label: 其他所有人, value: other }
+
       - name: apps
         label: 📱 应用
         type: collection

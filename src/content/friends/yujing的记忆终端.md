@@ -7,5 +7,7 @@ tags:
   - Blog
 weight: 0
 enabled: true
+added: 2026-08-08
+group: other
 ---
 
