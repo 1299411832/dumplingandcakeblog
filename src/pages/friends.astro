@@ -216,8 +216,8 @@ const description = i18n(I18nKey.friendsDescription);
     </div>
   </div>
 
-  <!-- 评论区 -->
-  <div class="mt-4">
+  <!-- 评论区（负 margin 抵消评论卡片的 p-8 顶部 padding，收紧与上方内容的间距） -->
+  <div class="-mt-6">
     <Comment post={friendsPost} customPath="/friends/" />
   </div>
 
