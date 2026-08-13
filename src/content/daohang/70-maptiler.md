@@ -1,7 +1,7 @@
 ---
 name: MapTiler Cloud
 url: https://cloud.maptiler.com/maps/
-icon: https://img.tsh520.cn/file/网络资源/maptiler.com-icon.png_eb5a612818d066e3
+icon: https://img.tsh520.cn/file/blog/daohang/maptiler.com-icon.png_eb5a612818d066e3
 description: 地图服务与可视化平台
 category: 工具网站
 tags: [地图, 可视化]

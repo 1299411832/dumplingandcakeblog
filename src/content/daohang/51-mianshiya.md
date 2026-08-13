@@ -1,7 +1,7 @@
 ---
 name: 面试鸭
 url: https://www.mianshiya.com/
-icon: https://img.tsh520.cn/file/网络资源/www.mianshiya.com-icon.ico
+icon: https://img.tsh520.cn/file/blog/daohang/www.mianshiya.com-icon.ico
 description: 程序员面试题库平台
 category: 学习网站
 tags: [面试, 编程]

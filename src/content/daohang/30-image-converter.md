@@ -1,7 +1,7 @@
 ---
 name: 100%多功能图片转换器
 url: https://imagestool.com/webp2jpg-online/
-icon: https://img.tsh520.cn/file/网络资源/imagestool.com-icon.png
+icon: https://img.tsh520.cn/file/blog/daohang/imagestool.com-icon.png
 description: 在线图片格式转换工具
 category: 工具网站
 tags: [图片处理, 工具]

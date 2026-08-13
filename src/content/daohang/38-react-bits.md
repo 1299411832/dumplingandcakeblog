@@ -1,7 +1,7 @@
 ---
 name: React Bits
 url: https://www.reactbits.dev/
-icon: https://img.tsh520.cn/file/网络资源/www.reactbits.dev-icon.png
+icon: https://img.tsh520.cn/file/blog/daohang/www.reactbits.dev-icon.png
 description: React 组件和模式集合
 category: 设计资源
 tags: [React, 组件, 前端]

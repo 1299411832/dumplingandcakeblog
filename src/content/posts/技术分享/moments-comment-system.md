@@ -21,7 +21,7 @@ description: 为说说页面的每条动态适配独立评论区，实现自定�
 
 点击说说卡片右下角的评论按钮，会弹出一个评论弹窗。每条说说的评论是独立的，通过 Waline 的 `path` 参数区分。
 
-![511](https://img.tsh520.cn/file/picgo/file-20260728015042792.png)
+![511](https://img.tsh520.cn/file/blog/article/file-20260728015042792.png)
 
 ### 2. 自定义聊天室 UI
 
@@ -32,19 +32,19 @@ description: 为说说页面的每条动态适配独立评论区，实现自定�
 - **回复引用**：支持回复其他评论，引用内容以边框样式展示
 - **日期居中**：每条评论的日期在消息上方居中显示
 
-![437](https://img.tsh520.cn/file/picgo/file-20260728015141435.png)
+![437](https://img.tsh520.cn/file/blog/article/file-20260728015141435.png)
 
 ### 3. 赛车加载动画
 
 评论弹窗打开时会显示一个赛车加载动画，最低展示 2 秒后才显示评论内容。
 
-![460](https://img.tsh520.cn/file/picgo/file-20260728015158486.png)
+![460](https://img.tsh520.cn/file/blog/article/file-20260728015158486.png)
 
 ### 4. 邮件通知导航到详情页
 
 当有人回复你的评论时，Waline 会发送邮件通知。邮件中的链接会直接跳转到对应的说说详情页（如 `/moments/2026-07-25/`），而不是动态列表页。
 
-![466](https://img.tsh520.cn/file/picgo/file-20260728015248762.png)
+![466](https://img.tsh520.cn/file/blog/article/file-20260728015248762.png)
 
 ## 技术实现
 
@@ -126,7 +126,7 @@ export async function getStaticPaths() {
 <MomentCard moment={moment} detail={true} />
 ```
 
-![177](https://img.tsh520.cn/file/picgo/file-20260728015406150.png)
+![177](https://img.tsh520.cn/file/blog/article/file-20260728015406150.png)
 
 ### 桌面端与移动端适配
 
@@ -152,7 +152,7 @@ export async function getStaticPaths() {
 }
 ```
 
-![268](https://img.tsh520.cn/file/picgo/file-20260728015459249.png)
+![268](https://img.tsh520.cn/file/blog/article/file-20260728015459249.png)
 
 ## UI 设计细节
 
@@ -188,7 +188,7 @@ export async function getStaticPaths() {
 }
 ```
 
-![398](https://img.tsh520.cn/file/picgo/file-20260728015536115.png)
+![398](https://img.tsh520.cn/file/blog/article/file-20260728015536115.png)
 
 ### 加载动画
 

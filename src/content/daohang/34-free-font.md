@@ -1,7 +1,7 @@
 ---
 name: Free Font 艺术体
 url: https://font.ittools.cc/art
-icon: https://img.tsh520.cn/file/网络资源/font.ittools.cc-icon.ico
+icon: https://img.tsh520.cn/file/blog/daohang/font.ittools.cc-icon.ico
 description: 商用免费字体收集
 category: 工具网站
 tags: [字体, 资源]

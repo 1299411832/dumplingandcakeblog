@@ -1,7 +1,7 @@
 ---
 name: 释放字体自由
 url: https://fonts.zeoseven.com/
-icon: https://img.tsh520.cn/file/网络资源/fonts.zeoseven.ico
+icon: https://img.tsh520.cn/file/blog/daohang/fonts.zeoseven.ico
 description: 字体资源分享网站
 category: 资源网站
 tags: [字体, 资源]
