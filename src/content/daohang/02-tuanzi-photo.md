@@ -1,6 +1,6 @@
 ---
 name: 团子的图床
-url: https://img.tsh520.cn.cn/
+url: https://img.tsh520.cn/
 icon: https://img.tsh520.cn/file/blog/daohang/blog.tsh520.cn-icon.webp
 description: 个人照片存储与展示
 category: 我的网站

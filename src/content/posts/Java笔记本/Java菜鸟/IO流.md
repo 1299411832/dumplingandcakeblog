@@ -1,7 +1,6 @@
 ---
 title: IO流
 published: 2026-03-11
-image: https://re.tsh520.cn/cover/ThisCover_20260331_145716.webp
 tags:
   - java
 category: 编程学习
