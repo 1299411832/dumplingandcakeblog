@@ -58,3 +58,4 @@ src/notes
 # local tool state
 .wrangler/
 .pnpm-store/
+.zcode/
