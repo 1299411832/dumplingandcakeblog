@@ -135,7 +135,7 @@ Gist 中的 `movie`、`tv`、`documentary` 不是 Astro schema 的有效枚举�
 title: 你的名字
 category: anime
 status: 2
-image: https://img.tsh520.cn/file/anime/你的名字.jpg
+image: https://img.tsh520.cn/file/blog/bangumi/你的名字.jpg
 score: 10
 tags:
   - 动画
@@ -168,7 +168,7 @@ name: 今天的事
 迁移 Bangumi 时，脚本自动从 TMDB 下载封面图。下载完成后需要手动上传到图床：
 
 ```
-scripts/fetch-media/img-anime/  →  上传到  →  https://img.tsh520.cn/file/anime/
+scripts/fetch-media/img-anime/  →  上传到  →  https://img.tsh520.cn/file/blog/bangumi/
 ```
 
 ### 手动补下载
