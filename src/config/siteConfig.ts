@@ -187,7 +187,7 @@ export const siteConfig: SiteConfig = {
 	// 文章列表布局配置
 	postListLayout: {
 		// 默认布局模式："list" 列表模式（单列布局），"grid" 网格模式（多列布局）
-		defaultMode: "grid",
+		defaultMode: "list",
 		// 是否允许用户切换布局
 		allowSwitch: true,
 		// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
@@ -196,7 +196,7 @@ export const siteConfig: SiteConfig = {
 			masonry: false,
 			// 网格模式列数：2 或 3
 			// 2列是默认模式，在任何侧边栏配置下均可生效
-			// 3列模式仅在单侧边栏（或无侧边栏）时生效，
+			// 3列模式仅在单侧边栏（或无侧边栏）时生效
 			columns: 3,
 		},
 	},

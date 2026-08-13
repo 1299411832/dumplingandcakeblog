@@ -20,9 +20,11 @@ const gridColumns = siteConfig.postListLayout.grid.columns || 2;
 // 根据配置设置初始布局模式，避免闪烁
 const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
 const gridCols =
-	!isBothSidebars && gridColumns === 3
-		? "md:grid-cols-2 lg:grid-cols-3"
-		: "md:grid-cols-2";
+	!isBothSidebars && gridColumns === 4
+		? "md:grid-cols-2 lg:grid-cols-4"
+		: !isBothSidebars && gridColumns === 3
+			? "md:grid-cols-2 lg:grid-cols-3"
+			: "md:grid-cols-2";
 const initialLayoutClass =
 	defaultLayout === "grid"
 		? `grid grid-cols-1 ${gridCols} gap-4 grid-mode`
@@ -73,11 +75,13 @@ const initialLayoutClass =
         container.style.transition = 'none';
 
         // 移除所有布局类
-        container.classList.remove('list-mode', 'grid-mode', 'flex', 'flex-col', 'grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4', 'md:gap-4');
+        container.classList.remove('list-mode', 'grid-mode', 'flex', 'flex-col', 'grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4', 'gap-4', 'md:gap-4');
 
         if (savedLayout === 'grid') {
           container.classList.add('grid-mode', 'grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4');
-          if (!isBothSidebars && gridColumns === 3) {
+          if (!isBothSidebars && gridColumns === 4) {
+            container.classList.add('lg:grid-cols-4');
+          } else if (!isBothSidebars && gridColumns === 3) {
             container.classList.add('lg:grid-cols-3');
           }
         } else {
@@ -130,11 +134,13 @@ const initialLayoutClass =
             postListContainer.classList.add("grid-mode");
             postListContainer.classList.remove("flex", "flex-col");
             if (masonryEnabled) {
-                postListContainer.classList.remove("grid", "grid-cols-1", "md:grid-cols-2", "lg:grid-cols-3", "gap-4");
+                postListContainer.classList.remove("grid", "grid-cols-1", "md:grid-cols-2", "lg:grid-cols-3", "lg:grid-cols-4", "gap-4");
                 applyMasonryLayout();
             } else {
                 postListContainer.classList.add("grid", "grid-cols-1", "md:grid-cols-2", "gap-4");
-                if (!isBothSidebars && gridColumns === 3) {
+                if (!isBothSidebars && gridColumns === 4) {
+                    postListContainer.classList.add("lg:grid-cols-4");
+                } else if (!isBothSidebars && gridColumns === 3) {
                     postListContainer.classList.add("lg:grid-cols-3");
                 }
                 resetMasonryLayout();
@@ -142,7 +148,7 @@ const initialLayoutClass =
         } else {
             postListContainer.classList.add("list-mode");
             postListContainer.classList.add("flex", "flex-col", "gap-4", "md:gap-4");
-            postListContainer.classList.remove("grid", "grid-cols-1", "md:grid-cols-2", "lg:grid-cols-3");
+            postListContainer.classList.remove("grid", "grid-cols-1", "md:grid-cols-2", "lg:grid-cols-3", "lg:grid-cols-4");
             resetMasonryLayout();
         }
     };

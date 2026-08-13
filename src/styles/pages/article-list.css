@@ -350,6 +350,9 @@
   display: grid;
   grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
   gap: 1.25rem;
+  /* 按列数限制容器最大宽度：列数变化时卡片尺寸保持恒定，过渡自然不突变 */
+  max-width: calc(var(--cols, 3) * 340px + (var(--cols, 3) - 1) * 1.25rem);
+  margin-inline: auto;
   width: 100%;
   margin-bottom: 1.5rem;
 }
@@ -470,8 +473,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  padding: 1.25rem 1.5rem;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
   text-decoration: none;
   color: inherit;
   z-index: 2;
