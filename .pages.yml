@@ -653,7 +653,7 @@ content:
           - name: imgbedFolder
             label: 图床文件夹
             type: string
-            description: 填"相册/xxx"后从 CloudFlare ImgBed 动态加载图片
+            description: 填"blog/album/xxx"后从 CloudFlare ImgBed 动态加载图片
 
           - name: photos
             label: 照片列表

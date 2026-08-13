@@ -5,16 +5,6 @@ date: 2026-07-29
 location: 丽都城
 tags:
   - 网站资源
-photos:
-- /assets/ziyuan/tx.webp
-- /assets/ziyuan/cxy.jpg
-- /assets/ziyuan/qq.webp
-- /assets/ziyuan/tsh.jpg
-- /assets/ziyuan/vx.webp
-- /assets/ziyuan/zbd.webp
-- /assets/ziyuan/zfb.webp
-
-
-
+imgbedFolder: "blog/album/站点资源"
 ---
 

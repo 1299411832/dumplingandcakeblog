@@ -147,7 +147,7 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 | bangumi | 番组/书籍/音乐/游戏追踪 |
 | life | 生活记录 |
 | notebooks | 笔记本（life 的子集） |
-| album | 相册 |
+| album | 相册（2026-08 全量图床化：统一 `imgbedFolder: "blog/album/<相册名>"` 动态加载，photos 静态列表已废弃） |
 | daohang | 导航链接 |
 | ziyuan | 资源/公告 |
 | friends | 友链（added 添加日期 + group 分组 friend\|other，2026-08 区块化改版：新朋友/我的朋友们/更多伙伴） |

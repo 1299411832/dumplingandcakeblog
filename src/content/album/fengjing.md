@@ -4,5 +4,5 @@ subtitle: 来自图床的风景相册
 date: 2026-07-29
 tags:
   - 图床
-imgbedFolder: "相册/风景"
+imgbedFolder: "blog/album/风景"
 ---

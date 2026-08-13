@@ -54,10 +54,6 @@ const allTags = [
 	...new Set(sortedAlbums.flatMap((a) => a.data.tags || [])),
 ].sort();
 
-const totalPhotos = sortedAlbums.reduce(
-	(sum, album) => sum + (album.data.photos?.length || 0),
-	0,
-);
 const earliestDate =
 	sortedAlbums.length > 0
 		? sortedAlbums[sortedAlbums.length - 1].data.date
@@ -96,11 +92,6 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
           <Icon name="material-symbols:photo-album" class="text-sm" />
           <span class="font-semibold">{sortedAlbums.length}</span>
           <span class="text-neutral-500 dark:text-neutral-400">相册</span>
-        </div>
-        <div class="stat-pill">
-          <Icon name="material-symbols:imagesmode" class="text-sm" />
-          <span class="font-semibold">{totalPhotos}</span>
-          <span class="text-neutral-500 dark:text-neutral-400">照片</span>
         </div>
         <div class="stat-pill">
           <Icon name="material-symbols:calendar-month" class="text-sm" />
