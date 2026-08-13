@@ -26,30 +26,27 @@ const bgMobGlob = import.meta.glob<ImageMetadata>(
 	{ eager: true, import: "default" },
 );
 
-const _bgDeskFirst = Object.values(bgDeskGlob)[0];
-const _bgMobFirst = Object.values(bgMobGlob)[0];
-
-const [optimizedBgDesktop, optimizedBgMobile] = await Promise.all([
-	_bgDeskFirst
-		? getImage({
-				src: _bgDeskFirst,
-				format: "webp",
-				width: 1920,
-				quality: 80,
-			}).then((r) => r.src)
-		: Promise.resolve(homeConfig.hero.backgroundImage),
-	_bgMobFirst
-		? getImage({
-				src: _bgMobFirst,
-				format: "webp",
-				width: 768,
-				quality: 80,
-			}).then((r) => r.src)
-		: Promise.resolve(
-				homeConfig.hero.backgroundImageMobile ||
-					homeConfig.hero.backgroundImage,
-			),
-]);
+// 背景图池：全部经 getImage 优化后供客户端随机切换（避免随机命中未优化原图）
+const optimizedBgDeskPool = await Promise.all(
+	Object.values(bgDeskGlob).map((img) =>
+		getImage({ src: img, format: "webp", width: 1920, quality: 80 }).then(
+			(r) => r.src,
+		),
+	),
+);
+const optimizedBgMobPool = await Promise.all(
+	Object.values(bgMobGlob).map((img) =>
+		getImage({ src: img, format: "webp", width: 768, quality: 80 }).then(
+			(r) => r.src,
+		),
+	),
+);
+const optimizedBgDesktop =
+	optimizedBgDeskPool[0] || homeConfig.hero.backgroundImage;
+const optimizedBgMobile =
+	optimizedBgMobPool[0] ||
+	homeConfig.hero.backgroundImageMobile ||
+	homeConfig.hero.backgroundImage;
 
 async function optimizeHeroImage(image: ImageMetadata) {
 	const optimized = await getImage({
@@ -149,8 +146,8 @@ const rainConfig = {
 	data-avatar-off-pool={JSON.stringify(offAvatarUrls)}
 	data-work-hours={JSON.stringify(workHours)}
 	data-hero-rain={JSON.stringify(rainConfig)}
-	data-bg-pool={JSON.stringify(homeConfig.hero.backgroundImagePool || [])}
-	data-bg-mobile-pool={JSON.stringify(homeConfig.hero.backgroundImageMobilePool || [])}
+	data-bg-pool={JSON.stringify(optimizedBgDeskPool)}
+	data-bg-mobile-pool={JSON.stringify(optimizedBgMobPool)}
 >
 	<!-- 背景层：客户端随机选图 -->
 	<picture class="home-hero__video-picture">
@@ -300,20 +297,28 @@ const rainConfig = {
 (function() {
 	var hero = document.getElementById("home-hero");
 	if (!hero) return;
-	try {
-		var deskPool = JSON.parse(hero.dataset.bgPool || "[]");
-		var mobPool = JSON.parse(hero.dataset.bgMobilePool || "[]");
-		var isMobile = window.innerWidth <= 768;
-		var pool = isMobile ? mobPool : deskPool;
-		if (pool.length < 2) return;
-		var pick = pool[Math.floor(Math.random() * pool.length)];
-		var img = hero.querySelector(".home-hero__video");
-		var source = hero.querySelector("source");
-		if (img && pick) {
+		try {
+			var deskPool = JSON.parse(hero.dataset.bgPool || "[]");
+			var mobPool = JSON.parse(hero.dataset.bgMobilePool || "[]");
+			var isMobile = window.innerWidth <= 768;
+			var pool = isMobile ? mobPool : deskPool;
+			var img = hero.querySelector(".home-hero__video");
+			var source = hero.querySelector("source");
+			if (!img || pool.length < 2) return;
+			// 记住上次显示的图，本次随机排除，保证相邻刷新不重复
+			var lastKey = isMobile ? "homeBgLastMobile" : "homeBgLastDesktop";
+			var lastShown = null;
+			try { lastShown = localStorage.getItem(lastKey); } catch(e) {}
+			var candidates = pool.filter(function(p) { return p !== lastShown; });
+			if (candidates.length === 0) candidates = pool;
+			var pick = candidates[Math.floor(Math.random() * candidates.length)];
+			try { localStorage.setItem(lastKey, pick); } catch(e) {}
+			// 先隐藏再切图，加载完成后淡入，避免生硬闪变
+			img.style.opacity = "0";
+			img.addEventListener("load", function() { img.style.opacity = "1"; }, { once: true });
 			if (isMobile && source) source.srcset = pick;
 			else img.src = pick;
-		}
-	} catch(e) {}
+		} catch(e) {}
 })();
 </script>
 
