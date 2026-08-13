@@ -104,7 +104,8 @@ const allItems = [
 			title: `${notebookNames[n.id.split("/")[0]] || n.id.split("/")[0]} · ${n.data.name || "未命名"}`,
 			date: n.data.date || new Date(),
 			url: `/life/notebooks/${n.id.replace(/\\/g, "/").split("/")[0]}/${n.id.split("/").pop()?.replace(/\.md$/, "") || ""}/`,
-			image: n.data.cover || "https://img.tsh520.cn/file/blog/album/武侠风/22.webp",
+			image:
+				n.data.cover || "https://img.tsh520.cn/file/blog/album/武侠风/22.webp",
 			id: n.id,
 		})),
 ];
