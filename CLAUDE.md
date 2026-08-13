@@ -101,6 +101,29 @@ write_places.cjs          # 一次性脚本：生成 life/places 足迹页
 **禁止在 `components/` 根目录平铺组件文件，必须放入对应功能域子目录。**
 **注意：`src/pages/admin/`、`src/utils/admin/`、`src/components/album|daily/` 等 admin/废弃目录已删除，勿再创建自研后台（后台用 PagesCMS）。**
 
+### 图片资源目录规范（2026-08 重组）
+
+**`public/assets/images/`**（构建直出、不优化）：
+| 目录 | 用途 |
+|------|------|
+| `covers/` | 文章随机封面池（62 张） |
+| `home/main/`、`home/portrait/` | 首页套图（hero 数据图 / 竖版背景） |
+| `emoji/` | 表情与小图标（openai-dark/light.png 等） |
+| `icons/` | 组件图标（profile.png 等） |
+| `notebooks/` | 笔记本照片（编号 webp） |
+| `sponsors/` | 赞助二维码 |
+| `loading/` | 页面加载图 |
+| `moments-cover.jpg` | 说说页封面 |
+
+**`src/assets/images/`**（需 Astro 优化的小图）：
+- `avatars/` 首页头像池；`backgrounds/desktop|mobile/` 背景图池；`avatar.webp`/`avatar2.webp` 上/下班头像；`cover.avif` 封面兜底；`firefly.png` 导航 Logo
+
+**硬性规则**：
+- 目录英文小写 kebab-case 按功能分组；**禁止拼音/中文目录、顶层散放文件**
+- 文件名英文小写+连字符，**禁止空格、括号、拼音**
+- 转 webp 后删原始 png/jpg；新增图片必须进对应功能目录
+- 移动/重命名图片必须同步改全部引用，grep 旧路径验证零残留
+
 ---
 
 ## 3. 核心架构

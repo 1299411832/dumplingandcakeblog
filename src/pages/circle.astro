@@ -15,7 +15,7 @@ const description = i18n(I18nKey.circleSubtitle);
     <!-- 顶部导航栏 -->
     <div class="circle-header">
       <div class="circle-header-left">
-        <span class="circle-header-icon"><img src="/assets/images/em/1000023906.gif" alt="" class="header-icon-img" width="32" height="32" /></span>
+        <span class="circle-header-icon"><img src="/assets/images/emoji/1000023906.gif" alt="" class="header-icon-img" width="32" height="32" /></span>
         <span class="circle-header-title">钓鱼</span>
         <button class="circle-refresh-btn" id="refresh-btn" title="刷新">
           <Icon name="material-symbols:refresh" class="text-lg" />
@@ -29,14 +29,14 @@ const description = i18n(I18nKey.circleSubtitle);
 
     <!-- 动态通知条 -->
     <div class="circle-notice" id="circle-notice" style="display:none;">
-      <span class="notice-icon"><img src="/assets/images/em/1000023899.gif" alt="" class="notice-icon-img" width="20" height="20" /></span>
+      <span class="notice-icon"><img src="/assets/images/emoji/1000023899.gif" alt="" class="notice-icon-img" width="20" height="20" /></span>
       <span class="notice-text" id="notice-text"></span>
     </div>
 
     <!-- 统计区域 -->
     <div class="circle-stats-bar">
       <div class="stats-left">
-        <span class="stats-title"><img src="/assets/images/em/1000023903.gif" alt="" class="stats-icon-img" width="20" height="20" /> 鱼塘</span>
+        <span class="stats-title"><img src="/assets/images/emoji/1000023903.gif" alt="" class="stats-icon-img" width="20" height="20" /> 鱼塘</span>
         <span class="stats-item">好友 <strong id="stat-friends">0</strong></span>
         <span class="stats-divider">·</span>
         <span class="stats-item">活跃 <strong id="stat-active">0</strong></span>
@@ -266,7 +266,7 @@ const description = i18n(I18nKey.circleSubtitle);
         var noticeText = $("notice-text");
         if (!notice || !noticeText) return;
         notice.style.display = "";
-        noticeText.innerHTML = '钓鱼中... （Lv.7 当前称号：钓鱼高手）<img src="/assets/images/em/1000023901.gif" alt="" style="display:inline-block;width:1.25rem;height:1.25rem;vertical-align:middle;margin-left:0.125rem;" />';
+        noticeText.innerHTML = '钓鱼中... （Lv.7 当前称号：钓鱼高手）<img src="/assets/images/emoji/1000023901.gif" alt="" style="display:inline-block;width:1.25rem;height:1.25rem;vertical-align:middle;margin-left:0.125rem;" />';
         setTimeout(function() {
           showNotice(currentData);
         }, 1600);
@@ -301,7 +301,7 @@ const description = i18n(I18nKey.circleSubtitle);
       var noticeText = $("notice-text");
       if (!notice || !noticeText) return;
       notice.style.display = "";
-      noticeText.innerHTML = '钓鱼中... （Lv.7 当前称号：钓鱼高手）<img src="/assets/images/em/1000023901.gif" alt="" style="display:inline-block;width:1.25rem;height:1.25rem;vertical-align:middle;margin-left:0.125rem;" />';
+      noticeText.innerHTML = '钓鱼中... （Lv.7 当前称号：钓鱼高手）<img src="/assets/images/emoji/1000023901.gif" alt="" style="display:inline-block;width:1.25rem;height:1.25rem;vertical-align:middle;margin-left:0.125rem;" />';
       setTimeout(function() {
         showNotice(currentData);
       }, 1600);

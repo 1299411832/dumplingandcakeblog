@@ -178,7 +178,7 @@ export const siteConfig: SiteConfig = {
 	// 说说页面封面配置（微信朋友圈风格）
 	momentsCover: {
 		enable: true,
-		image: "/assets/images/dongtaifengmian.jpg",
+		image: "/assets/images/moments-cover.jpg",
 	},
 
 	// 分类导航栏开关，在首页和归档页顶部显示分类快捷导航

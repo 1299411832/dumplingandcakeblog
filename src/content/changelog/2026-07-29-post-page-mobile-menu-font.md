@@ -38,7 +38,7 @@ description: 文章页改造、移动端底部菜单、首页背景动态切换�
 
 ## 首页背景动态切换
 
-- 使用 `import.meta.glob` 构建时扫描 `public/assets/images/desktop-bg/` 和 `mobile-bg/`
+- 使用 `import.meta.glob` 构建时扫描 `public/assets/images/backgrounds/desktop/` 和 `mobile-bg/`
 - 客户端 `is:inline` 脚本每次刷新随机选一张
 - `homeConfig.ts` 新增 `backgroundImagePool` / `backgroundImageMobilePool` 属性
 - `backgroundWallpaper.ts` 同步更新，新增图片无需改代码

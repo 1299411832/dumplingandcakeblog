@@ -18,11 +18,11 @@ const imageFiles = import.meta.glob<ImageMetadata>(
 
 // 背景图专用 glob — 构建时优化，限制宽度避免加载全分辨率原图
 const bgDeskGlob = import.meta.glob<ImageMetadata>(
-	"../../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}",
+	"../../assets/images/backgrounds/desktop/*.{webp,png,jpg,jpeg,avif}",
 	{ eager: true, import: "default" },
 );
 const bgMobGlob = import.meta.glob<ImageMetadata>(
-	"../../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}",
+	"../../assets/images/backgrounds/mobile/*.{webp,png,jpg,jpeg,avif}",
 	{ eager: true, import: "default" },
 );
 
@@ -82,7 +82,7 @@ async function resolveHeroImage(src?: string) {
 }
 
 const workAvatarEntries = Object.entries(imageFiles)
-	.filter(([filePath]) => filePath.includes("/avatar_sb/"))
+	.filter(([filePath]) => filePath.includes("/avatars/"))
 	.sort(([a], [b]) => a.localeCompare(b));
 
 const workAvatarUrls = await Promise.all(

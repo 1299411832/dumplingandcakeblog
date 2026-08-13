@@ -5,17 +5,17 @@ import { skillsConfig } from "./skillsConfig";
 
 // 构建时自动扫描背景图文件夹
 const _deskGlob = import.meta.glob(
-	"../assets/images/desktop-bg/*.{webp,png,jpg,jpeg,avif}",
+	"../assets/images/backgrounds/desktop/*.{webp,png,jpg,jpeg,avif}",
 	{ eager: true, query: "?url", import: "default" },
 ) as Record<string, string>;
 const _mobGlob = import.meta.glob(
-	"../assets/images/mobile-bg/*.{webp,png,jpg,jpeg,avif}",
+	"../assets/images/backgrounds/mobile/*.{webp,png,jpg,jpeg,avif}",
 	{ eager: true, query: "?url", import: "default" },
 ) as Record<string, string>;
 const _deskImgs = Object.values(_deskGlob);
 const _mobImgs = Object.values(_mobGlob);
 
-const replicaRoot = "/assets/images/replica-home";
+const replicaRoot = "/assets/images/home";
 const bioLines = Array.isArray(profileConfig.bio)
 	? profileConfig.bio
 	: profileConfig.bio
@@ -36,14 +36,14 @@ export const homeConfig = {
 
 	hero: {
 		backgroundImage:
-			_deskImgs.length > 0 ? _deskImgs[0] : `${replicaRoot}/home/home.webp`,
+			_deskImgs.length > 0 ? _deskImgs[0] : `${replicaRoot}/main/home.webp`,
 		backgroundImageMobile:
 			_mobImgs.length > 0
 				? _mobImgs[0]
-				: `${replicaRoot}/home/home-mobile.webp`,
+				: `${replicaRoot}/main/home-mobile.webp`,
 		backgroundImagePool: _deskImgs.length > 0 ? _deskImgs : [],
 		backgroundImageMobilePool: _mobImgs.length > 0 ? _mobImgs : [],
-		speechAccentImage: `${replicaRoot}/home/home2-1.webp`,
+		speechAccentImage: `${replicaRoot}/main/home2-1.webp`,
 		dialogue: {
 			enabled: true,
 			speakers: {
@@ -116,10 +116,10 @@ export const homeConfig = {
 	},
 
 	dataLayer: {
-		visitImage: `${replicaRoot}/home/home-data-1.webp`,
-		archiveImage: `${replicaRoot}/home/home-data-2.webp`,
-		contactImage: `${replicaRoot}/home/home-data-3.webp`,
-		skillsImage: `${replicaRoot}/home/home-data-4.webp`,
+		visitImage: `${replicaRoot}/main/home-data-1.webp`,
+		archiveImage: `${replicaRoot}/main/home-data-2.webp`,
+		contactImage: `${replicaRoot}/main/home-data-3.webp`,
+		skillsImage: `${replicaRoot}/main/home-data-4.webp`,
 	},
 
 	displayLayer: {
@@ -130,7 +130,7 @@ export const homeConfig = {
 			"Where fleeting visions crystallize into permanence — each frame a frozen breath of time, each work a memory hardened into light.",
 		scrollDistance: 4000,
 		pillarFinalWidth: "18vw",
-		emitterImage: `${replicaRoot}/home-truncated/td.webp`,
+		emitterImage: `${replicaRoot}/portrait/td.webp`,
 	},
 
 	portfolioShutter: {
@@ -140,15 +140,15 @@ export const homeConfig = {
 		description: "岁岁常欢愉，万事皆胜意",
 		scrollDistance: 3000,
 		finalImage: {
-			midgroundImage: `${replicaRoot}/home-truncated/utl-back1.webp`,
-			backgroundVideo: `${replicaRoot}/home-truncated/utl-back2.webm`,
-			foregroundImage: `${replicaRoot}/home-truncated/utl-1.webp`,
+			midgroundImage: `${replicaRoot}/portrait/utl-back1.webp`,
+			backgroundVideo: `${replicaRoot}/portrait/utl-back2.webm`,
+			foregroundImage: `${replicaRoot}/portrait/utl-1.webp`,
 			alt: "愿你每一天都闪闪发光",
 		},
 		interlude: {
-			foreground: `${replicaRoot}/home-truncated/b-1.webp`,
-			stripLeft: `${replicaRoot}/home-truncated/b-2.webp`,
-			stripRight: `${replicaRoot}/home-truncated/b-3.webp`,
+			foreground: `${replicaRoot}/portrait/b-1.webp`,
+			stripLeft: `${replicaRoot}/portrait/b-2.webp`,
+			stripRight: `${replicaRoot}/portrait/b-3.webp`,
 			copyLeft: "团子",
 			copyRight: "蛋糕",
 		},
@@ -157,35 +157,35 @@ export const homeConfig = {
 				title: "项目实践",
 				english: "PROJECTS",
 				description: "博客 · 工具 · 创意实验",
-				image: `${replicaRoot}/home-truncated/1.webp`,
+				image: `${replicaRoot}/portrait/1.webp`,
 				alt: "项目实践",
 			},
 			{
 				title: "技术学习",
 				english: "LEARNING",
 				description: "编程开发 · 技术随笔 · 踩坑记录",
-				image: `${replicaRoot}/home-truncated/2.webp`,
+				image: `${replicaRoot}/portrait/2.webp`,
 				alt: "技术学习",
 			},
 			{
 				title: "博客特色",
 				english: "BLOG FEATURES",
 				description: "文章索引 · 归档统计 · 生活记录",
-				image: `${replicaRoot}/home-truncated/3.webp`,
+				image: `${replicaRoot}/portrait/3.webp`,
 				alt: "博客特色",
 			},
 			{
 				title: "站点技术",
 				english: "STACK",
 				description: "Astro · Svelte · Tailwind CSS",
-				image: `${replicaRoot}/home-truncated/4.webp`,
+				image: `${replicaRoot}/portrait/4.webp`,
 				alt: "站点技术",
 			},
 			{
 				title: "相册收录",
 				english: "PHOTO ALBUM",
 				description: "日常照片 · 视觉收藏 · 灵感片段",
-				image: `${replicaRoot}/home-truncated/5.webp`,
+				image: `${replicaRoot}/portrait/5.webp`,
 				alt: "相册收录",
 			},
 		],
