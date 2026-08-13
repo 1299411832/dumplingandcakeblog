@@ -18,7 +18,7 @@ order: 1
 
 **关系型数据库（RDBMS）**：建立在关系模型基础上，由多张相互连接的**二维表**组成的数据库。二维表由行（记录）和列（字段）组成。
 
-![二维表示例](https://img.tsh520.cn/file/article/05-Web后端基础_数据库_-image-9.png)
+![二维表示例](https://img.tsh520.cn/file/blog/article/05-Web后端基础_数据库_-image-9.png)
 
 ## 二维表的优点
 
@@ -29,7 +29,7 @@ order: 1
 
 ## MySQL 数据存储层次
 
-![MySQL数据模型](https://img.tsh520.cn/file/article/05-Web后端基础_数据库_-image-15.png)
+![MySQL数据模型](https://img.tsh520.cn/file/blog/article/05-Web后端基础_数据库_-image-15.png)
 
 **存储层次（由大到小）**：
 
