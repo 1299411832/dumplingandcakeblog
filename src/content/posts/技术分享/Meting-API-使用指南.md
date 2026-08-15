@@ -1,5 +1,5 @@
 ---
-title: "Meting-API-使用指南"
+title: Meting-API-使用指南
 published: 2026-07-26
 order: 1
 tags:
@@ -8,7 +8,6 @@ tags:
   - 指南
 category: 技术分享
 description: 介绍如何使用Meting-API
-
 ---
 
 > 多平台音乐 API 代理服务，支持网易云、QQ音乐、酷狗、百度、酷我。

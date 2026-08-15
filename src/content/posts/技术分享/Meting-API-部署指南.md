@@ -1,5 +1,5 @@
 ---
-title: "Meting-API 部署服务器指南"
+title: Meting-API 部署服务器指南
 published: 2026-07-26
 order: 2
 tags:
@@ -8,7 +8,6 @@ tags:
   - 教程
 category: 技术分享
 description: 介绍如何利用 宝塔面板 Docker 部署Meting-API。
-
 ---
 
 

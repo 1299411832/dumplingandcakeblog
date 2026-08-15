@@ -4,11 +4,10 @@ published: 2026-05-15
 tags:
   - 前端
   - Vue
-category: 编程学习
+category: 前端基础
 description: 使用v-model在表单元素上实现数据和视图的双向绑定
 descriptionSource: ai
 order: 10
-
 ---
 # Vue指令-v-model
 

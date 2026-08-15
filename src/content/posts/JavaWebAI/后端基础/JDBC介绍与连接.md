@@ -5,11 +5,10 @@ tags:
   - Java
   - JDBC
   - 数据库
-category: 编程学习
+category: 后端基础
 description: JDBC（Java DataBase Connectivity）是Java操作关系型数据库的底层API规范。
 descriptionSource: ai
 order: 1
-
 ---
 
 # JDBC介绍与连接

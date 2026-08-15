@@ -3,10 +3,9 @@ title: Java基础
 published: 2026-02-06
 tags:
   - java
-category: 编程学习
-description: "嘿，欢迎来到Java基础小课堂！别被“基础”俩字骗了——它看似简单，实则藏着好多容易踩坑的细节：比如文件名和类名不一致就编译不过，换行符在Windows和Mac上还不一样，甚至一个分号忘了写，IDE都会默默盯着你叹气…咱们不讲大道理，就聊最真实、最常遇到的那些事儿，边踩坑边记牢。准备好了？一起从第一行`public class`开始吧～"
+category: Java菜鸟
+description: 嘿，欢迎来到Java基础小课堂！别被“基础”俩字骗了——它看似简单，实则藏着好多容易踩坑的细节：比如文件名和类名不一致就编译不过，换行符在Windows和Mac上还不一样，甚至一个分号忘了写，IDE都会默默盯着你叹气…咱们不讲大道理，就聊最真实、最常遇到的那些事儿，边踩坑边记牢。准备好了？一起从第一行`public class`开始吧～
 descriptionSource: ai
-
 ---
 
 # Java概述

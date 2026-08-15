@@ -5,11 +5,10 @@ tags:
   - Java
   - Maven
   - JUnit
-category: 编程学习
+category: 后端基础
 description: 软件测试阶段划分、测试方法分类、JUnit单元测试入门、断言、常用注解及依赖范围
 descriptionSource: ai
 order: 5
-
 ---
 
 # JUnit单元测试

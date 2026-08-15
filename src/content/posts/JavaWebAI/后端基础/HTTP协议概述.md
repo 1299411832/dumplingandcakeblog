@@ -5,11 +5,10 @@ tags:
   - 前端
   - HTTP
   - Java
-category: 编程学习
+category: 后端基础
 description: HTTP协议的基本概念、特点与BS/CS架构介绍
 descriptionSource: ai
 order: 2
-
 ---
 
 # HTTP协议概述

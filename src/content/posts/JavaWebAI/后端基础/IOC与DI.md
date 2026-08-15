@@ -5,11 +5,10 @@ tags:
   - 前端
   - SpringBoot
   - Java
-category: 编程学习
+category: 后端基础
 description: Spring框架控制反转(IOC)与依赖注入(DI)的核心概念、注解用法及多种注入方式
 descriptionSource: ai
 order: 6
-
 ---
 
 # IOC与DI

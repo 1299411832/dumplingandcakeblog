@@ -1,10 +1,10 @@
 ---
-title: "Python 基础教程 | 菜鸟教程"
+title: Python 基础教程 | 菜鸟教程
 published: 2026-07-20
 tags:
-  - "py"
-category: "python"
-
+  - py
+category: python
+description: ""
 ---
 ## Python2.xPython 基础教程
 

@@ -6,11 +6,10 @@ tags:
   - JDBC
   - SQL
   - 数据库
-category: 编程学习
+category: 后端基础
 description: 基于JDBC实现数据库查询操作，包括预编译SQL、ResultSet解析与SQL注入防护。
 descriptionSource: ai
 order: 3
-
 ---
 
 # JDBC查询操作

@@ -6,10 +6,9 @@ tags:
   - CSS
   - Web基础
   - 前端
-category: 编程学习
+category: 前端基础
 description: HTML表格与表单速查卡片，涵盖表格标签与表单标签的用法、属性对比与实战要点
 order: 4
-
 ---
 
 ### 表格标签

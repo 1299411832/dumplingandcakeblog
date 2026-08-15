@@ -5,11 +5,10 @@ tags:
   - 前端
   - MySQL
   - 数据库
-category: 编程学习
+category: 后端基础
 description: DDL数据定义语言：数据库与表结构的创建、查询、修改、删除操作
 descriptionSource: ai
 order: 3
-
 ---
 
 # SQL-DDL语句

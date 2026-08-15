@@ -4,11 +4,10 @@ published: 2026-05-15
 tags:
   - 前端
   - JavaScript
-category: 编程学习
+category: 前端基础
 description: 使用addEventListener为DOM元素绑定事件实现用户交互
 descriptionSource: ai
 order: 5
-
 ---
 # JS事件监听
 

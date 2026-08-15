@@ -1,15 +1,14 @@
 ---
-title: "手把手教你用 EdgeOne 加速 Cloudflare 图床，国内访问从 8 秒降到 0.15 秒"
+title: 手把手教你用 EdgeOne 加速 Cloudflare 图床，国内访问从 8 秒降到 0.15 秒
 published: 2026-07-31
-category: "技术分享"
+category: 技术分享
 tags:
   - CDN
   - EdgeOne
   - Cloudflare
   - 图床
   - 性能优化
-description: "完整记录使用腾讯云 EdgeOne CDN 加速 Cloudflare Pages 图床的全过程，从零开始配置，包含踩坑排查和性能测试数据。"
-
+description: 完整记录使用腾讯云 EdgeOne CDN 加速 Cloudflare Pages 图床的全过程，从零开始配置，包含踩坑排查和性能测试数据。
 ---
 
 ## 写在前面

@@ -11,6 +11,7 @@
 - Firefly v6.6.13 —— "团子和蛋糕的博客"，Fork 自 CuteLeaf/Firefly 并深度定制
 - 部署 EdgeOne Pages（push main 自动构建）；后台 PagesCMS 自托管（cms.tsh520.cn，配置在根目录 `.pages.yml`，字段必须与 `src/content.config.ts` 的 zod 对齐，未声明字段保存时被丢弃）
 - 13 个 Astro Content Collections（`src/content.config.ts` + `src/content/`）
+- **本地 Obsidian 插件**（`plug-in/Obsidian/obsidian-category-autofill/`，独立 git 仓库，已 gitignore）：自动维护文章的 category 与新建文章属性。**改它的规范见该目录的 AGENTS.md**——完成改动后必须 `pnpm build`（自动拷贝进 `src` 库）+ `pnpm test` + commit & push GitHub + 提醒用户 reload Obsidian
 
 ## 快速上手
 

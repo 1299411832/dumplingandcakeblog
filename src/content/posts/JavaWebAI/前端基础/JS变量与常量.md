@@ -4,11 +4,10 @@ published: 2026-05-15
 tags:
   - 前端
   - JavaScript
-category: 编程学习
+category: 前端基础
 description: JavaScript中let、const和var三种变量声明方式及其作用域差异
 descriptionSource: ai
 order: 2
-
 ---
 # JS变量与常量
 

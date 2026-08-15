@@ -4,11 +4,10 @@ published: 2026-05-16
 tags:
   - Java
   - Maven
-category: 编程学习
+category: 后端基础
 description: Maven三套生命周期（clean、default、site）的核心阶段及插件执行机制
 descriptionSource: ai
 order: 4
-
 ---
 
 # Maven生命周期

@@ -1,13 +1,12 @@
 ---
-title: "用 GitHub Gist 做博客数据存储"
+title: 用 GitHub Gist 做博客数据存储
 published: 2026-06-12
 tags:
   - GitHub
   - Gist
   - 博客
-category: 技术分享
+category: 已弃用
 description: 介绍如何利用 GitHub Gist 作为静态博客的轻量级数据存储方案。
-
 ---
 
 ## 什么是 GitHub Gist？
