@@ -200,7 +200,7 @@
 
 #moments-feed .card-tags {
   display: flex; flex-wrap: wrap; gap: 0.375rem;
-  padding-top: 0.625rem; border-top: 1px solid var(--border);
+  padding-top: 0.625rem;
 }
 #moments-feed .tag-item {
   padding: 0.25rem 0.625rem; background: transparent;
@@ -290,7 +290,7 @@
 #pinned-feed .image-item:hover .image-img { transform: scale(1.03); }
 #pinned-feed .card-tags {
   display: flex; flex-wrap: wrap; gap: 0.375rem;
-  padding-top: 0.625rem; border-top: 1px solid var(--border);
+  padding-top: 0.625rem;
 }
 #pinned-feed .tag-item {
   padding: 0.25rem 0.625rem; background: transparent;

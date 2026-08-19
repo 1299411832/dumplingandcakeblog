@@ -98,6 +98,8 @@ let highlightSegs = $state<HighlightSeg[]>([]);
 let highlightHLines = $state<HighlightHLine[]>([]);
 
 let panelEl = $state<HTMLElement>();
+let tabsEl = $state<HTMLElement>();
+let tabIndicatorEl = $state<HTMLElement>();
 let yearBlockRefs = new Map<number, HTMLElement>();
 let monthBlockRefs = new Map<string, HTMLElement>();
 let postRowRefs = new Map<string, HTMLElement>();
@@ -225,6 +227,21 @@ function switchType(t: TypeFilter) {
 	if (t === "all") url.searchParams.delete("type");
 	else url.searchParams.set("type", t);
 	window.history.replaceState({}, "", url.toString());
+	void tick().then(updateTabIndicator);
+}
+
+// 更新滑动指示条：对齐当前激活 Tab 按钮
+function updateTabIndicator() {
+	if (!tabIndicatorEl || !tabsEl) return;
+	const activeBtn = tabsEl.querySelector<HTMLElement>(
+		'[role="tab"][aria-selected="true"]',
+	);
+	if (!activeBtn) return;
+	tabIndicatorEl.style.left = activeBtn.offsetLeft + "px";
+	tabIndicatorEl.style.top = activeBtn.offsetTop + "px";
+	tabIndicatorEl.style.width = activeBtn.offsetWidth + "px";
+	tabIndicatorEl.style.height = activeBtn.offsetHeight + "px";
+	tabIndicatorEl.style.opacity = "1";
 }
 function formatFilterSummary(fs: ActiveFilter[]): string {
 	return fs
@@ -354,11 +371,18 @@ onMount(() => {
 		activeType = typeParam;
 	}
 	applyFilters([...sortedPosts]);
+
+	// 初始化滑动指示条（等 Svelte 完成 DOM 更新后再测量偏移）
+	const initIndicator = () => tick().then(updateTabIndicator);
+	initIndicator();
+	window.addEventListener("resize", updateTabIndicator);
+	return () => window.removeEventListener("resize", updateTabIndicator);
 });
 </script>
 
 <div class="archive-panel card-base px-3 pt-3 pb-6 md:px-10 md:pt-4 md:pb-8" bind:this={panelEl}>
-  <div class="ap-tabs" role="tablist" aria-label="归档类型筛选">
+  <div class="ap-tabs" role="tablist" aria-label="归档类型筛选" bind:this={tabsEl}>
+    <div class="ap-tab-indicator" aria-hidden="true" bind:this={tabIndicatorEl}></div>
     {#each TABS as tab (tab.value)}
       <button
         type="button"

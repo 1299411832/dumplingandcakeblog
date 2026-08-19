@@ -611,7 +611,7 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat) ?? []);
     transform: scale(1) translateY(0);
   }
 
-  /* 描述文本 */
+  /* 描述文本：单行省略 */
   .tools-card-desc {
     margin: 0 0 0.75rem 0;
     font-size: 0.875rem;
@@ -619,11 +619,11 @@ const allSites = sortedCategories.flatMap((cat) => sortedData.get(cat) ?? []);
     color: oklch(0.45 0 0);
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     flex: 1;
-    min-height: 2.625rem;
+    min-height: 1.3125rem;
   }
   :root.dark .tools-card-desc {
     color: oklch(0.55 0 0);
