@@ -32,6 +32,9 @@ const bookItems = customBangumi
 				: item.data.image.src;
 		const slug = removeFileExtension(item.id);
 		const link = `/books/${slug}/`;
+		// 子分类来自 bangumi/book/ 下的目录名（book/分类/书名）；根目录下的条目归为未分类
+		const idParts = item.id.replace(/\\/g, "/").split("/");
+		const category = idParts.length >= 3 ? idParts[1] : "未分类";
 
 		return {
 			title: item.data.title,
@@ -39,12 +42,49 @@ const bookItems = customBangumi
 			link,
 			status: item.data.status,
 			score: item.data.score || 0,
+			category,
 		};
 	});
 
 const readingCount = bookItems.filter((b) => b.status === 3).length;
 const readCount = bookItems.filter((b) => b.status === 2).length;
 const wishCount = bookItems.filter((b) => b.status === 1).length;
+
+// 书籍分类筛选（子分类来自 bangumi/book/ 下的目录名；根目录下的条目归为未分类）
+const categoryCounts: Record<string, number> = {};
+for (const book of bookItems) {
+	categoryCounts[book.category] = (categoryCounts[book.category] || 0) + 1;
+}
+const bookTabs = [
+	{ value: "all", label: i18n(I18nKey.bangumiFilterAll), count: bookItems.length },
+	...Object.entries(categoryCounts).map(([value, count]) => ({
+		value,
+		label: value,
+		count,
+	})),
+];
+
+// 状态筛选（读过/在读/想读/搁置/抛弃，与影视页一致）
+const statusMap: Record<number, string> = {
+	1: "wish",
+	2: "collect",
+	3: "doing",
+	4: "on_hold",
+	5: "dropped",
+};
+const statusCounts: Record<string, number> = {};
+for (const book of bookItems) {
+	const s = statusMap[book.status] || "unknown";
+	statusCounts[s] = (statusCounts[s] || 0) + 1;
+}
+const statusFilters = [
+	{ value: "all", label: i18n(I18nKey.bangumiFilterAll), count: bookItems.length },
+	{ value: "collect", label: i18n(I18nKey.bangumiFilterBookRead), count: statusCounts.collect || 0 },
+	{ value: "doing", label: i18n(I18nKey.bangumiFilterBookReading), count: statusCounts.doing || 0 },
+	{ value: "wish", label: i18n(I18nKey.bangumiFilterBookWish), count: statusCounts.wish || 0 },
+	{ value: "on_hold", label: i18n(I18nKey.bangumiFilterOnHold), count: statusCounts.on_hold || 0 },
+	{ value: "dropped", label: i18n(I18nKey.bangumiFilterDropped), count: statusCounts.dropped || 0 },
+];
 ---
 
 <MainGridLayout title={i18n(I18nKey.booksTitle)} description={i18n(I18nKey.booksSubtitle)}>
@@ -83,7 +123,7 @@ const wishCount = bookItems.filter((b) => b.status === 1).length;
 		</header>
 
 			{bookItems.length > 0 ? (
-				<Bookshelf books={bookItems} />
+				<Bookshelf books={bookItems} tabs={bookTabs} statusFilters={statusFilters} />
 			) : (
 				<div class="w-full p-12 text-center">
 					<Icon name="material-symbols:auto-stories" class="text-6xl text-neutral-300 dark:text-neutral-600 mb-4" />

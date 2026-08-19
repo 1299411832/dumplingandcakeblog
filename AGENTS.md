@@ -18,8 +18,9 @@
 - 包管理器仅限 pnpm 9.14（preinstall 强制）；Node >= 22；**无测试框架**
 - `pnpm dev` 开发；提交前必跑 `pnpm build`（生成图标 → astro build → pagefind 索引）
 - 提交信息格式 `<type>(<scope>): <描述>`（feat|fix|refactor|style|docs|chore|perf，见 CLAUDE.md §18）
-- 验证手段 = `pnpm build` + `pnpm check`（astro check）
-- `pnpm lint` / `pnpm format` = Biome（唯一 linter/formatter，作用域 ./src）
+- 验证手段 = `pnpm build` + `pnpm check`（astro check）+ `pnpm type-check`（tsc --noEmit）
+- GitHub Actions（build.yml，main/PR）：`astro check`（Node 22+23）+ `pnpm build`（Node 22），与 EdgeOne 构建完全一致；CI 若红优先看 astro check 类型错误
+- `pnpm lint` / `pnpm format` = Biome（唯一 linter/formatter，作用域 ./src；CI 用 package.json 固定版本 2.5.7，勿在 workflow 里写 `latest`）
 
 ## 最易踩坑（详见 CLAUDE.md §15）
 
@@ -29,4 +30,6 @@
 - Swup SPA 导航：容器内组件避免 `client:load`；监听器用 AbortController 清理；跨导航单例用 `window.__xxx` guard（§8-9）
 - 新 i18n 键必须同时加进全部 5 个语言文件（§7）
 - 新增 Swup 功能禁止改 `swup-lifecycle-controller.ts`，用 `swup:content:replaced` 事件自注册（§11.4）
+- 页面交互脚本必须放在 Swup 容器内（MainGridLayout slot 里），否则 SPA 导航进入页面时不执行（§15）
+- dev 下组件卡初始状态（"加载中…"、按钮无反应）先查浏览器控制台是否报 `504 Outdated Optimize Dep`：删 `node_modules/.vite` 重启 dev（§15）
 - 禁止用 Python 脚本操作/修改文件，一律用 Node 脚本（§15）

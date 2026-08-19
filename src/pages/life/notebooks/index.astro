@@ -4,6 +4,10 @@ import * as path from "node:path";
 import type { ImageMetadata } from "astro";
 import { Icon } from "astro-icon/components";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import NotebookComment from "@/components/comment/NotebookComment.svelte";
+import { profileConfig } from "@/config";
+
+const noteAvatar = profileConfig.avatar || "/assets/ziyuan/tx.webp";
 
 // 预加载笔记本文件夹内的封面图片
 const notebookCoverFiles = import.meta.glob<ImageMetadata>(
@@ -157,6 +161,39 @@ const randomNoteFolder = randomNote
 const randomNotebook = sortedNotebooks.find(
 	(b) => b?.folderName === randomNoteFolder,
 );
+
+// 最新笔记（全部笔记本条目按时间倒序取前 10 条）
+interface RecentNote {
+	folder: string;
+	notebookName: string;
+	title: string;
+	date: Date;
+	href: string;
+	content: string;
+}
+const recentNotes: RecentNote[] = (allNotes
+	.map((n) => {
+		const id = n.id.replace(/\\/g, "/");
+		const folder = id.split("/")[0];
+		const last = id.split("/").pop()?.replace(/\.md$/, "") || "";
+		const notebook =
+			sortedNotebooks.find((b) => b?.folderName === folder) || null;
+		const date = n.data.date instanceof Date ? n.data.date : null;
+		// 笔记正文：去掉 markdown 标记后取纯文本（供卡片内容区显示）
+		let content = (n.body || "").replace(/[#*`>_\-\[\]()!]/g, " ").replace(/\s+/g, " ").trim();
+		if (content.length > 120) content = `${content.slice(0, 120)}...`;
+		return {
+			folder,
+			notebookName: notebook?.name || folder,
+			title: n.data.name || last,
+			date,
+			href: `/life/notebooks/${id.replace(/\.md$/, "")}/`,
+			content: content || (n.data.summary as string) || "暂无内容",
+		};
+	})
+	.filter((n): n is RecentNote => n.date !== null)
+	.sort((a, b) => b.date.getTime() - a.date.getTime())
+	.slice(0, 10));
 ---
 
 <MainGridLayout title="笔记本" description="成长日记、学习复盘、灵感随笔">
@@ -221,40 +258,119 @@ const randomNotebook = sortedNotebooks.find(
 				</div>
 			) : (
 				<div class="diary-list">
-					{sortedNotebooks.map((book) => (
-						<a href={book.selfPath} class="diary-row-card group">
-							{/* 左侧封面 */}
-							<div class="diary-row-cover">
-								{book.coverSrc ? (
-									<img src={book.coverSrc} alt={book.name || "笔记本封面"} class="diary-row-cover-img" loading="lazy" />
-								) : (
-									<div class="diary-row-cover-placeholder">
-										<span>📔</span>
+					<div class="shelf-head">
+						<span class="shelf-title">我的笔记本</span>
+						<div class="shelf-nav">
+							<button type="button" class="shelf-arrow" id="shelf-prev" aria-label="向左滚动" title="向左滚动">
+								<Icon name="material-symbols:chevron-left-rounded" class="text-xl" />
+							</button>
+							<button type="button" class="shelf-arrow" id="shelf-next" aria-label="向右滚动" title="向右滚动">
+								<Icon name="material-symbols:chevron-right-rounded" class="text-xl" />
+							</button>
+						</div>
+					</div>
+					<div class="shelf-scroller" id="notebook-shelf">
+						{sortedNotebooks.map((book) => (
+							<a
+								href={book.selfPath}
+								class="nb-book group"
+								title={book.name || "未命名笔记本"}
+							>
+								<div class="nb-book-inner">
+									{/* 书本主体：封面（上插画条 + 下白纸文字） */}
+									<div class="nb-book-cover">
+										{/* 上部插画条（封面图或封面色） */}
+										<div class="nb-book-illustration">
+											{book.coverSrc ? (
+												<img src={book.coverSrc} alt={book.name || "笔记本封面"} class="nb-book-illustration-img" loading="lazy" />
+											) : (
+												<div class="nb-book-illustration-emoji">📔</div>
+											)}
+											<div class="nb-book-bind" aria-hidden="true"></div>
+										</div>
+										{/* 下部白色纸张文字区 */}
+										<div class="nb-book-paper">
+											<div class="nb-book-bind" aria-hidden="true"></div>
+											<div class="nb-book-body">
+												<h3 class="nb-book-name">{book.name || "未命名笔记本"}</h3>
+												<p class="nb-book-summary">{book.summary || "暂无描述"}</p>
+												<div class="nb-book-meta">
+													<span class="nb-book-entries">{book.entries} 篇</span>
+													<span class="nb-book-dot">·</span>
+													<span class="nb-book-date">
+														{book.updatedAt instanceof Date ? book.updatedAt.toISOString().split("T")[0] : "未更新"}
+													</span>
+												</div>
+											</div>
+										</div>
 									</div>
-								)}
-								<div class="diary-row-cover-overlay"></div>
-							</div>
-
-							{/* 右侧内容 */}
-							<div class="diary-row-content">
-								<div class="diary-row-title-line">
-									<h3 class="diary-row-name">{book.name || "未命名笔记本"}</h3>
-									<span class="diary-row-entries">{book.entries} 篇</span>
+									{/* 右侧纸张厚度 */}
+									<div class="nb-book-pages" aria-hidden="true"></div>
+									{/* 封底 */}
+									<div class="nb-book-back" aria-hidden="true"></div>
 								</div>
-								<p class="diary-row-desc">{book.summary || "暂无描述"}</p>
-								<div class="diary-row-bottom">
-									<span class="diary-row-date">
-										<Icon name="material-symbols:schedule" class="text-xs" />
-										{book.updatedAt instanceof Date ? book.updatedAt.toISOString().split("T")[0] : "未更新"}
-									</span>
-									<Icon name="material-symbols:chevron-right-rounded" class="diary-row-arrow" />
-								</div>
-							</div>
-						</a>
-					))}
+							</a>
+						))}
+					</div>
 				</div>
 			)}
 		</section>
+
+		<!-- 最新笔记区（卡片式） -->
+		{recentNotes.length > 0 && (
+			<section class="nb-recent">
+				<div class="nb-recent-head">
+					<Icon name="material-symbols:history-rounded" class="text-lg" />
+					<span class="nb-recent-head-title">最新笔记</span>
+					<span class="nb-recent-head-sub">最近更新，继续加油 ✨</span>
+				</div>
+				<div class="nb-recent-grid">
+					{recentNotes.map((n) => (
+						<article class="nb-note-card">
+							{/* 头部：动态同款头像 + 昵称（标题） + 时间 */}
+							<div class="nb-note-head">
+								<div class="nb-note-avatar">
+									<img src={noteAvatar} alt={n.title} class="nb-note-avatar-img" loading="lazy" />
+								</div>
+								<div class="nb-note-author">
+									<span class="nb-note-name">{n.title}</span>
+									<span class="nb-note-time">
+										<Icon name="material-symbols:schedule-outline" class="text-[0.75rem]" />
+										{n.date instanceof Date ? (n.date.getMonth() + 1) + "月" + n.date.getDate() + "日" : ""}
+									</span>
+								</div>
+							</div>
+							{/* 内容（最多 3 行） */}
+							<a href={n.href} class="nb-note-body group">
+								<span class="nb-note-content group-hover:text-(--primary)">{n.content}</span>
+							</a>
+							{/* 底部：左下标签（笔记本名） + 右下评论按钮 */}
+							<div class="nb-note-foot">
+								<div class="nb-note-tags">
+									<span class="nb-note-tag">#{n.notebookName}</span>
+								</div>
+								<button
+									type="button"
+									class="nb-note-comment"
+									aria-label="评论"
+									title="评论此笔记"
+									data-nb-quote
+									data-nb-notebook={n.notebookName}
+									data-nb-title={n.title}
+									data-nb-href={n.href}
+								>
+									<Icon name="material-symbols:chat-bubble-outline" class="text-sm" />
+									<span>评论</span>
+								</button>
+							</div>
+						</article>
+					))}
+				</div>
+			</section>
+		)}
+
+		<!-- 评论区（自研，引用当前笔记卡片） -->
+		<NotebookComment client:load path="/life/notebooks/" />
 
 		<!-- 装饰页脚 -->
 		<section class="text-center py-4">
@@ -262,11 +378,52 @@ const randomNotebook = sortedNotebooks.find(
 				✨ 每一页都是成长的足迹
 			</p>
 		</section>
-	</div>
-	</div>
-	</div>
-</MainGridLayout>
 
-<style>
+		<script is:inline>
+			// 书架左右滚动 + 评论引用按钮：事件委托 + guard
+			// 必须放在 Swup 容器内：从其它页面 SPA 导航进入时，容器外脚本不会执行
+			(function () {
+				if (window.__notebookShelfBound) return;
+				window.__notebookShelfBound = true;
+
+				document.addEventListener("click", function (e) {
+					var target = e.target;
+
+					// 评论按钮：设置引用并滚动到评论区
+					var quoteBtn = target.closest ? target.closest("[data-nb-quote]") : null;
+					if (quoteBtn) {
+						window.dispatchEvent(new CustomEvent("notebook-comment-quote", {
+							detail: {
+								notebook: quoteBtn.getAttribute("data-nb-notebook") || "笔记本",
+								title: quoteBtn.getAttribute("data-nb-title") || "未命名笔记",
+								href: quoteBtn.getAttribute("data-nb-href") || "/life/notebooks/",
+							},
+						}));
+						var commentsEl = document.getElementById("comments");
+						if (commentsEl) {
+							commentsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+						}
+						return;
+					}
+
+					var prevBtn = target.closest ? target.closest("#shelf-prev") : null;
+					var nextBtn = target.closest ? target.closest("#shelf-next") : null;
+					if (!prevBtn && !nextBtn) return;
+
+					var scroller = document.getElementById("notebook-shelf");
+					if (!scroller) return;
+					var book = scroller.querySelector(".nb-book");
+					var step = book ? book.offsetWidth + 24 : 200; // 一本书宽 + 间距
+					if (prevBtn) scroller.scrollBy({ left: -step, behavior: "smooth" });
+					if (nextBtn) scroller.scrollBy({ left: step, behavior: "smooth" });
+				});
+			})();
+		</script>
+	</div>
+	</div>
+	</div>
+	</MainGridLayout>
+
+	<style>
 	/* 样式已移至 src/styles/pages/notebooks.css（全局 CSS），避免 Swup 过渡时样式丢失 */
-</style>
+	</style>

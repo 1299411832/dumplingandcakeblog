@@ -49,14 +49,14 @@ src/
 ├── assets/images/       # 头像、封面等构建时图片
 ├── components/          # 按功能域组织的组件（124 个文件）
 │   ├── analytics/       # GA, Clarity, Umami (3)
-│   ├── comment/         # 评论系统：index + 5 种后端 + 3 个弹窗组件 (9)
+│   ├── comment/         # 评论系统：index + 5 种后端 + 3 个弹窗组件 + NotebookComment 笔记本列表页自研评论区（笔记引用 >>QUOTE>> 编码 + Waline 树形回复 pid/rid/at + 表情 :item: 标记，昵称/邮箱必填） (10)
 │   ├── common/          # 跨域共享基础组件 (17)
 │   ├── controls/        # 交互控件：搜索、归档（类型 Tab 筛选）、主题、Dock (8)
 │   ├── features/        # 独立功能模块 (25, 含 music-visualizer/)
 │   ├── layout/          # 布局组件：Navbar, Footer, SideBar, HomeHero... (19)
 │   ├── misc/            # License, RelatedPosts, SharePoster (3)
 │   ├── moments/         # 动态卡片 (2)
-│   ├── pages/           # 页面级组件：bangumi, books, movies-games, music (10)
+│   ├── pages/           # 页面级组件：bangumi, books（Bookshelf/BookCard：3D 书本卡片 + 影视页同款胶囊筛选（分类+读过/在读/想读）+ ClientPagination 分页 8/6 本每页，SSR 隐藏非首页防闪烁）, movies-games, music (10)
 │   └── widget/          # 侧栏 Widget (27)
 ├── config/              # 站点配置（26 个 .ts，index.ts barrel export）
 ├── constants/           # 常量：页面尺寸、主题模式、图标、链接预设
@@ -598,6 +598,17 @@ return controller;
 6. 从 `types/config.ts` 移除类型
 7. `pnpm build` 验证
 
+### 14.5 万能原则：先参考，后编写（禁止盲猜）
+
+新增/修改任何功能前，**先做参考调研，再动手写代码**：
+
+1. **优先参考本仓库已有的相似功能**（最贴近项目现状，少走弯路）：
+   - 评论/留言 → `src/components/features/GuestbookChat.svelte`（就是本仓库读写 Waline 评论数据的最佳范本，别自创调用方式）
+   - 组件交互 → 看 `src/components/*` 里已正常工作的 Svelte 组件怎么组织
+2. 仓库没有时，**参考官方文档 / 官方示例 / 网上成熟开源项目**，照其写法落地，不要凭印象自由发挥
+3. 如果实现过程中反复卡壳排查不出，**回到参考源逐行对照**，找出差异——不要靠猜验证
+4. 改完跑 `pnpm check` / `pnpm build` 确认无编译错误，并浏览器实测功能
+
 ---
 
 ## 15. 反模式清单（禁止）
@@ -618,6 +629,10 @@ return controller;
 | 修改 `backgroundWallpaper.ts` 的 `mode` | 已移除壁纸切换功能 |
 | 删除 `swup-lifecycle-controller.ts` | 所有页面过渡逻辑丢失 |
 | 使用 Python 脚本操作/修改文件 | 曾因字符串替换逻辑破坏文件内容，一律用 Node 脚本处理 |
+| 页面交互内联脚本放在 Swup 容器（MainGridLayout slot）外 | 从其它页面 SPA 导航进入时脚本不会执行，事件委托/初始化失效（2026-08 笔记本评论按钮教训：脚本必须在容器内，配合 `window.__xxx` guard 防重复注册） | 见 §11.4 |
+| dev 下 Astro island hydrate 报 `504 (Outdated Optimize Dep)` | 组件 onMount 永不执行，UI 卡初始状态（如评论"加载中…"、按钮无反应），SSR 输出却正常，极具迷惑性 | 删除 `node_modules/.vite` 后重启 `pnpm dev` |
+| 不做参考调研就盲猜写代码 / 排查问题 | 反复试错浪费大量时间（2026-08 评论功能教训） | 见 §14.5「先参考，后编写」 |
+| 验收通过后仍过度验证（`pnpm check`/`pnpm build` 通过且浏览器实测关键路径正常后，还继续用多种方式重复验证同一数据链路，如抓网络日志逐请求对比第三方 API） | 大量时间产出零新增价值（2026-08 笔记本评论回复验证教训：UI 已正确显示回复关系即证明 Waline 数据正确，无需再深挖服务端返回结构） | 验收标准达成即停；仅当出现新的错误证据（新报错、行为异常）时才继续排查 |
 | 改友链页 `friend-card` 卡片结构/友链 Card 组件，未同步 `hexo-circle-of-friends` 的 `css_rules.yaml` firefly 选择器 | 朋友圈（/circle/）数据停更（2026-08 曾停更 6 天） | 见 §3.4「朋友圈数据链路（强制提醒义务）」 |
 | CI 中 Biome 用 `version: latest` 或版本与 package.json 不一致 | 规则漂移导致"本地绿 CI 红"（2026-08 实测：2.3 vs 2.5 的 useAltText 升级为 error） | setup-biome action 不指定 version，自动读取 package.json 版本 |
 
