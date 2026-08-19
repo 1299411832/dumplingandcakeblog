@@ -56,7 +56,11 @@ for (const book of bookItems) {
 	categoryCounts[book.category] = (categoryCounts[book.category] || 0) + 1;
 }
 const bookTabs = [
-	{ value: "all", label: i18n(I18nKey.bangumiFilterAll), count: bookItems.length },
+	{
+		value: "all",
+		label: i18n(I18nKey.bangumiFilterAll),
+		count: bookItems.length,
+	},
 	...Object.entries(categoryCounts).map(([value, count]) => ({
 		value,
 		label: value,
@@ -78,12 +82,36 @@ for (const book of bookItems) {
 	statusCounts[s] = (statusCounts[s] || 0) + 1;
 }
 const statusFilters = [
-	{ value: "all", label: i18n(I18nKey.bangumiFilterAll), count: bookItems.length },
-	{ value: "collect", label: i18n(I18nKey.bangumiFilterBookRead), count: statusCounts.collect || 0 },
-	{ value: "doing", label: i18n(I18nKey.bangumiFilterBookReading), count: statusCounts.doing || 0 },
-	{ value: "wish", label: i18n(I18nKey.bangumiFilterBookWish), count: statusCounts.wish || 0 },
-	{ value: "on_hold", label: i18n(I18nKey.bangumiFilterOnHold), count: statusCounts.on_hold || 0 },
-	{ value: "dropped", label: i18n(I18nKey.bangumiFilterDropped), count: statusCounts.dropped || 0 },
+	{
+		value: "all",
+		label: i18n(I18nKey.bangumiFilterAll),
+		count: bookItems.length,
+	},
+	{
+		value: "collect",
+		label: i18n(I18nKey.bangumiFilterBookRead),
+		count: statusCounts.collect || 0,
+	},
+	{
+		value: "doing",
+		label: i18n(I18nKey.bangumiFilterBookReading),
+		count: statusCounts.doing || 0,
+	},
+	{
+		value: "wish",
+		label: i18n(I18nKey.bangumiFilterBookWish),
+		count: statusCounts.wish || 0,
+	},
+	{
+		value: "on_hold",
+		label: i18n(I18nKey.bangumiFilterOnHold),
+		count: statusCounts.on_hold || 0,
+	},
+	{
+		value: "dropped",
+		label: i18n(I18nKey.bangumiFilterDropped),
+		count: statusCounts.dropped || 0,
+	},
 ];
 ---
 

@@ -1,349 +1,366 @@
 <script lang="ts">
-	/**
-	 * 自研笔记评论区（列表页聚合）
-	 * 数据读写复用 @waline/api（与 GuestbookChat 同机制），前端 UI 全部自研
-	 */
-	import { addComment, getComment } from "@waline/api";
-	import { BookMarked, Info, MessageCircle, Reply, Send, Smile, X } from "lucide-svelte";
-	import { onMount } from "svelte";
-	import { commentConfig } from "@/config/commentConfig";
+/**
+ * 自研笔记评论区（列表页聚合）
+ * 数据读写复用 @waline/api（与 GuestbookChat 同机制），前端 UI 全部自研
+ */
+import { addComment, getComment } from "@waline/api";
+import {
+	BookMarked,
+	Info,
+	MessageCircle,
+	Reply,
+	Send,
+	Smile,
+	X,
+} from "lucide-svelte";
+import { onMount } from "svelte";
+import { commentConfig } from "@/config/commentConfig";
 
-	interface Props {
-		/** 评论所属路径 */
-		path: string;
-	}
+interface Props {
+	/** 评论所属路径 */
+	path: string;
+}
 
-	let { path }: Props = $props();
+let { path }: Props = $props();
 
-	const serverURL = commentConfig.waline?.serverURL ?? "";
-	const lang = commentConfig.waline?.lang ?? "zh-CN";
+const serverURL = commentConfig.waline?.serverURL ?? "";
+const lang = commentConfig.waline?.lang ?? "zh-CN";
 
-	type Quote = { notebook: string; title: string; href: string } | null;
+type Quote = { notebook: string; title: string; href: string } | null;
 
-	type NoteComment = {
+type NoteComment = {
+	objectId: number;
+	nick: string;
+	avatar: string;
+	time: number;
+	quote: Quote;
+	text: string;
+	/** 子评论：被回复者昵称 */
+	replyToNick?: string;
+	/** 子评论：根评论 objectId */
+	rid?: number;
+};
+
+/** 回复目标：objectId 为被回复评论，rid 为根评论（回复子评论时用） */
+type ReplyTarget = { objectId: number; nick: string; rid: number };
+
+// 引用标记
+const QUOTE_RE = />>QUOTE>>(.+?)\|\|(.+?)\|\|(.+?)<<QUOTE<</;
+
+let comments = $state<NoteComment[]>([]);
+let initialLoading = $state(true);
+let initialError = $state("");
+let sending = $state(false);
+
+let replyNick = $state("");
+let replyMail = $state("");
+let replyText = $state("");
+let composerError = $state("");
+
+// 待引用笔记（由列表页卡片评论按钮点击后通过事件设置）
+let pendingQuote = $state<Quote>(null);
+// 回复目标（点击评论的「回复」按钮设置）
+let replyTarget = $state<ReplyTarget | null>(null);
+// 输入框 ref：点击回复后自动聚焦
+let composerTextarea = $state<HTMLTextAreaElement | null>(null);
+
+// 表情（Waline 原生格式：正文存 `:item:`，渲染时替换为预设图片 URL）
+type EmojiTab = {
+	name: string;
+	icon: string;
+	items: { key: string; url: string }[];
+};
+let emojiTabs = $state<EmojiTab[]>([]);
+let emojiMap = $state<Record<string, string>>({});
+let activeEmojiTab = $state(0);
+let emojiOpen = $state(false);
+
+function parseQuote(orig: string): { quote: Quote; text: string } {
+	const m = orig.match(QUOTE_RE);
+	if (!m) return { quote: null, text: orig };
+	return {
+		quote: { notebook: m[1], title: m[2], href: m[3] },
+		text: orig.slice(m[0].length).replace(/^\n/, ""),
+	};
+}
+
+/** 单条评论标准化（可传入被回复者昵称用于子评论） */
+function normalizeComment(
+	comment: {
 		objectId: number;
-		nick: string;
-		avatar: string;
+		nick?: string;
+		avatar?: string;
 		time: number;
-		quote: Quote;
-		text: string;
-		/** 子评论：被回复者昵称 */
-		replyToNick?: string;
-		/** 子评论：根评论 objectId */
+		comment?: string;
+		orig?: string;
 		rid?: number;
+	},
+	replyToNick?: string,
+): NoteComment {
+	const orig = comment.orig || comment.comment || "";
+	const { quote, text } = parseQuote(orig);
+	return {
+		objectId: comment.objectId,
+		nick: comment.nick || "匿名访客",
+		avatar: comment.avatar || "",
+		time: comment.time,
+		quote,
+		text,
+		replyToNick,
+		rid: replyToNick ? comment.rid : undefined,
 	};
+}
 
-	/** 回复目标：objectId 为被回复评论，rid 为根评论（回复子评论时用） */
-	type ReplyTarget = { objectId: number; nick: string; rid: number };
+function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) {
+		const message = error.message;
+		if (/failed to fetch|networkerror|network request/iu.test(message)) {
+			return "无法连接到评论服务，请检查网络后重试";
+		}
+		if (/(401|403|unauthorized|forbidden|token|登录)/iu.test(message)) {
+			return "评论服务登录状态异常，请稍后重试";
+		}
+		if (/(required|word|length|content|字数|内容)/iu.test(message)) {
+			return "评论内容不符合要求，请检查后重试";
+		}
+	}
+	return "评论服务暂时不可用，请稍后重试";
+}
 
-	// 引用标记
-	const QUOTE_RE = />>QUOTE>>(.+?)\|\|(.+?)\|\|(.+?)<<QUOTE<</;
+async function loadComments() {
+	if (!serverURL) {
+		initialLoading = false;
+		initialError = "评论服务未配置，无法加载评论";
+		return;
+	}
+	initialLoading = true;
+	initialError = "";
+	try {
+		const response = await getComment({
+			serverURL,
+			lang,
+			path,
+			page: 1,
+			pageSize: 100,
+			sortBy: "insertedAt_asc",
+		});
+		// 展平根评论 + 子评论（Waline 平铺模式返回树形结构）
+		const flat: NoteComment[] = [];
+		for (const root of response.data || []) {
+			flat.push(normalizeComment(root));
+			for (const child of root.children || []) {
+				flat.push(
+					normalizeComment(
+						child,
+						child.reply_user?.nick || child.at || root.nick || "访客",
+					),
+				);
+			}
+		}
+		comments = flat;
+	} catch (error) {
+		initialError = getErrorMessage(error);
+	} finally {
+		initialLoading = false;
+	}
+}
 
-	let comments = $state<NoteComment[]>([]);
-	let initialLoading = $state(true);
-	let initialError = $state("");
-	let sending = $state(false);
+async function submitComment() {
+	if (sending) return;
+	if (!serverURL) {
+		composerError = "评论服务未配置，暂时无法发布";
+		return;
+	}
+	const nick = replyNick.trim();
+	const mail = replyMail.trim();
+	const text = replyText.trim();
+	if (!nick) {
+		composerError = "请填写昵称";
+		return;
+	}
+	if (!mail) {
+		composerError = "请填写邮箱";
+		return;
+	}
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(mail)) {
+		composerError = "邮箱格式不正确";
+		return;
+	}
+	if (!text) {
+		composerError = "请填写评论内容";
+		return;
+	}
+	sending = true;
+	composerError = "";
+	try {
+		const quoteTarget = pendingQuote;
+		const target = replyTarget;
+		const body = quoteTarget
+			? `>>QUOTE>>${quoteTarget.notebook}||${quoteTarget.title}||${quoteTarget.href}<<QUOTE<<\n${text}`
+			: text;
+		const response = await addComment({
+			serverURL,
+			lang,
+			comment: {
+				nick,
+				mail,
+				comment: body,
+				ua: navigator.userAgent,
+				url: path,
+				// 回复时带父/根评论 id 与被回复者昵称（Waline 平铺模式）
+				pid: target?.objectId,
+				rid: target?.rid,
+				at: target?.nick,
+			},
+		});
+		if (response.errno || !response.data) {
+			throw new Error(response.errmsg || "评论提交失败");
+		}
+		const comment = response.data;
+		const orig = comment.orig || body;
+		const { quote, text: cleanText } = parseQuote(orig);
+		const isReply = target !== null;
+		comments = [
+			...comments,
+			{
+				objectId: comment.objectId,
+				nick: comment.nick || nick,
+				avatar: comment.avatar || "",
+				time: comment.time,
+				quote,
+				text: cleanText,
+				replyToNick: isReply ? target.nick : undefined,
+				rid: isReply ? target.rid : undefined,
+			},
+		];
+		replyText = "";
+		replyMail = "";
+		replyTarget = null;
+	} catch (error) {
+		composerError = getErrorMessage(error);
+	} finally {
+		sending = false;
+	}
+}
 
-	let replyNick = $state("");
-	let replyMail = $state("");
-	let replyText = $state("");
-	let composerError = $state("");
-
-	// 待引用笔记（由列表页卡片评论按钮点击后通过事件设置）
-	let pendingQuote = $state<Quote>(null);
-	// 回复目标（点击评论的「回复」按钮设置）
-	let replyTarget = $state<ReplyTarget | null>(null);
-	// 输入框 ref：点击回复后自动聚焦
-	let composerTextarea = $state<HTMLTextAreaElement | null>(null);
-
-	// 表情（Waline 原生格式：正文存 `:item:`，渲染时替换为预设图片 URL）
-	type EmojiTab = {
-		name: string;
-		icon: string;
-		items: { key: string; url: string }[];
+function onQuoteRequest(event: Event) {
+	const detail = (event as CustomEvent).detail as
+		| { notebook?: string; title?: string; href?: string }
+		| undefined;
+	if (!detail) return;
+	pendingQuote = {
+		notebook: detail.notebook || "笔记本",
+		title: detail.title || "未命名笔记",
+		href: detail.href || "/life/notebooks/",
 	};
-	let emojiTabs = $state<EmojiTab[]>([]);
-	let emojiMap = $state<Record<string, string>>({});
-	let activeEmojiTab = $state(0);
-	let emojiOpen = $state(false);
+}
 
-	function parseQuote(orig: string): { quote: Quote; text: string } {
-		const m = orig.match(QUOTE_RE);
-		if (!m) return { quote: null, text: orig };
-		return {
-			quote: { notebook: m[1], title: m[2], href: m[3] },
-			text: orig.slice(m[0].length).replace(/^\n/, ""),
-		};
-	}
+/** 回复某条评论：根评论 rid 为自身，子评论沿用其根 id */
+function selectReply(comment: NoteComment) {
+	replyTarget = {
+		objectId: comment.objectId,
+		nick: comment.nick,
+		rid: comment.rid || comment.objectId,
+	};
+	composerError = "";
+	composerTextarea?.focus();
+}
 
-	/** 单条评论标准化（可传入被回复者昵称用于子评论） */
-	function normalizeComment(
-		comment: { objectId: number; nick?: string; avatar?: string; time: number; comment?: string; orig?: string; rid?: number },
-		replyToNick?: string,
-	): NoteComment {
-		const orig = comment.orig || comment.comment || "";
-		const { quote, text } = parseQuote(orig);
-		return {
-			objectId: comment.objectId,
-			nick: comment.nick || "匿名访客",
-			avatar: comment.avatar || "",
-			time: comment.time,
-			quote,
-			text,
-			replyToNick,
-			rid: replyToNick ? comment.rid : undefined,
-		};
-	}
+function formatTime(t: number): string {
+	if (!t) return "";
+	const d = new Date(t);
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
-	function getErrorMessage(error: unknown): string {
-		if (error instanceof Error) {
-			const message = error.message;
-			if (/failed to fetch|networkerror|network request/iu.test(message)) {
-				return "无法连接到评论服务，请检查网络后重试";
-			}
-			if (/(401|403|unauthorized|forbidden|token|登录)/iu.test(message)) {
-				return "评论服务登录状态异常，请稍后重试";
-			}
-			if (/(required|word|length|content|字数|内容)/iu.test(message)) {
-				return "评论内容不符合要求，请检查后重试";
-			}
-		}
-		return "评论服务暂时不可用，请稍后重试";
-	}
-
-	async function loadComments() {
-		if (!serverURL) {
-			initialLoading = false;
-			initialError = "评论服务未配置，无法加载评论";
-			return;
-		}
-		initialLoading = true;
-		initialError = "";
+/**
+ * 加载 Waline 表情预设（commentConfig.waline.emoji 的 URL 数组）
+ * 每个预设目录下有 info.json：{ name, prefix, type, items }
+ * 表情图片 URL = `{base}/{prefix}{item}.{type}`，正文标记为 `:{item}:`
+ * 与 Waline 原生评论区完全兼容：历史/未来表情互相可见
+ */
+async function loadEmojis() {
+	const urls = commentConfig.waline?.emoji ?? [];
+	const tabs: EmojiTab[] = [];
+	const map: Record<string, string> = {};
+	for (const baseUrl of urls) {
 		try {
-			const response = await getComment({
-				serverURL,
-				lang,
-				path,
-				page: 1,
-				pageSize: 100,
-				sortBy: "insertedAt_asc",
-			});
-			// 展平根评论 + 子评论（Waline 平铺模式返回树形结构）
-			const flat: NoteComment[] = [];
-			for (const root of response.data || []) {
-				flat.push(normalizeComment(root));
-				for (const child of root.children || []) {
-					flat.push(
-						normalizeComment(
-							child,
-							child.reply_user?.nick || child.at || root.nick || "访客",
-						),
-					);
-				}
-			}
-			comments = flat;
-		} catch (error) {
-			initialError = getErrorMessage(error);
-		} finally {
-			initialLoading = false;
+			const base = baseUrl.replace(/\/+$/u, "");
+			const info = await fetch(`${base}/info.json`).then((r) => r.json());
+			const prefix = info.prefix || "";
+			const type = info.type || "png";
+			const tab: EmojiTab = {
+				name: info.name || "Emoji",
+				icon: `${base}/${prefix}${info.icon || ""}.${type}`,
+				items: (info.items || []).map((key: string) => ({
+					key,
+					url: `${base}/${prefix}${key}.${type}`,
+				})),
+			};
+			tabs.push(tab);
+			// 同名表情后者覆盖前者（与 Waline 客户端行为一致）
+			for (const item of tab.items) map[item.key] = item.url;
+		} catch {
+			// 单个预设加载失败不影响其它
 		}
 	}
+	emojiTabs = tabs;
+	emojiMap = map;
+}
 
-	async function submitComment() {
-		if (sending) return;
-		if (!serverURL) {
-			composerError = "评论服务未配置，暂时无法发布";
-			return;
-		}
-		const nick = replyNick.trim();
-		const mail = replyMail.trim();
-		const text = replyText.trim();
-		if (!nick) {
-			composerError = "请填写昵称";
-			return;
-		}
-		if (!mail) {
-			composerError = "请填写邮箱";
-			return;
-		}
-		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(mail)) {
-			composerError = "邮箱格式不正确";
-			return;
-		}
-		if (!text) {
-			composerError = "请填写评论内容";
-			return;
-		}
-		sending = true;
-		composerError = "";
-		try {
-			const quoteTarget = pendingQuote;
-			const target = replyTarget;
-			const body = quoteTarget
-				? `>>QUOTE>>${quoteTarget.notebook}||${quoteTarget.title}||${quoteTarget.href}<<QUOTE<<\n${text}`
-				: text;
-			const response = await addComment({
-				serverURL,
-				lang,
-				comment: {
-					nick,
-					mail,
-					comment: body,
-					ua: navigator.userAgent,
-					url: path,
-					// 回复时带父/根评论 id 与被回复者昵称（Waline 平铺模式）
-					pid: target?.objectId,
-					rid: target?.rid,
-					at: target?.nick,
-				},
-			});
-			if (response.errno || !response.data) {
-				throw new Error(response.errmsg || "评论提交失败");
-			}
-			const comment = response.data;
-			const orig = comment.orig || body;
-			const { quote, text: cleanText } = parseQuote(orig);
-			const isReply = target !== null;
-			comments = [
-				...comments,
-				{
-					objectId: comment.objectId,
-					nick: comment.nick || nick,
-					avatar: comment.avatar || "",
-					time: comment.time,
-					quote,
-					text: cleanText,
-					replyToNick: isReply ? target.nick : undefined,
-					rid: isReply ? target.rid : undefined,
-				},
-			];
-			replyText = "";
-			replyMail = "";
-			replyTarget = null;
-		} catch (error) {
-			composerError = getErrorMessage(error);
-		} finally {
-			sending = false;
-		}
+/** 把正文中的 `:item:` 标记解析为文本 + 表情片段（未加载完时原样返回文本） */
+function parseEmoji(text: string): (string | { url: string; key: string })[] {
+	const parts: (string | { url: string; key: string })[] = [];
+	const re = /:([^\s:]{1,40}):/gu;
+	let last = 0;
+	let m: RegExpExecArray | null = re.exec(text);
+	while (m !== null) {
+		if (m.index > last) parts.push(text.slice(last, m.index));
+		const url = emojiMap[m[1]];
+		parts.push(url ? { url, key: m[1] } : m[0]);
+		last = m.index + m[0].length;
+		m = re.exec(text);
 	}
+	if (last < text.length) parts.push(text.slice(last));
+	return parts;
+}
 
-	function onQuoteRequest(event: Event) {
-		const detail = (event as CustomEvent).detail as
-			| { notebook?: string; title?: string; href?: string }
-			| undefined;
-		if (!detail) return;
-		pendingQuote = {
-			notebook: detail.notebook || "笔记本",
-			title: detail.title || "未命名笔记",
-			href: detail.href || "/life/notebooks/",
-		};
+/** 在光标处插入表情标记 */
+function insertEmoji(key: string) {
+	const el = composerTextarea;
+	if (!el) {
+		replyText = `${replyText}:${key}:`;
+		return;
 	}
-
-	/** 回复某条评论：根评论 rid 为自身，子评论沿用其根 id */
-	function selectReply(comment: NoteComment) {
-		replyTarget = {
-			objectId: comment.objectId,
-			nick: comment.nick,
-			rid: comment.rid || comment.objectId,
-		};
-		composerError = "";
-		composerTextarea?.focus();
-	}
-
-	function formatTime(t: number): string {
-		if (!t) return "";
-		const d = new Date(t);
-		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-	}
-
-	/**
-	 * 加载 Waline 表情预设（commentConfig.waline.emoji 的 URL 数组）
-	 * 每个预设目录下有 info.json：{ name, prefix, type, items }
-	 * 表情图片 URL = `{base}/{prefix}{item}.{type}`，正文标记为 `:{item}:`
-	 * 与 Waline 原生评论区完全兼容：历史/未来表情互相可见
-	 */
-	async function loadEmojis() {
-		const urls = commentConfig.waline?.emoji ?? [];
-		const tabs: EmojiTab[] = [];
-		const map: Record<string, string> = {};
-		for (const baseUrl of urls) {
-			try {
-				const base = baseUrl.replace(/\/+$/u, "");
-				const info = await fetch(`${base}/info.json`).then((r) => r.json());
-				const prefix = info.prefix || "";
-				const type = info.type || "png";
-				const tab: EmojiTab = {
-					name: info.name || "Emoji",
-					icon: `${base}/${prefix}${info.icon || ""}.${type}`,
-					items: (info.items || []).map((key: string) => ({
-						key,
-						url: `${base}/${prefix}${key}.${type}`,
-					})),
-				};
-				tabs.push(tab);
-				// 同名表情后者覆盖前者（与 Waline 客户端行为一致）
-				for (const item of tab.items) map[item.key] = item.url;
-			} catch {
-				// 单个预设加载失败不影响其它
-			}
-		}
-		emojiTabs = tabs;
-		emojiMap = map;
-	}
-
-	/** 把正文中的 `:item:` 标记解析为文本 + 表情片段（未加载完时原样返回文本） */
-	function parseEmoji(text: string): (string | { url: string; key: string })[] {
-		const parts: (string | { url: string; key: string })[] = [];
-		const re = /:([^\s:]{1,40}):/gu;
-		let last = 0;
-		let m: RegExpExecArray | null;
-		while ((m = re.exec(text))) {
-			if (m.index > last) parts.push(text.slice(last, m.index));
-			const url = emojiMap[m[1]];
-			parts.push(url ? { url, key: m[1] } : m[0]);
-			last = m.index + m[0].length;
-		}
-		if (last < text.length) parts.push(text.slice(last));
-		return parts;
-	}
-
-	/** 在光标处插入表情标记 */
-	function insertEmoji(key: string) {
-		const el = composerTextarea;
-		if (!el) {
-			replyText = `${replyText}:${key}:`;
-			return;
-		}
-		const start = el.selectionStart ?? replyText.length;
-		const end = el.selectionEnd ?? start;
-		const token = `:${key}:`;
-		replyText = replyText.slice(0, start) + token + replyText.slice(end);
-		requestAnimationFrame(() => {
-			const pos = start + token.length;
-			el.setSelectionRange(pos, pos);
-			el.focus();
-		});
-	}
-
-	/** 点击面板外关闭表情面板 */
-	function handleDocClick(event: MouseEvent) {
-		if (emojiOpen && !(event.target as HTMLElement).closest?.(".nc-emoji")) {
-			emojiOpen = false;
-		}
-	}
-
-	onMount(() => {
-		void loadComments();
-		void loadEmojis();
-		const controller = new AbortController();
-		window.addEventListener("notebook-comment-quote", onQuoteRequest, {
-			signal: controller.signal,
-		});
-		document.addEventListener("click", handleDocClick, {
-			signal: controller.signal,
-		});
-		return () => controller.abort();
+	const start = el.selectionStart ?? replyText.length;
+	const end = el.selectionEnd ?? start;
+	const token = `:${key}:`;
+	replyText = replyText.slice(0, start) + token + replyText.slice(end);
+	requestAnimationFrame(() => {
+		const pos = start + token.length;
+		el.setSelectionRange(pos, pos);
+		el.focus();
 	});
+}
+
+/** 点击面板外关闭表情面板 */
+function handleDocClick(event: MouseEvent) {
+	if (emojiOpen && !(event.target as HTMLElement).closest?.(".nc-emoji")) {
+		emojiOpen = false;
+	}
+}
+
+onMount(() => {
+	void loadComments();
+	void loadEmojis();
+	const controller = new AbortController();
+	window.addEventListener("notebook-comment-quote", onQuoteRequest, {
+		signal: controller.signal,
+	});
+	document.addEventListener("click", handleDocClick, {
+		signal: controller.signal,
+	});
+	return () => controller.abort();
+});
 </script>
 
 <div class="nc-wrap" id="comments">
