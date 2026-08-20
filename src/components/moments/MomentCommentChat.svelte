@@ -20,28 +20,28 @@ import {
 } from "lucide-svelte";
 import { onMount, tick } from "svelte";
 import { commentConfig } from "@/config/commentConfig";
-import { guestbookConfig } from "@/config/guestbookConfig";
+import { momentConfig } from "@/config/momentConfig";
 import type { GuestbookAnnouncementItem } from "@/types/config";
 import type {
 	GuestbookAuthUser,
 	GuestbookImageAttachment,
 	GuestbookProfile,
 } from "@/types/guestbook-chat";
-import type {
-	MomentChatMessage,
-	MomentQuote,
-} from "@/types/moment-chat";
+import type { MomentChatMessage, MomentQuote } from "@/types/moment-chat";
 import {
 	appendMomentImage,
 	buildMomentBody,
+	buildMomentEditedReplyBody,
+	buildMomentReplyBody,
 	flattenMomentComments,
 	getMomentErrorMessage,
 	getMomentInitials,
 	getMomentTextLength,
 	hasMomentImage,
+	hasMomentReplyMarker,
 	isMomentAuthError,
-	mergeMomentMessages,
 	MOMENT_CHANNEL,
+	mergeMomentMessages,
 	normalizeMomentComment,
 } from "@/utils/moment-chat";
 import GuestbookChatComposer from "../features/GuestbookChatComposer.svelte";
@@ -58,14 +58,15 @@ const DRAFT_STORAGE_KEY = "moment-chat-draft";
 const serverURL = commentConfig.waline?.serverURL ?? "";
 const lang = commentConfig.waline?.lang ?? "zh-CN";
 const loginMode = commentConfig.waline?.login ?? "enable";
-const announcements = guestbookConfig.announcements;
-const adminNicknames = new Set(guestbookConfig.adminNicknames ?? []);
+const announcements = momentConfig.announcements;
+const adminNicknames = new Set(momentConfig.adminNicknames ?? []);
 
 let messages = $state<MomentChatMessage[]>([]);
 let profile = $state<GuestbookProfile>({ nick: "", mail: "", link: "" });
 let authUser = $state<GuestbookAuthUser | null>(null);
 let draft = $state("");
 let momentQuote = $state<MomentQuote | null>(null);
+let replyTarget = $state<MomentChatMessage | null>(null);
 let visible = $state(false);
 let initialLoading = $state(true);
 let initialError = $state("");
@@ -653,6 +654,9 @@ function validateMessageBody(content: string): string {
 	if (textLength > MAX_MESSAGE_LENGTH) {
 		return `消息不能超过 ${MAX_MESSAGE_LENGTH} 个字符`;
 	}
+	if (hasMomentReplyMarker(content)) {
+		return "消息内容不能以系统引用标记开头";
+	}
 	return "";
 }
 
@@ -693,7 +697,11 @@ async function sendMessage(
 	if (composerError) return false;
 
 	const quote = momentQuote;
-	const bodyForServer = quote ? buildMomentBody(quote, content) : content;
+	const target = replyTarget?.objectId ? replyTarget : null;
+	// 互斥：点回复后，输入框已从动态引用切换为回复引用，发送时只带回复关系，不再叠动态引用
+	let bodyForServer = content;
+	if (target) bodyForServer = buildMomentReplyBody(bodyForServer, target);
+	else if (quote) bodyForServer = buildMomentBody(quote, bodyForServer);
 	const optimisticBody = content;
 	const tempId = `local-${Date.now()}`;
 	const senderNick = authUser?.display_name || profile.nick || "访客";
@@ -704,6 +712,8 @@ async function sendMessage(
 		link: authUser?.url || profile.link.trim() || undefined,
 		body: optimisticBody,
 		momentQuote: quote,
+		replyToId: target?.id,
+		replyToNick: target?.nick,
 		createdAt: Date.now(),
 		isAdmin:
 			authUser?.type === "administrator" || adminNicknames.has(senderNick),
@@ -764,7 +774,18 @@ async function sendMessage(
 }
 
 async function retryMessage(message: MomentChatMessage) {
-	await sendMessage(message.id, undefined, message.body);
+	const target = message.replyToId
+		? (messages.find((candidate) => candidate.id === message.replyToId) ?? null)
+		: null;
+	replyTarget = target;
+	if (target) momentQuote = null;
+	else momentQuote = message.momentQuote ?? null;
+	const prefix = target ? `@${target.nick} ` : "";
+	const content =
+		prefix && message.body.startsWith(prefix)
+			? message.body.slice(prefix.length)
+			: message.body;
+	await sendMessage(message.id, undefined, content);
 }
 
 function discardMessage(message: MomentChatMessage) {
@@ -954,6 +975,41 @@ function handleDraftChange(nextDraft: string) {
 	composerError = "";
 }
 
+function formatMomentQuoteDate(value: string): string {
+	const d = new Date(value);
+	if (Number.isNaN(d.getTime())) return value.slice(0, 10);
+	return d.toISOString().slice(0, 10);
+}
+
+function selectReply(message: MomentChatMessage) {
+	if (message.localState) return;
+	replyTarget = message;
+	momentQuote = null; // 回复时隐藏动态引用，只保留回复引用
+}
+
+async function jumpToQuotedMessage(message: MomentChatMessage) {
+	if (!message.replyToId) return;
+	let target = messages.find((candidate) => candidate.id === message.replyToId);
+	while (!target && hasMore && !loadingOlder) {
+		await loadOlder();
+		target = messages.find((candidate) => candidate.id === message.replyToId);
+	}
+	const element = document.getElementById(
+		`guestbook-message-${message.replyToId}`,
+	);
+	if (!element) return;
+	const reduceMotion = window.matchMedia(
+		"(prefers-reduced-motion: reduce)",
+	).matches;
+	element.scrollIntoView({
+		behavior: reduceMotion ? "auto" : "smooth",
+		block: "center",
+	});
+	element.classList.remove("is-highlighted");
+	requestAnimationFrame(() => element.classList.add("is-highlighted"));
+	window.setTimeout(() => element.classList.remove("is-highlighted"), 1600);
+}
+
 function openModal(id: string, published: string, excerpt: string) {
 	momentQuote = { id, published, excerpt };
 	visible = true;
@@ -1093,7 +1149,7 @@ onMount(() => {
 							onclick={() => (sidebarOpen = !sidebarOpen)}
 							aria-expanded={sidebarOpen}
 							aria-controls="moment-comment-sidebar"
-							title="群公告与聊天成员"
+							title="动态公告与聊天成员"
 						>
 							<Users size={18} aria-hidden="true" />
 							<span>{chatMembers.length}</span>
@@ -1178,15 +1234,10 @@ onMount(() => {
 										</div>
 									{/if}
 
-									{#if message.momentQuote}
-										<div class="moment-quote" role="note" aria-label="引用的动态">
-											<span class="moment-quote__meta">{message.momentQuote.published}</span>
-											<p class="moment-quote__excerpt">{message.momentQuote.excerpt}</p>
-										</div>
-									{/if}
-
-									<GuestbookChatMessage
-										message={message as unknown as import("@/types/guestbook-chat").GuestbookChatMessage}
+																		<GuestbookChatMessage
+										referencedMessage={message.replyToId ? messages.find((c) => c.id === message.replyToId) as unknown as import("@/types/guestbook-chat").GuestbookChatMessage | undefined : undefined}
+											momentQuote={message.momentQuote}
+											message={message as unknown as import("@/types/guestbook-chat").GuestbookChatMessage}
 										timeLabel={formatMessageTime(message.createdAt)}
 										canManage={canManageMessage(message)}
 										isEditing={editingMessageId === message.id}
@@ -1195,13 +1246,13 @@ onMount(() => {
 										actionError={messageActionError?.id === message.id
 											? messageActionError.message
 											: undefined}
-										onReply={() => {}}
+										onReply={(target) => selectReply(target as unknown as MomentChatMessage)}
 										onEdit={startEditingMessage as unknown as (m: import("@/types/guestbook-chat").GuestbookChatMessage) => void}
 										onEditDraftChange={(value) => (editDraft = value)}
 										onEditCancel={cancelEditingMessage}
 										onEditSave={(target) => void saveEditedMessage(target as unknown as MomentChatMessage)}
 										onDelete={(target) => void requestDeleteMessage(target as unknown as MomentChatMessage)}
-										onJump={() => {}}
+										onJump={(target) => void jumpToQuotedMessage(target as unknown as MomentChatMessage)}
 										onRetry={(target) => void retryMessage(target as unknown as MomentChatMessage)}
 										onDiscard={(target) => discardMessage(target as unknown as MomentChatMessage)}
 										onCopyError={(errorText) => {
@@ -1236,10 +1287,20 @@ onMount(() => {
 								</div>
 							{/if}
 
-							{#if momentQuote}
+							{#if replyTarget}
+								<div class="guestbook-composer__reply" role="note" aria-label="回复的消息">
+									<div>
+										<span>回复 @{replyTarget.nick}</span>
+										<small>{replyTarget.body.slice(0, 80)}</small>
+									</div>
+									<button type="button" onclick={() => (replyTarget = null)} aria-label="取消回复" title="取消回复">
+										<X size={18} aria-hidden="true" />
+									</button>
+								</div>
+							{:else if momentQuote}
 								<div class="guestbook-composer__reply" role="note" aria-label="引用的动态">
 									<div>
-										<span>引用动态 · {momentQuote.published}</span>
+										<span>引用动态 · {formatMomentQuoteDate(momentQuote.published)}</span>
 										<small>{momentQuote.excerpt}</small>
 									</div>
 									<button type="button" onclick={() => (momentQuote = null)} aria-label="取消引用" title="取消引用">
@@ -1260,13 +1321,32 @@ onMount(() => {
 								{loginMode}
 								onProfileChange={handleProfileChange}
 								onDraftChange={handleDraftChange}
-								onReplyCancel={() => (momentQuote = null)}
+								onReplyCancel={() => { replyTarget = null; }}
 								onLogin={() => void handleLogin()}
 								onLogout={handleLogout}
 								onSend={(content, attachment) =>
 									sendMessage(undefined, attachment, content)}
-								onToolError={(message) => (composerError = message)}
+							onToolError={(message) => (composerError = message)}
 							/>
+							<details class="moment-rules" aria-label="动态评论规范">
+								<summary class="moment-rules__summary">
+									<span>动态评论规范</span>
+									<small>点击展开</small>
+								</summary>
+								<div class="moment-rules__body custom-scrollbar">
+									<p>发布前请先阅读，违规评论将被处理。以下为本站动态板块适用的基本规范：</p>
+									<ul>
+										<li>遵守中华人民共和国法律法规及网信、文化、出版等相关管理规定；不得发布危害国家安全、泄露国家秘密、煽动分裂、宣扬恐怖极端、民族仇恨与歧视、暴力色情、赌博、制售违禁品等违法违规信息。</li>
+										<li>尊重他人合法权益：不得泄露他人隐私信息、肖像、住址、联系方式；不得侵害他人名誉权、著作权、商标权及其他知识产权。</li>
+										<li>文明理性发言：不发布人身攻击、辱骂、骚扰、造谣、引战、歧视性言论；不进行人肉搜索或煽动网暴。</li>
+										<li>保持与动态相关：评论应围绕当前动态内容；不发布广告、导流、刷屏、灌水、与主题明显无关的重复内容。</li>
+										<li>禁止垃圾营销与诈骗：不发布推广外链、返利诱导、虚假中奖、钓鱼链接、恶意软件及危害网络信息安全的内容。</li>
+										<li>不得弄虚作假：不冒充他人或站长，不伪造聊天记录与截图，不绕过审核、限流与封禁等管理措施。</li>
+										<li>未成年人保护：不向未成年人传播不适宜内容，不诱导未成年人提供个人信息或参与不当互动。</li>
+										<li>违规处置：站长将依据规范对违规评论进行隐藏、删除或限制互动；情节严重的将按法律法规要求配合处置。</li>
+									</ul>
+								</div>
+							</details>
 						</div>
 					</div>
 
@@ -1275,7 +1355,7 @@ onMount(() => {
 							class="guestbook-chat__sidebar-overlay"
 							type="button"
 							onclick={() => (sidebarOpen = false)}
-							aria-label="关闭群信息"
+							aria-label="关闭动态信息"
 						></button>
 					{/if}
 
@@ -1283,14 +1363,14 @@ onMount(() => {
 						id="moment-comment-sidebar"
 						class:is-open={sidebarOpen}
 						class="guestbook-chat__sidebar"
-						aria-label="群信息"
+						aria-label="动态信息"
 					>
 						<div class="guestbook-chat__sidebar-heading">
-							<strong>群信息</strong>
+							<strong>动态信息</strong>
 							<button
 								type="button"
 								onclick={() => (sidebarOpen = false)}
-								aria-label="关闭群信息"
+								aria-label="关闭动态信息"
 							>
 								<X size={18} aria-hidden="true" />
 							</button>
@@ -1298,7 +1378,7 @@ onMount(() => {
 
 						<section class="guestbook-chat__announcement-panel" aria-label="群公告">
 							<div class="guestbook-chat__panel-title">
-								<Bell size={16} aria-hidden="true" />群公告
+								<Bell size={16} aria-hidden="true" />动态公告
 							</div>
 							{#each announcements as announcement}
 								<button
@@ -1374,7 +1454,7 @@ onMount(() => {
 									class="privacy-close"
 									type="button"
 									onclick={closeAnnouncement}
-									aria-label="关闭群公告"
+									aria-label="关闭动态公告"
 								>
 									<X size={20} aria-hidden="true" />
 								</button>
@@ -1470,6 +1550,8 @@ onMount(() => {
 		display: grid;
 		place-items: center;
 		padding: clamp(0.75rem, 2vw, 1.5rem);
+		/* 导航栏是 sticky top:0，弹窗居中时顶部易被盖住，整体下移一个导航栏高度 */
+		padding-top: calc(clamp(0.75rem, 2vw, 1.5rem) + 3.25rem);
 	}
 
 	.moment-comment-modal__overlay {
@@ -1477,15 +1559,16 @@ onMount(() => {
 		inset: 0;
 		border: 0;
 		padding: 0;
-		background: oklch(0 0 0 / 0.42);
-		backdrop-filter: blur(2px);
+		background: oklch(0 0 0 / 0.28);
+		backdrop-filter: blur(12px) saturate(1.15);
+		-webkit-backdrop-filter: blur(12px) saturate(1.15);
 	}
 
 	.moment-comment-modal__panel {
 		position: relative;
 		width: min(100%, 58rem);
-		height: min(92dvh, 46rem);
-		max-height: 92dvh;
+		height: min(86dvh, 46rem);
+		max-height: 86dvh;
 		display: grid;
 		z-index: 1;
 	}
@@ -1494,6 +1577,21 @@ onMount(() => {
 		width: 100%;
 		height: 100%;
 		min-height: 0;
+		background: oklch(1 0 0 / 0.78);
+		backdrop-filter: blur(22px) saturate(1.4);
+		-webkit-backdrop-filter: blur(22px) saturate(1.4);
+		border: 1px solid oklch(1 0 0 / 0.55);
+		box-shadow:
+			0 8px 32px oklch(0 0 0 / 0.14),
+			0 1px 0 oklch(1 0 0 / 0.65) inset;
+	}
+
+	:root.dark .moment-comment-modal__panel .guestbook-chat {
+		background: oklch(0.16 0 0 / 0.72);
+		border-color: oklch(1 0 0 / 0.12);
+		box-shadow:
+			0 18px 56px oklch(0 0 0 / 0.48),
+			0 1px 0 oklch(1 0 0 / 0.08) inset;
 	}
 
 	.moment-comment-chat__close {
@@ -1507,31 +1605,40 @@ onMount(() => {
 		color: var(--deep-text);
 	}
 
+	/* 动态独立引用已合并进气泡，保留兜底（不再使用） */
 	.moment-quote {
+		position: relative;
+		display: block;
+		width: 100%;
+		min-height: var(--control-size);
 		margin: 0 0 var(--space-2);
-		padding: var(--space-2) var(--space-3);
-		border-left: 3px solid var(--primary);
-		background: var(--guestbook-panel);
+		padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+		border: 0;
+		border-left: 3px solid currentColor;
 		border-radius: var(--radius-small);
+		background: transparent;
+		color: inherit;
+		text-align: left;
+		opacity: 0.78;
 	}
 
 	.moment-quote__meta {
 		display: block;
-		font-size: 0.72rem;
-		font-weight: 700;
-		color: var(--guestbook-muted);
 		margin-bottom: var(--space-1);
+		font-size: 0.75rem;
+		font-weight: 700;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.moment-quote__excerpt {
 		margin: 0;
-		font-size: 0.82rem;
+		font-size: 0.72rem;
 		line-height: 1.5;
-		color: var(--deep-text);
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
 		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	@media (max-width: 768px) {
@@ -1551,5 +1658,75 @@ onMount(() => {
 			border-left: 0;
 			border-right: 0;
 		}
+
+		/* 移动端弹窗是 fixed 全屏，已盖住 MobileDock，输入框无需为 dock 预留 6.25rem，直接贴底 */
+		.moment-comment-modal__panel :global(.guestbook-composer) {
+			padding-bottom: env(safe-area-inset-bottom) !important;
+		}
+
+		.moment-comment-modal__panel :global(.guestbook-chat__fallback-composer) {
+			padding-bottom: env(safe-area-inset-bottom) !important;
+		}
+	}
+
+	.moment-rules {
+		margin: 0;
+		border-top: 1px solid var(--guestbook-line);
+		background: color-mix(in oklch, var(--guestbook-panel) 88%, transparent);
+	}
+
+	.moment-rules__summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+
+	.moment-rules__summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.moment-rules__summary span {
+		font-size: 0.82rem;
+		font-weight: 700;
+		color: var(--deep-text);
+	}
+
+	.moment-rules__summary small {
+		font-size: 0.72rem;
+		color: var(--guestbook-muted);
+	}
+
+	.moment-rules[open] .moment-rules__summary small {
+		color: var(--primary);
+	}
+
+	.moment-rules__body {
+		max-height: min(42vh, 22rem);
+		overflow-y: auto;
+		padding: 0 var(--space-4) var(--space-4);
+		color: var(--guestbook-muted);
+		font-size: 0.78rem;
+		line-height: 1.7;
+	}
+
+	.moment-rules__body p {
+		margin: 0 0 var(--space-2);
+		color: var(--deep-text);
+		font-size: 0.78rem;
+	}
+
+	.moment-rules__body ul {
+		margin: 0;
+		padding-left: var(--space-5);
+		list-style: disc outside;
+	}
+
+	.moment-rules__body li + li {
+		margin-top: var(--space-1);
 	}
 </style>

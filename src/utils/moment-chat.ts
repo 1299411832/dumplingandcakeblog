@@ -1,10 +1,15 @@
 import type { WalineComment, WalineRootComment } from "@waline/api";
-import type { GuestbookEmojiPack, GuestbookImageAttachment } from "@/types/guestbook-chat";
+import type {
+	GuestbookEmojiPack,
+	GuestbookImageAttachment,
+} from "@/types/guestbook-chat";
 import type { MomentChatMessage, MomentQuote } from "@/types/moment-chat";
 
 export const MOMENT_CHANNEL: string = "/moments/";
 
 export const MOMENT_QUOTE_RE: RegExp = /^>>MOMENT>>(.+?)<<MOMENT<<\n?/s;
+
+export const MOMENT_REPLY_RE: RegExp = /^<!--moment-reply:(\d+):([^>]*)-->\s*/u;
 
 export const WALINE_INLINE_IMAGE_SIZE_LIMIT: number = 128_000;
 
@@ -14,7 +19,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function buildEmojiAssetURL(folder: string, item: string, type: string): string {
+function buildEmojiAssetURL(
+	folder: string,
+	item: string,
+	type: string,
+): string {
 	if (/^https?:\/\//u.test(item)) return item;
 	const filename = item.endsWith(`.${type}`) ? item : `${item}.${type}`;
 	return new URL(filename, `${folder.replace(/\/+$/u, "")}/`).href;
@@ -27,7 +36,9 @@ function applyEmojiAssetPrefix(item: string, prefix: string): string {
 	return `${prefix}${item}`;
 }
 
-async function loadMomentEmojiPack(source: string): Promise<GuestbookEmojiPack> {
+async function loadMomentEmojiPack(
+	source: string,
+): Promise<GuestbookEmojiPack> {
 	const folder = source.replace(/\/+$/u, "");
 	const response = await fetch(`${folder}/info.json`);
 	if (!response.ok) throw new Error(`表情包加载失败 (${response.status})`);
@@ -161,12 +172,15 @@ export function normalizeMomentTimestamp(value: number): number {
 function htmlToPlainText(value: string): string {
 	if (typeof DOMParser === "undefined") return value;
 	return (
-		new DOMParser().parseFromString(value, "text/html").body.textContent?.trim() ??
-		""
+		new DOMParser()
+			.parseFromString(value, "text/html")
+			.body.textContent?.trim() ?? ""
 	);
 }
 
-function normalizeMomentLink(value: string | null | undefined): string | undefined {
+function normalizeMomentLink(
+	value: string | null | undefined,
+): string | undefined {
 	if (!value) return undefined;
 	try {
 		const url = new URL(value);
@@ -188,10 +202,7 @@ function isAdminNick(nick: string, adminNicknames?: Set<string>): boolean {
 	return false;
 }
 
-export function buildMomentBody(
-	quote: MomentQuote,
-	body: string,
-): string {
+export function buildMomentBody(quote: MomentQuote, body: string): string {
 	const head = `>>MOMENT>>${quote.id}||${quote.published}||${quote.excerpt.replace(/\n/gu, " ")}<<MOMENT<<`;
 	return `${head}\n${body}`;
 }
@@ -204,13 +215,85 @@ export function parseMomentQuote(comment: string): MomentQuote | null {
 	return { id, published: published ?? "", excerpt: excerpt ?? "" };
 }
 
+function decodeReplyNick(value: string): string {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
+
+export function hasMomentReplyMarker(value: string): boolean {
+	MOMENT_REPLY_RE.lastIndex = 0;
+	return MOMENT_REPLY_RE.test(value);
+}
+
+export function parseMomentReplyMarker(raw: string): {
+	body: string;
+	replyToId?: string;
+	replyToNick?: string;
+} {
+	const match = raw.match(MOMENT_REPLY_RE);
+	if (!match) return { body: raw };
+	return {
+		body: raw.replace(MOMENT_REPLY_RE, "").trim(),
+		replyToId: match[1],
+		replyToNick: decodeReplyNick(match[2]),
+	};
+}
+
 export function parseMomentMessageBody(raw: string): {
 	body: string;
 	momentQuote: MomentQuote | null;
+	replyToId?: string;
+	replyToNick?: string;
 } {
-	const quote = parseMomentQuote(raw);
-	if (!quote) return { body: raw.trim(), momentQuote: null };
-	return { body: raw.replace(MOMENT_QUOTE_RE, "").trim(), momentQuote: quote };
+	// 兼容两种顺序：动态引用与回复标记都位于首部，顺序不限
+	let rest = raw.trim();
+	let quote: MomentQuote | null = null;
+	const q = rest.match(MOMENT_QUOTE_RE);
+	if (q) {
+		quote = parseMomentQuote(rest);
+		rest = rest.replace(MOMENT_QUOTE_RE, "").trim();
+	}
+	const reply = parseMomentReplyMarker(rest);
+	if (reply.replyToId) {
+		rest = reply.body;
+		// 若回复在前，动态引用可能在第二行，再试一次
+		if (!quote) {
+			const q2 = rest.match(MOMENT_QUOTE_RE);
+			if (q2) {
+				quote = parseMomentQuote(rest);
+				rest = rest.replace(MOMENT_QUOTE_RE, "").trim();
+			}
+		}
+	}
+	return {
+		body: rest.trim(),
+		momentQuote: quote,
+		replyToId: reply.replyToId,
+		replyToNick: reply.replyToNick,
+	};
+}
+
+export function buildMomentReplyBody(
+	content: string,
+	target: MomentChatMessage | null,
+): string {
+	if (!target?.objectId) return content;
+	const marker = `<!--moment-reply:${target.objectId}:${encodeURIComponent(target.nick)}-->`;
+	return `${marker}
+@${target.nick} ${content}`;
+}
+
+export function buildMomentEditedReplyBody(
+	content: string,
+	message: MomentChatMessage,
+): string {
+	if (!message.replyToId) return content;
+	const marker = `<!--moment-reply:${message.replyToId}:${encodeURIComponent(message.replyToNick || "访客")}-->`;
+	return `${marker}
+${content}`;
 }
 
 export function normalizeMomentComment(
@@ -239,8 +322,8 @@ export function normalizeMomentComment(
 		addr: comment.addr,
 		label: comment.label,
 		isAdmin,
-		replyToId: undefined,
-		replyToNick: undefined,
+		replyToId: parsed.replyToId,
+		replyToNick: parsed.replyToNick,
 		status: comment.status,
 	};
 }

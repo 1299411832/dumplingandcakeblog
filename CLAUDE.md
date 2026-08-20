@@ -55,7 +55,7 @@ src/
 │   ├── features/        # 独立功能模块 (25, 含 music-visualizer/)
 │   ├── layout/          # 布局组件：Navbar, Footer, SideBar, HomeHero... (19)
 │   ├── misc/            # License, RelatedPosts, SharePoster (3)
-│   ├── moments/         # 动态卡片 (2)
+│   ├── moments/         # 动态卡片与评论弹窗 (3, MomentCard + MomentsCover + MomentCommentChat 单频道 /moments/ + moment-quote 引用)
 │   ├── pages/           # 页面级组件：bangumi, books（Bookshelf/BookCard：3D 书本卡片 + 影视页同款胶囊筛选（分类+读过/在读/想读）+ ClientPagination 分页 8/6 本每页，SSR 隐藏非首页防闪烁）, movies-games, music (10)
 │   └── widget/          # 侧栏 Widget (27)
 ├── config/              # 站点配置（26 个 .ts，index.ts barrel export）
@@ -70,7 +70,7 @@ src/
 ├── notes/               # Obsidian 笔记（不发布）
 ├── pages/               # 路由（38 个文件；admin 后台已删除，勿重建）
 │   ├── api/             # JSON API (2)：calendar.json.ts, home-stats.json.ts
-│   ├── album/ bangumi/ books/ categories/ life/ moments/ posts/
+│   ├── album/ bangumi/ books/ categories/ life/ moments/ posts/ // moments/[slug] 已删除
 │   └── 404, about, archive, apps, changelog, circle, debug-urls, friends,
 │       guestbook, life/notebooks, movies-games/, music, projects, search,
 │       sponsor, rss, robots.txt, og

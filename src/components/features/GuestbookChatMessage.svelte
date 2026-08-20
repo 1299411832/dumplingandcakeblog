@@ -14,12 +14,14 @@ import {
 	X,
 } from "lucide-svelte";
 import type { GuestbookChatMessage } from "@/types/guestbook-chat";
+import type { MomentQuote } from "@/types/moment-chat";
 import { getGuestbookInitials } from "@/utils/guestbook-chat";
 import { renderGuestbookMessage } from "@/utils/guestbook-chat-markup";
 
 interface Props {
 	message: GuestbookChatMessage;
 	referencedMessage?: GuestbookChatMessage;
+	momentQuote?: MomentQuote | null;
 	timeLabel: string;
 	canManage: boolean;
 	isEditing: boolean;
@@ -41,6 +43,7 @@ interface Props {
 let {
 	message,
 	referencedMessage,
+	momentQuote,
 	timeLabel,
 	canManage,
 	isEditing,
@@ -60,6 +63,12 @@ let {
 }: Props = $props();
 
 let copied = $state(false);
+
+function formatMomentQuoteDate(value: string): string {
+	const d = new Date(value);
+	if (Number.isNaN(d.getTime())) return value.slice(0, 10);
+	return d.toISOString().slice(0, 10);
+}
 
 const quotePreview = $derived(
 	referencedMessage
@@ -149,6 +158,11 @@ async function copyMessage() {
 						<span>@{message.replyToNick || "访客"}</span>
 						<small>{quotePreview}</small>
 					</button>
+				{:else if momentQuote}
+					<div class="guestbook-message__quote" role="note" aria-label="引用的动态">
+						<span>引用动态 · {formatMomentQuoteDate(momentQuote.published)}</span>
+						<small class="moment-quote__text">{momentQuote.excerpt}</small>
+					</div>
 				{/if}
 				{#if isEditing}
 					<textarea

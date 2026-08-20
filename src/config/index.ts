@@ -45,6 +45,7 @@ export { guestbookConfig } from "./guestbookConfig"; // 留言板配置
 export { homeConfig } from "./homeConfig"; // 首页视觉与资料配置
 export { homePortfolioShutterConfig } from "./homePortfolioShutterConfig";
 export { licenseConfig } from "./licenseConfig"; // 许可证配置
+export { momentConfig } from "./momentConfig"; // 动态评论配置
 // 组件配置
 export { musicPlayerConfig } from "./musicConfig"; // 音乐播放器配置
 export { navBarConfig, navBarSearchConfig } from "./navBarConfig"; // 导航栏配置与搜索配置

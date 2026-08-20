@@ -2,8 +2,8 @@
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
-import CommentModal from "@/components/comment/CommentModal.svelte";
 import MomentCard from "@/components/moments/MomentCard.astro";
+import MomentCommentChat from "@/components/moments/MomentCommentChat.svelte";
 import MomentsCover from "@/components/moments/MomentsCover.astro";
 import { commentConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
@@ -134,10 +134,28 @@ const pinnedData = pinnedMoments.map((m) => ({
     </div>
   </div>
 
-  <!-- 评论弹窗 -->
-  <CommentModal client:load serverURL={walineServerURL} />
+  <!-- 评论弹窗（单频道聊天室，复用留言板样式） -->
+  <MomentCommentChat client:only="svelte" />
 </MainGridLayout>
 
+
+<!-- 评论按钮委托（单频道弹窗） -->
+<script is:inline>
+(function() {
+  if (window.__momentCommentDelegateBound) return;
+  window.__momentCommentDelegateBound = true;
+  document.addEventListener("click", function(e) {
+    var btn = e.target.closest(".comment-toggle-btn");
+    if (!btn) return;
+    var id = btn.getAttribute("data-moment-id") || "";
+    var published = btn.getAttribute("data-moment-published") || "";
+    var excerpt = btn.getAttribute("data-moment-excerpt") || "";
+    if (!id || !window.__momentComment || !window.__momentComment.open) return;
+    e.preventDefault();
+    window.__momentComment.open(id, published, excerpt);
+  });
+})();
+</script>
 <script is:inline define:vars={{ walineServerURL }}>
   var countElements = document.querySelectorAll('.waline-count[data-path="/moments/"]');
   if (countElements.length > 0) {

@@ -1015,6 +1015,15 @@ html:has(.guestbook-page) #main-grid > .footer {
 	font-size: 0.72rem;
 }
 
+.moment-quote__text {
+	white-space: normal !important;
+	display: -webkit-box !important;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	line-height: 1.5;
+}
+
 .guestbook-message__tools {
 	display: flex;
 	align-items: center;
