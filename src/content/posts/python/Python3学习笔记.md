@@ -1,5 +1,4 @@
 ---
-category: python
 title: Python3学习笔记
 published: 2026-08-15
 tags:

@@ -21,7 +21,7 @@ const postsCollection = defineCollection({
 		description: z.string().optional().default(""),
 		image: z.string().optional().default(""),
 		tags: z.array(z.string()).optional().default([]),
-		category: z.string().optional().nullable().default(""),
+		// category 已废弃：改由文件夹路径自动推导（src/utils/category-tree.ts#getCategoryFromId），历史 frontmatter 中的 category 将被迁移脚本移除
 		lang: z.string().optional().default(""),
 		pinned: z.boolean().optional().default(false),
 		author: z.string().optional().default(""),

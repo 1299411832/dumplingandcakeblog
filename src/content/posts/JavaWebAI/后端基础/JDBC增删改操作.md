@@ -6,7 +6,6 @@ tags:
   - JDBC
   - SQL
   - 数据库
-category: 后端基础
 description: 基于JDBC执行INSERT/UPDATE/DELETE等DML语句，掌握executeUpdate方法的使用。
 descriptionSource: ai
 order: 2

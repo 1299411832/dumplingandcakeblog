@@ -7,6 +7,7 @@ import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { getCategoryFromId } from "@/utils/category-tree";
 import { getSortedPosts } from "@/utils/content-utils";
 import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
 import {
@@ -96,7 +97,7 @@ const articleListPosts = await Promise.all(
 	posts.map(async (entry) => {
 		const { remarkPluginFrontmatter } = await render(entry);
 		const articleImage = await resolveArticleImage(entry);
-		const rawCategory = entry.data.category?.trim();
+		const rawCategory = getCategoryFromId(entry.id);
 		const category = rawCategory || "未分类";
 		const tags = (entry.data.tags || [])
 			.map((tag) => tag.trim())

@@ -22,7 +22,9 @@ const announcementEntry = ziyuanEntries.find((e) => e.id === "announcement");
 const announcementData = announcementEntry?.data;
 const announcementContent = announcementData?.content ?? "暂无公告";
 const announcementLink =
-	announcementData && "link" in announcementData ? announcementData.link : undefined;
+	announcementData && "link" in announcementData
+		? announcementData.link
+		: undefined;
 
 const metingApiBase = musicPlayerConfig.meting?.api
 	? musicPlayerConfig.meting.api.split("?")[0]
@@ -32,7 +34,8 @@ const musicEntries = customBangumi
 	.filter((item) => item.data.category === "music")
 	.map((item) => {
 		const { data } = item;
-		const imageSrc = typeof data.image === "string" ? data.image : data.image.src;
+		const imageSrc =
+			typeof data.image === "string" ? data.image : data.image.src;
 		return {
 			name: data.title,
 			artist: data.artist || "",
@@ -45,7 +48,11 @@ const musicEntries = customBangumi
 		};
 	})
 	.filter((item) => item.url || item.metingId)
-	.sort((a, b) => new Date(b.published || 0).getTime() - new Date(a.published || 0).getTime());
+	.sort(
+		(a, b) =>
+			new Date(b.published || 0).getTime() -
+			new Date(a.published || 0).getTime(),
+	);
 const dockMusicPlaylist = JSON.stringify(musicEntries);
 ---
 

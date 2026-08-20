@@ -6,7 +6,6 @@ tags:
   - CSS
   - Web基础
   - 前端
-category: 前端基础
 description: HTML基础速查卡片，涵盖HTML基础结构、文件路径表示、标题标签、段落与文本标签、字符实体
 order: 2
 ---

@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - Ajax
-category: 前端基础
 description: 使用Ajax实现页面无刷新数据交互，async/await简化异步编程
 descriptionSource: ai
 order: 13

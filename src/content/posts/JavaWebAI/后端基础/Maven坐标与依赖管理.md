@@ -4,7 +4,6 @@ published: 2026-05-16
 tags:
   - Java
   - Maven
-category: 后端基础
 description: Maven坐标体系、POM文件结构、依赖配置、依赖传递与排除依赖的完整说明
 descriptionSource: ai
 order: 3

@@ -3,7 +3,6 @@ title: Python3 基本数据类型 | 菜鸟教程
 published: 2026-08-18
 tags:
   - py
-category: python
 description: ""
 ---
 ## Python3.xPython3 基本数据类型

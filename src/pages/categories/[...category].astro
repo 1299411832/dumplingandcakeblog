@@ -9,6 +9,7 @@ import type { GetStaticPaths, ImageMetadata } from "astro";
 import { Icon } from "astro-icon/components";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
+import { getCategoryFromId } from "@/utils/category-tree";
 import { getCategoryList } from "@/utils/content-utils";
 import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
 import {
@@ -37,16 +38,18 @@ export const getStaticPaths = (async () => {
 	}[] = [];
 
 	for (const category of categories) {
-		// 过滤该分类下的文章
+		// 过滤该分类下的文章（子树包含：父分类含子分类文章）
 		const categoryPosts = allPosts.filter((post) => {
-			const postCategory = post.data.category?.trim() || "";
+			const postCategory = getCategoryFromId(post.id);
 			const uncategorized = i18n(I18nKey.uncategorized).toLowerCase();
 
 			if (!category.name || category.name.toLowerCase() === uncategorized) {
-				// 未分类：没有分类或分类为空/未分类
 				return !postCategory || postCategory.toLowerCase() === uncategorized;
 			}
-			return postCategory === category.name;
+			return (
+				postCategory === category.name ||
+				postCategory.startsWith(`${category.name}/`)
+			);
 		});
 
 		// 按日期排序
@@ -87,8 +90,13 @@ export const getStaticPaths = (async () => {
 const { categoryName } = Astro.props;
 const { posts, tags } = Astro.props;
 
-// 解码分类名称
+// 解码分类名称（支持多级 a/b）
 const decodedCategory = decodeURIComponent(categoryName);
+const categoryParts = decodedCategory.split("/").filter(Boolean);
+const categoryTrail = categoryParts.map((part, idx) => {
+	const full = categoryParts.slice(0, idx + 1).join("/");
+	return { name: part, url: getCategoryUrl(full) };
+});
 
 // 图片解析（与文章列表页一致）
 const articleImageFiles = import.meta.glob<ImageMetadata>(
@@ -164,8 +172,8 @@ const articleListPosts = await Promise.all(
 	posts.map(async (entry) => {
 		const { remarkPluginFrontmatter } = await render(entry);
 		const articleImage = await resolveArticleImage(entry);
-		const rawCategory = entry.data.category?.trim();
-		const category = rawCategory || "未分类";
+		const rawCategory = getCategoryFromId(entry.id);
+		const category = rawCategory || i18n(I18nKey.uncategorized);
 		const tags = (entry.data.tags || [])
 			.map((tag) => tag.trim())
 			.filter(Boolean)
@@ -203,8 +211,8 @@ const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
 <MainGridLayout title={`${decodedCategory} - ${i18n(I18nKey.categories)}`}>
     <!-- 面包屑 + 标签筛选（合并卡片） -->
     <div class="card-base px-6 py-5 mb-4 tag-section">
-        <!-- 面包屑导航 -->
-        <nav class="flex items-center gap-2 text-sm text-30 mb-4">
+        <!-- 面包屑导航（多级） -->
+        <nav class="flex items-center gap-2 text-sm text-30 mb-4 flex-wrap">
             <a href="/" class="hover:text-(--primary) transition-colors">
                 <Icon name="material-symbols:home" class="inline-block align-middle" />
             </a>
@@ -212,8 +220,12 @@ const defaultLayout = siteConfig.postListLayout.defaultMode || "list";
             <a href={getCategoryPageUrl()} class="hover:text-(--primary) transition-colors">
                 {i18n(I18nKey.categories)}
             </a>
-            <span class="opacity-50">/</span>
-            <span class="text-90 font-medium">{decodedCategory}</span>
+            {categoryTrail.map((seg) => (
+                <>
+                    <span class="opacity-50">/</span>
+                    <a href={seg.url} class="hover:text-(--primary) transition-colors">{seg.name}</a>
+                </>
+            ))}
         </nav>
 
         <!-- 标签筛选 -->

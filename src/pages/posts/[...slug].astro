@@ -25,6 +25,7 @@ import { licenseConfig } from "@/config/licenseConfig";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
 import { sponsorConfig } from "@/config/sponsorConfig";
+import { getCategoryFromId } from "@/utils/category-tree";
 import { formatDateI18n, formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
 import { getCategoryUrl, getTagUrl, url } from "@/utils/url-utils";
@@ -139,7 +140,7 @@ const jsonLd = {
     set:html={JSON.stringify(jsonLd)}
   />
   <!-- 面包屑导航 -->
-  <PostBreadcrumb title={entry.data.title} category={entry.data.category || undefined} />
+  <PostBreadcrumb title={entry.data.title} category={getCategoryFromId(entry.id) || undefined} />
 
   <!-- Layer 1: Hero — 居中标题 + 紧凑 Meta 行 -->
   <div class="post-hero rounded-(--radius-large) mb-2 onload-animation">
@@ -160,8 +161,8 @@ const jsonLd = {
 
         <span class="post-hero__meta-dot">·</span>
 
-        <a href={getCategoryUrl(entry.data.category || null)} class="post-hero__meta-link">
-          #{entry.data.category || i18n(I18nKey.uncategorized)}
+        <a href={getCategoryUrl(getCategoryFromId(entry.id) || null)} class="post-hero__meta-link">
+          #{getCategoryFromId(entry.id) || i18n(I18nKey.uncategorized)}
         </a>
 
         {entry.data.tags && entry.data.tags.length > 0 && entry.data.tags.map((tag, i) => (
@@ -370,7 +371,7 @@ const jsonLd = {
   <RelatedPosts
     currentSlug={entry.id}
     currentTags={entry.data.tags || []}
-    currentCategory={entry.data.category || undefined}
+    currentCategory={getCategoryFromId(entry.id) || undefined}
     maxCount={5}
   />
 

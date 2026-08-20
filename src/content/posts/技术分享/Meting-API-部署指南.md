@@ -6,7 +6,6 @@ tags:
   - 宝塔面板
   - 音乐
   - 教程
-category: 技术分享
 description: 介绍如何利用 宝塔面板 Docker 部署Meting-API。
 ---
 

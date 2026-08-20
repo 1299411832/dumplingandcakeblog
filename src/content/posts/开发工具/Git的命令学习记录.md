@@ -3,7 +3,6 @@ title: Git的命令学习记录
 published: 2026-08-15
 tags:
   - git
-category: 开发工具
 description: 记录Git的命令使用的学习日常
 ---
 ## 本地文件夹上传 GitHub

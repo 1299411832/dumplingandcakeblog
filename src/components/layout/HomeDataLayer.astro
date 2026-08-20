@@ -4,6 +4,7 @@ import DataMetricCard from "@components/features/DataMetricCard.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { homeConfig } from "@/config";
+import { getCategoryFromId } from "@/utils/category-tree";
 import {
 	getCategoryList,
 	getSortedPosts,
@@ -76,7 +77,7 @@ const statsApiUrl = url("/api/home-stats.json");
 				<div class="guide-rotator__slides">
 					{rotationPosts.length > 0 ? rotationPosts.map((post, index) => (
 						<article class="guide-rotator__slide" data-guide-slide data-guide-url={getPostUrlBySlug(post.id)} hidden={index !== 0} aria-hidden={index !== 0 ? "true" : undefined}>
-							<span class="guide-rotator__meta">{post.data.category || "未分类"} / {formatDateI18n(post.data.published)}</span>
+							<span class="guide-rotator__meta">{getCategoryFromId(post.id) || "未分类"} / {formatDateI18n(post.data.published)}</span>
 							<div class="guide-rotator__title-row">
 								<a class="guide-rotator__article-link" href={getPostUrlBySlug(post.id)}><strong>{post.data.title}</strong></a>
 								<button class="guide-card__article-action" type="button" data-guide-next aria-label="切换下一篇置顶文章" title="切换下一篇置顶文章"><Icon name="material-symbols:arrow-forward-rounded" is:inline /></button>
@@ -99,7 +100,7 @@ const statsApiUrl = url("/api/home-stats.json");
 				<div class="guide-rotator__slides">
 					{recentPosts.length > 0 ? recentPosts.map((post, index) => (
 						<article class="guide-rotator__slide" data-guide-slide data-guide-url={getPostUrlBySlug(post.id)} hidden={index !== 0} aria-hidden={index !== 0 ? "true" : undefined}>
-							<span class="guide-rotator__meta">{post.data.category || "未分类"} / {formatDateI18n(post.data.published)}</span>
+							<span class="guide-rotator__meta">{getCategoryFromId(post.id) || "未分类"} / {formatDateI18n(post.data.published)}</span>
 							<div class="guide-rotator__title-row">
 								<a class="guide-rotator__article-link" href={getPostUrlBySlug(post.id)}><strong>{post.data.title}</strong></a>
 								<a class="guide-card__article-action" href={getPostUrlBySlug(post.id)} aria-label={`打开文章：${post.data.title}`} title="打开当前文章"><Icon name="material-symbols:arrow-forward-rounded" is:inline /></a>

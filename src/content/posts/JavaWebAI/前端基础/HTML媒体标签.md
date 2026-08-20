@@ -6,7 +6,6 @@ tags:
   - CSS
   - Web基础
   - 前端
-category: 前端基础
 description: HTML媒体标签速查卡片，涵盖超链接标签、图片标签、视频标签的用法与注意事项
 order: 3
 ---

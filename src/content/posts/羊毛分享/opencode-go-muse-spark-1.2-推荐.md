@@ -7,7 +7,6 @@ tags:
   - DeepSeek
   - 订阅推荐
   - 羊毛
-category: 羊毛分享
 description: DeepSeek 官方涨价导致 OpenCode Go 订阅里的用量变少了？完全不影响。因为新上的 Muse Spark 1.2 Contributor 和 DeepSeek V4 Flash 一样根本用不完，还支持多模态、100 万上下文、图片理解开箱即用，实测比 DeepSeek V4 Pro 还强一丢丢。用我的链接订阅咱俩各得 $5。
 ---
 > 先说结论：DeepSeek 涨价导致用量少了？无所谓。OpenCode Go 新上的 **Muse Spark 1.2 Contributor**，用量和之前的 DeepSeek V4 Flash 一样根本用不完，还多了多模态和 100 万上下文，性能比 DeepSeek V4 Pro 还强一点点，而且完全不用配置。

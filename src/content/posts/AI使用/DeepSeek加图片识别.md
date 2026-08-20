@@ -1,7 +1,6 @@
 ---
 title: DeepSeek 没有图片识别功能？自己给它加一个
 published: 2026-08-10
-category: AI使用
 tags:
   - DeepSeek
   - OpenCode

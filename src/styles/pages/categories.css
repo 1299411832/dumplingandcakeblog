@@ -510,6 +510,56 @@
 	}
 }
 
+/* 树形嵌套 + 叶子直跳 */
+.category-folders--nested {
+	gap: 1rem;
+	padding-top: 0;
+}
+.category-folder--leaf {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+}
+.category-folder--leaf .category-folder__summary--leaf {
+	min-height: 5rem;
+}
+.category-folder__leaf-arrow {
+	width: 1.5rem;
+	height: 1.5rem;
+	flex: 0 0 1.5rem;
+	color: var(--content-meta);
+	transition: transform 0.2s ease, color 0.2s ease;
+}
+.category-folder--leaf:hover .category-folder__leaf-arrow {
+	color: var(--primary);
+	transform: translateX(2px);
+}
+.category-folder__content--tree {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.category-folder__view-all {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	margin-bottom: 0.75rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 0.375rem;
+	background: var(--page-bg);
+	color: var(--deep-text);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.category-folder__view-all:hover {
+	border-color: var(--primary);
+	background: var(--btn-plain-bg-hover);
+	color: var(--primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.categories-page__view-indicator,
 	.categories-page__view-button,

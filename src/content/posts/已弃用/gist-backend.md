@@ -5,7 +5,6 @@ tags:
   - GitHub
   - Gist
   - 博客
-category: 已弃用
 description: 介绍如何利用 GitHub Gist 作为静态博客的轻量级数据存储方案。
 ---
 

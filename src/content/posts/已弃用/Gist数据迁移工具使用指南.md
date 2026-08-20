@@ -5,7 +5,6 @@ description: 将 GitHub Gist 中的外部数据（说说、友链、影视、笔
 tags:
   - 使用文档
   - 工具
-category: 已弃用
 descriptionSource: manual
 ---
 

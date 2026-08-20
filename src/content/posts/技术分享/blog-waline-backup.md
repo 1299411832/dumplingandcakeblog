@@ -5,7 +5,6 @@ order: 1
 tags:
   - Waline
   - 脚本
-category: 技术分享
 description: 介绍如何给 Waline 评论系统加一个自动备份到 GitHub 的脚本
 ---
 

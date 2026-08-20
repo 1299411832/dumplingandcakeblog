@@ -3,7 +3,6 @@ title: IO流
 published: 2026-03-11
 tags:
   - java
-category: Java菜鸟
 description: 嘿，别被“IO流”这名字唬住——它其实就是程序和文件之间传纸条的方式 😄   读个配置、存张图片、写段日志……全靠它悄悄搭桥。今天咱们不啃概念，就聊怎么让Java乖乖把数据“拿进来”又“送出去”，顺手避开那些删不掉的空目录、写不进的乱码、还有忘了close的坑。
 descriptionSource: ai
 ---

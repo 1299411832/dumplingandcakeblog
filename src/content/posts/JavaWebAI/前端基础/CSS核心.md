@@ -6,7 +6,6 @@ tags:
   - CSS
   - Web基础
   - 前端
-category: 前端基础
 description: CSS核心速查卡片，涵盖CSS引入方式、CSS选择器、CSS颜色表示、CSS文本样式、div与span标签
 order: 6
 ---

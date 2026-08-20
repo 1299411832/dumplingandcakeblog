@@ -6,7 +6,6 @@ tags:
   - 使用文档
   - Astro
   - AI
-category: 博客指南
 descriptionSource: manual
 ---
 

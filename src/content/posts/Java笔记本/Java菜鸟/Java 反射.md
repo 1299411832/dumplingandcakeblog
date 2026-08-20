@@ -3,7 +3,6 @@ title: Java 反射
 published: 2026-03-11
 tags:
   - java
-category: Java菜鸟
 description: 嘿，你有没有试过写完代码，突然发现——哎，要是能不改一行源码，光靠配个文件就让程序调用不同的类和方法，那该多爽？Java 反射就是干这个的。它像给 JVM 装了面“魔法镜子”，让你在运行时看清、摸到、甚至调用任何类的里里外外。虽然有点慢，但框架、Spring、Hibernate……全靠它撑腰。来，咱们轻松聊聊这面镜子怎么照、照哪儿、以及别被它闪了眼 😄
 descriptionSource: ai
 ---

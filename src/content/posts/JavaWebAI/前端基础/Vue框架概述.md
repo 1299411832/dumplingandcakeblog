@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - Vue
-category: 前端基础
 description: Vue渐进式框架的核心概念：数据驱动视图与createApp创建应用
 descriptionSource: ai
 order: 6

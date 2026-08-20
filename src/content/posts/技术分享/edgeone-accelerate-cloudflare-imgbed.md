@@ -1,7 +1,6 @@
 ---
 title: 手把手教你用 EdgeOne 加速 Cloudflare 图床，国内访问从 8 秒降到 0.15 秒
 published: 2026-07-31
-category: 技术分享
 tags:
   - CDN
   - EdgeOne

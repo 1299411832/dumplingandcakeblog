@@ -3,7 +3,6 @@ title: Python3基础知识
 published: 2026-08-18
 tags:
   - py
-category: python
 description: ""
 ---
 ## Python3.xPython3 基础语法

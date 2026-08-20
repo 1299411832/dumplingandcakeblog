@@ -1,6 +1,11 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
+import {
+	buildCategoryTree,
+	type CategoryNode,
+	getCategoryFromId,
+} from "@utils/category-tree";
 import { getCategoryUrl, getTagUrl } from "@utils/url-utils";
 
 // // Retrieve posts and sort them by publication date
@@ -89,7 +94,7 @@ export async function getArchiveList(): Promise<ArchiveItem[]> {
 			title: post.data.title,
 			published: post.data.published,
 			tags: post.data.tags,
-			category: post.data.category,
+			category: getCategoryFromId(post.id) || null,
 			order: post.data.order,
 		},
 	}));
@@ -237,20 +242,19 @@ export async function getCategoryList(): Promise<Category[]> {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 	const count: { [key: string]: number } = {};
-	allBlogPosts.forEach((post: { data: { category: string | null } }) => {
-		if (!post.data.category) {
-			const ucKey = i18n(I18nKey.uncategorized);
-			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
-			return;
+	const uncategorized = i18n(I18nKey.uncategorized);
+	for (const post of allBlogPosts as unknown as { id: string }[]) {
+		const full = getCategoryFromId((post as { id: string }).id);
+		if (!full) {
+			count[uncategorized] = (count[uncategorized] ?? 0) + 1;
+			continue;
 		}
-
-		const categoryName =
-			typeof post.data.category === "string"
-				? post.data.category.trim()
-				: String(post.data.category).trim();
-
-		count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
-	});
+		const parts = full.split("/");
+		for (let i = 1; i <= parts.length; i++) {
+			const pref = parts.slice(0, i).join("/");
+			count[pref] = (count[pref] ?? 0) + 1;
+		}
+	}
 
 	const lst = Object.keys(count).sort((a, b) => {
 		return (
@@ -267,6 +271,19 @@ export async function getCategoryList(): Promise<Category[]> {
 		});
 	}
 	return ret;
+}
+
+export async function getCategoryTree(): Promise<CategoryNode[]> {
+	const allBlogPosts = await getCollection("posts", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+	const postsForTree = (
+		allBlogPosts as unknown as { id: string; data: { tags: string[] } }[]
+	).map((p) => ({
+		id: p.id,
+		tags: p.data.tags ?? [],
+	}));
+	return buildCategoryTree(postsForTree);
 }
 
 export type CategoryTag = {
@@ -289,8 +306,11 @@ export async function getCategoryTagGroups(): Promise<CategoryTagGroup[]> {
 	>();
 	const uncategorized = i18n(I18nKey.uncategorized);
 
-	for (const post of allBlogPosts) {
-		const categoryName = post.data.category?.trim() || uncategorized;
+	for (const post of allBlogPosts as unknown as {
+		id: string;
+		data: { tags: string[] };
+	}[]) {
+		const categoryName = getCategoryFromId(post.id) || uncategorized;
 		const group = groupMap.get(categoryName) ?? {
 			count: 0,
 			tagCounts: new Map<string, number>(),

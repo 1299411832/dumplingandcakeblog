@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
+import { getCategoryFromId } from "@utils/category-tree";
 import { getSortedPosts } from "@utils/content-utils";
 import { getPostUrlBySlug, removeFileExtension } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
@@ -30,8 +31,12 @@ function calculateRelevance(post: CollectionEntry<"posts">): {
 	sameCategory: boolean;
 } {
 	let score = 0;
+	const postCat = getCategoryFromId(post.id);
 	const sameCategory = !!(
-		currentCategory && post.data.category === currentCategory
+		currentCategory &&
+		(postCat === currentCategory ||
+			postCat.startsWith(`${currentCategory}/`) ||
+			currentCategory.startsWith(`${postCat}/`))
 	);
 
 	// 同分类权重最高
@@ -159,9 +164,9 @@ if (relatedPosts.length < maxCount) {
                         </span>
 
                         {/* 分类标签 */}
-                        {post.data.category && (
+                        {getCategoryFromId(post.id) && (
                             <span class="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-(--primary)/8 text-(--primary) whitespace-nowrap">
-                                {post.data.category}
+                                {getCategoryFromId(post.id)}
                             </span>
                         )}
                     </a>

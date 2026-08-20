@@ -6,7 +6,6 @@ tags:
   - 插件
   - 效率工具
   - 博客工作流
-category: 技术分享
 description: 一个自动维护文章分类的 Obsidian 插件：category 自动等于所在文件夹名，新建文章自动带齐属性，只处理你指定的目录，安全可控。
 ---
 

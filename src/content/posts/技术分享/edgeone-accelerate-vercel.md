@@ -1,7 +1,6 @@
 ---
 title: 手把手教你用 EdgeOne 加速 Vercel 部署的项目（源站域名分离法）
 published: 2026-08-10
-category: 技术分享
 tags:
   - CDN
   - EdgeOne

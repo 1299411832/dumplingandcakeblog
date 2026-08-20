@@ -9,7 +9,7 @@ export function removeFileExtension(id: string): string {
 	return id.replace(/\.(md|mdx|markdown)$/i, "");
 }
 
-export function pathsEqual(path1: string, path2: string) {
+export function pathsEqual(path1: string, path2: string): boolean {
 	const normalizedPath1 = path1.replace(/^\/|\/$/g, "").toLowerCase();
 	const normalizedPath2 = path2.replace(/^\/|\/$/g, "").toLowerCase();
 	return normalizedPath1 === normalizedPath2;
@@ -31,18 +31,41 @@ export function getTagUrl(tag: string): string {
 	return url(`/archive/?tag=${encodeURIComponent(tag.trim())}`);
 }
 
+function normalizeCategoryValue(value: string): string {
+	return value
+		.trim()
+		.replace(/^\/+|\/+$/g, "")
+		.replace(/\/+/g, "/");
+}
+
 export function getCategoryUrl(category: string | null): string {
 	if (
 		!category ||
-		category.trim() === "" ||
-		category.trim().toLowerCase() === i18n(I18nKey.uncategorized).toLowerCase()
+		normalizeCategoryValue(category) === "" ||
+		normalizeCategoryValue(category).toLowerCase() ===
+			i18n(I18nKey.uncategorized).toLowerCase()
 	)
 		return url("/categories/uncategorized/");
-	return url(`/categories/${encodeURIComponent(category.trim())}/`);
+	const norm = normalizeCategoryValue(category);
+	return url(
+		`/categories/${norm.split("/").map(encodeURIComponent).join("/")}/`,
+	);
 }
 
 export function getCategoryPageUrl(): string {
 	return url("/categories/");
+}
+
+export function isSubCategory(child: string, parent: string): boolean {
+	const normalize = (v: string) =>
+		v
+			.trim()
+			.replace(/^\/+|\/+$/g, "")
+			.replace(/\/+/g, "/");
+	const c = normalize(child);
+	const p = normalize(parent);
+	if (!p) return false;
+	return c === p || c.startsWith(`${p}/`);
 }
 
 export function getDir(path: string): string {
@@ -63,6 +86,6 @@ export function getSearchUrl(query: string): string {
 	return url(`/search/?q=${encodeURIComponent(query.trim())}`);
 }
 
-export function url(path: string) {
+export function url(path: string): string {
 	return joinUrl("", import.meta.env.BASE_URL, path);
 }

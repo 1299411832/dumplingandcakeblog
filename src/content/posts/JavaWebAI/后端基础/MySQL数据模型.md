@@ -5,7 +5,6 @@ tags:
   - 前端
   - MySQL
   - 数据库
-category: 后端基础
 description: 关系型数据库的二维表模型与MySQL的数据存储层次结构
 descriptionSource: ai
 order: 1

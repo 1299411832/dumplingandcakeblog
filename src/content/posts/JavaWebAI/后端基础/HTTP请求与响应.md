@@ -5,7 +5,6 @@ tags:
   - 前端
   - HTTP
   - Java
-category: 后端基础
 description: HTTP请求协议与响应协议的格式、获取/设置请求/响应数据的方法及常见状态码
 descriptionSource: ai
 order: 3

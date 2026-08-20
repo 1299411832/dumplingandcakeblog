@@ -6,7 +6,6 @@ tags:
   - 宝塔面板
   - 音乐
   - 指南
-category: 技术分享
 description: 介绍如何使用Meting-API
 ---
 

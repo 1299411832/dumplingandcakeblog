@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - JavaScript
-category: 前端基础
 description: JavaScript函数的三种定义方式：命名函数、函数表达式和箭头函数
 descriptionSource: ai
 order: 4

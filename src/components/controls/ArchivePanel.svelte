@@ -348,7 +348,11 @@ function applyFilters(allPosts: Post[]) {
 		);
 	if (categories.length > 0)
 		filtered = filtered.filter(
-			(p) => p.data.category && categories.includes(p.data.category),
+			(p) =>
+				p.data.category &&
+				categories.some(
+					(c) => p.data.category === c || p.data.category?.startsWith(`${c}/`),
+				),
 		);
 	if (uncategorized) filtered = filtered.filter((p) => !p.data.category);
 	filtered = filtered

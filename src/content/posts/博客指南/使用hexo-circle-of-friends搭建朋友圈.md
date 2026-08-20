@@ -7,7 +7,6 @@ tags:
   - 友链
   - hexo-circle-of-friends
   - EdgeOne
-category: 博客指南
 description: 记录如何使用 hexo-circle-of-friends 项目为 Astro 博客搭建朋友圈功能，包括部署、踩坑和最终效果。
 cover: ""
 pinned: false

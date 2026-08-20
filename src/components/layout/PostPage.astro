@@ -3,6 +3,7 @@ import type { CollectionEntry } from "astro:content";
 import { getPostUrlBySlug } from "@utils/url-utils";
 import PostCard from "@/components/layout/PostCard.astro";
 import { sidebarLayoutConfig, siteConfig } from "@/config";
+import { getCategoryFromId } from "@/utils/category-tree";
 
 const { page } = Astro.props;
 
@@ -45,7 +46,7 @@ const initialLayoutClass =
         entry={entry}
         title={entry.data.title}
         tags={entry.data.tags}
-        category={entry.data.category}
+        category={getCategoryFromId(entry.id) || null}
         published={entry.data.published}
         updated={entry.data.updated}
         url={getPostUrlBySlug(entry.id)}

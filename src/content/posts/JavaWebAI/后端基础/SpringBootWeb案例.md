@@ -5,7 +5,6 @@ tags:
   - 前端
   - SpringBoot
   - Java
-category: 后端基础
 description: 基于SpringBoot开发Web程序完成用户列表渲染的完整案例
 descriptionSource: ai
 order: 4

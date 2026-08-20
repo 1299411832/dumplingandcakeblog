@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - JavaScript
-category: 前端基础
 description: JavaScript的原始数据类型与引用数据类型，以及typeof检测和模板字符串的使用
 descriptionSource: ai
 order: 3

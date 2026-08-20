@@ -5,7 +5,6 @@ tags:
   - 前端
   - SpringBoot
   - Java
-category: 后端基础
 description: SpringBootWeb开发的基础概念、入门程序与解析
 descriptionSource: ai
 order: 1

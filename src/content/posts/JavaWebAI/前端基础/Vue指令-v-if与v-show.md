@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - Vue
-category: 前端基础
 description: v-if通过移除DOM节点控制显示，v-show通过CSS display属性切换可见性
 descriptionSource: ai
 order: 9

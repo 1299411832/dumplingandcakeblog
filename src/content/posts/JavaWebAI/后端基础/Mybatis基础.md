@@ -7,7 +7,6 @@ tags:
   - SpringBoot
   - 数据库
   - ORM
-category: 后端基础
 description: Mybatis是一款优秀的持久层框架，用于简化JDBC开发，支持注解和XML两种方式编写SQL。
 descriptionSource: ai
 order: 4

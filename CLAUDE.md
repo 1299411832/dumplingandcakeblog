@@ -85,9 +85,9 @@ src/
 │   ├── transitions/     # Swup 过渡动画
 │   └── vendor/          # 第三方覆盖
 ├── types/               # TypeScript 类型：config.ts, bangumi.ts, guestbook-chat.ts
-└── utils/               # 工具函数（30 个文件）
+└── utils/               # 工具函数（31 个文件，2026-08-20 新增 category-tree.ts）
     ├── 8 个控制器模块   # 见第 10 节
-    └── 22 个业务工具    # content-utils, date-utils, image-utils, url-utils...
+    └── 23 个业务工具    # content-utils, category-tree（文件夹即分类，多级 `a/b` 推导 + CategoryNode 树）, date-utils, image-utils, url-utils...
 
 # 根目录其他重要文件
 .pages.yml                # PagesCMS 后台配置（11 集合声明，见第 19 节）
@@ -181,6 +181,8 @@ Layout.astro          ← HTML 骨架：<html>, <head>, <body>, 全局组件, �
 > 友链页支撑系统（2026-08）：`.github/workflows/friend-status.yml`（每天 5:17 检测友链延迟 → public/friends-status.json，四档 fast/ok/slow/down）与 `friend-screenshots.yml`（每周日 3:23 Playwright 截图 → public/assets/friends-shots/{contentId}.webp）。前端 fetch 状态 JSON 注入徽标，无 JSON/无截图时优雅降级（卡片退化为纯头像卡）。改 friends 集合结构时注意同步这两个脚本（正则读 frontmatter）。
 
 > ⚠️ **朋友圈数据链路（强制提醒义务）**：友链朋友圈页（`/circle/`）的数据来自 `cir.tsh520.cn/data.json`，由独立仓库 `E:\GithubProgect\OtherRunProject\hexo-circle-of-friends`（GitHub: tianshihao2003/hexo-circle-of-friends）每 2 小时生成并提交。该程序的 firefly 主题解析器**依赖本博客友链页卡片结构**（`css_rules.yaml`）：名字=[`.friend-card`]`data-title`、链接=[`.friend-card`]`data-siteurl`、头像=[`.friend-card-avatar__img`]`data-src`。**凡是修改友链页卡片 HTML/friends 集合字段/友链 Card 组件结构，必须同步检查并提醒站长**：一是确认 `css_rules.yaml` 的 firefly 选择器仍匹配新结构（必要时同步修改并推送到 hexo-circle-of-friends 仓库）；二是验证「data.json 的 last_updated_time 与文章数」确实更新（抓一次页面或等下一轮 Action）。2026-08 曾因友链卡 class 从 `.friend-card-name/.friend-card-link` 改为 data 属性导致朋友圈停更 6 天，务必引以为戒。
+
+> **分类系统（2026-08-20 文件夹即分类）**：`posts` 的 `category` 已从 `src/content.config.ts` 的 Zod schema 移除，分类 100% 由 `src/utils/category-tree.ts#getCategoryFromId(entry.id)` 的文件夹路径推导（`编程学习/Java学习` → `CategoryNode{fullPath, count, directCount, children}`），URL 分段编码 `src/utils/url-utils.ts#getCategoryUrl` + 路由 `src/pages/categories/[...category].astro`（catch-all，子树聚合 `startsWith(parent+"/")`），卡片 `src/components/widget/CategoryFolders.astro` 递归树（有子展开看子树/无子整卡跳转，已删右侧跳转按钮），`.pages.yml` 已删 `category` 字段，`scripts/新建文章/index.js` 不再写 `category`，Obsidian 插件 `plug-in/Obsidian/obsidian-category-autofill` 已废弃写入（`logic.ts#getTargetCategory` 恒返回 null，模板移除 `category`）。**禁止再写 `frontmatter.category`，分类只靠建文件夹**。
 
 ---
 
@@ -635,6 +637,7 @@ return controller;
 | 验收通过后仍过度验证（`pnpm check`/`pnpm build` 通过且浏览器实测关键路径正常后，还继续用多种方式重复验证同一数据链路，如抓网络日志逐请求对比第三方 API） | 大量时间产出零新增价值（2026-08 笔记本评论回复验证教训：UI 已正确显示回复关系即证明 Waline 数据正确，无需再深挖服务端返回结构） | 验收标准达成即停；仅当出现新的错误证据（新报错、行为异常）时才继续排查 |
 | 改友链页 `friend-card` 卡片结构/友链 Card 组件，未同步 `hexo-circle-of-friends` 的 `css_rules.yaml` firefly 选择器 | 朋友圈（/circle/）数据停更（2026-08 曾停更 6 天） | 见 §3.4「朋友圈数据链路（强制提醒义务）」 |
 | CI 中 Biome 用 `version: latest` 或版本与 package.json 不一致 | 规则漂移导致"本地绿 CI 红"（2026-08 实测：2.3 vs 2.5 的 useAltText 升级为 error） | setup-biome action 不指定 version，自动读取 package.json 版本 |
+| 手写 `frontmatter.category` 或用 Obsidian 插件再写 category | 2026-08-20 后分类已改为文件夹即分类（`category-tree.ts`），frontmatter 再写会被忽略且 `.pages.yml` 未声明字段保存时丢弃 | 分类只靠 `src/content/posts/父/子/xxx.md` 建文件夹，勿写 frontmatter |
 
 ---
 

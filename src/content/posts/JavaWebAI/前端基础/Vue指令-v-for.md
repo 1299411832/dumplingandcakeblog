@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - Vue
-category: 前端基础
 description: 使用v-for指令进行列表渲染，结合key属性实现高效DOM复用
 descriptionSource: ai
 order: 7

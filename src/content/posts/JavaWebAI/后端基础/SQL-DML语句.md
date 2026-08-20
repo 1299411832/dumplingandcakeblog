@@ -5,7 +5,6 @@ tags:
   - 前端
   - MySQL
   - 数据库
-category: 后端基础
 description: DML数据操作语言：INSERT、UPDATE、DELETE 的语法与注意事项
 descriptionSource: ai
 order: 4

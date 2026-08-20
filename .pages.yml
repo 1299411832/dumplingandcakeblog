@@ -30,9 +30,9 @@ content:
         exclude: ["images", "assets"]
         view:
           primary: title
-          fields: [title, published, tags, category, draft, pinned]
+          fields: [title, published, tags, draft, pinned]
           sort: ["published desc", "title asc"]
-          search: [title, description, tags, category]
+          search: [title, description, tags]
           default:
             sort: published
             order: desc
@@ -98,11 +98,6 @@ content:
                 - { label: 博客, value: 博客 }
                 - { label: 宝塔面板, value: 宝塔面板 }
                 - { label: 教程, value: 教程 }
-
-          - name: category
-            label: 分类
-            type: string
-            description: 文章分类（对应 posts 下的子目录名）
 
           - name: lang
             label: 语言

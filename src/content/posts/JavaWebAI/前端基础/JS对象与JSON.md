@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - JavaScript
-category: 前端基础
 description: JavaScript对象的键值对结构及JSON.stringify和JSON.parse的数据转换方法
 descriptionSource: ai
 order: 1

@@ -4,7 +4,6 @@ published: 2026-05-15
 tags:
   - 前端
   - Vue
-category: 前端基础
 description: 使用v-on（简写@）为HTML标签绑定事件处理方法
 descriptionSource: ai
 order: 11

@@ -3,7 +3,6 @@ title: Java基础
 published: 2026-02-06
 tags:
   - java
-category: Java菜鸟
 description: 嘿，欢迎来到Java基础小课堂！别被“基础”俩字骗了——IDEA里一个Alt+Insert能省下半小时，package写错一行代码就跑不起来…咱们不讲虚的，就聊那些真正写代码时天天碰、又容易踩坑的实在事儿。准备好了？来，一起从IDEA和包开始捋清楚～
 descriptionSource: ai
 ---

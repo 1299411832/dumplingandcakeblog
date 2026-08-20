@@ -6,7 +6,6 @@ tags:
   - CSS
   - Web基础
   - 前端
-category: 前端基础
 description: Web标准与浏览器内核速查卡片，涵盖Web标准定义、浏览器内核对比及常见浏览器差异
 order: 1
 ---

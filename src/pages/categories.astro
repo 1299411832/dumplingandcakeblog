@@ -4,11 +4,12 @@ import CategoryRose from "@components/widget/CategoryRose.astro";
 import TagGraph from "@components/widget/TagGraph.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { Icon } from "astro-icon/components";
-import { getCategoryTagGroups } from "@/utils/content-utils";
+import { getCategoryList, getCategoryTree } from "@/utils/content-utils";
 import { getTagGraphData } from "@/utils/tag-graph-data";
 
-const categoryGroups = await getCategoryTagGroups();
-const categories = categoryGroups.map(({ name, count, url }) => ({
+const categoryTree = await getCategoryTree();
+const categoryList = await getCategoryList();
+const categories = categoryList.map(({ name, count, url }) => ({
 	name,
 	count,
 	url,
@@ -73,7 +74,7 @@ const title = "分类标签";
       aria-labelledby="taxonomy-view-folders"
       data-taxonomy-panel="folders"
     >
-      <CategoryFolders groups={categoryGroups} />
+      <CategoryFolders tree={categoryTree} />
     </section>
 
     <section

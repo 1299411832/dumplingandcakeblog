@@ -3,7 +3,6 @@ title: Java动态代理
 published: 2026-03-11
 tags:
   - java
-category: Java菜鸟
 description: 嘿，你有没有试过在不碰原代码的前提下，悄悄给方法加点日志、事务或者权限校验？Java 动态代理就是干这个的——它不改一行业务逻辑，却能让你在方法“前后”自由插队。今天咱们就轻松聊聊 JDK 代理和 CGLIB 的区别、怎么用、以及踩过哪些坑 🌟
 descriptionSource: ai
 ---

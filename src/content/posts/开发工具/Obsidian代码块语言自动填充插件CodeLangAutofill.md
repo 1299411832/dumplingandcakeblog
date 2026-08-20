@@ -6,7 +6,6 @@ tags:
   - obsidian
   - 插件
   - 开发工具
-category: 开发工具
 draft: false
 lang: zh-CN
 ---
