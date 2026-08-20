@@ -3,23 +3,21 @@ import { Icon } from "astro-icon/components";
 /**
  * 移动端底部悬浮 Dock — 仅 ≤768px 显示
  * 5 栏位单浮岛：首页、搜索、菜单（凸出）、主题、返回
+ * 右下角浮动工具已统合到 UnifiedDock，此处仅保留底部主导航
  */
 ---
 
 <div class="mobile-dock" id="mobile-dock">
-	<!-- 左1: 首页 -->
 	<button class="mobile-dock__btn" id="mobile-dock-home-btn" aria-label="首页" type="button">
 		<span class="mobile-dock__icon"><Icon name="material-symbols:home-outline-rounded" is:inline /></span>
 		<span class="mobile-dock__label">首页</span>
 	</button>
 
-	<!-- 左2: 搜索 -->
 	<button class="mobile-dock__btn" id="mobile-dock-search-btn" aria-label="搜索" type="button">
 		<span class="mobile-dock__icon"><Icon name="material-symbols:search-rounded" is:inline /></span>
 		<span class="mobile-dock__label">搜索</span>
 	</button>
 
-	<!-- 中: 菜单（凸出） -->
 	<button class="mobile-dock__btn mobile-dock__btn--center" id="mobile-dock-menu-btn" aria-label="菜单" type="button">
 		<span class="mobile-dock__icon">
 			<Icon name="material-symbols:menu-rounded" is:inline class="mobile-dock-menu-icon-collapsed" />
@@ -27,7 +25,6 @@ import { Icon } from "astro-icon/components";
 		</span>
 	</button>
 
-	<!-- 右2: 主题切换 -->
 	<button class="mobile-dock__btn" id="mobile-dock-theme-btn" aria-label="主题切换" type="button">
 		<span class="mobile-dock__icon">
 			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="mobile-dock-theme-icon-light" />
@@ -36,91 +33,10 @@ import { Icon } from "astro-icon/components";
 		<span class="mobile-dock__label">主题</span>
 	</button>
 
-	<!-- 右1: 返回 -->
 	<button class="mobile-dock__btn" id="mobile-dock-back-btn" aria-label="返回" type="button">
 		<span class="mobile-dock__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="mobile-dock__svg-icon"><path fill="currentColor" d="M11.994 4c1.059 0 1.924.818 2 1.856l.006.15v1.988a2.005 2.005 0 0 1-1.856 2L12 10H3.484l1.91 1.82a.52.52 0 0 1 0 .77a.616.616 0 0 1-.829 0l-2.05-1.95a1.55 1.55 0 0 1 0-2.31l2.05-1.95a.617.617 0 0 1 .83 0a.52.52 0 0 1 0 .77L3.45 9H12c.514-.003.935-.39.993-.888L13 7.994V6.006c0-.516-.388-.941-.888-1L11.994 5H9.5a.5.5 0 0 1-.09-.992L9.5 4z" /></svg></span>
 		<span class="mobile-dock__label">返回</span>
 	</button>
-</div>
-
-<!-- 浮动按钮组（dock 隐藏时右下角显示） -->
-<div class="mobile-dock__floating-group" id="mobile-dock-floating-group" style="display:none">
-	<!-- 文章页专属按钮（默认显示） -->
-	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-toc-btn" aria-label="目录" type="button">
-		<Icon name="material-symbols:format-list-bulleted" is:inline />
-	</button>
-	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-comment-btn" aria-label="评论" type="button">
-		<Icon name="material-symbols:chat-bubble-outline-rounded" is:inline />
-	</button>
-	<button class="mobile-dock__floating-btn floating-page-btn hide" id="floating-posts-btn" aria-label="全部文章" type="button">
-		<Icon name="material-symbols:list-alt-outline" is:inline />
-	</button>
-	<!-- 工具展开区（向上展开） -->
-	<div class="floating-tools-stack" id="floating-tools-stack">
-		<button class="mobile-dock__floating-btn" id="floating-theme-btn" aria-label="主题切换" type="button">
-			<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="floating-theme-icon-light" />
-			<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="floating-theme-icon-dark" style="display:none" />
-		</button>
-		<button class="mobile-dock__floating-btn" id="floating-music-btn" aria-label="音乐" type="button">
-			<Icon name="material-symbols:music-note-rounded" is:inline />
-		</button>
-		<button class="mobile-dock__floating-btn" id="floating-announcement-btn" aria-label="公告" type="button">
-			<Icon name="material-symbols:notifications-outline-rounded" is:inline />
-		</button>
-	</div>
-	<!-- 底部常驻按钮 -->
-	<button class="mobile-dock__floating-btn" id="floating-top-btn" aria-label="返回顶部" type="button">
-		<Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline />
-	</button>
-	<button class="mobile-dock__floating-btn floating-tools-toggle" id="floating-tools-btn" aria-label="工具" type="button">
-		<Icon name="material-symbols:more-horiz" is:inline class="floating-tools-icon-collapsed" />
-		<Icon name="material-symbols:close-rounded" is:inline class="floating-tools-icon-expanded" />
-	</button>
-</div>
-
-<!-- 遮罩（工具栏 sheet 打开时） -->
-<div class="mobile-dock__overlay" id="mobile-dock-overlay" aria-hidden="true"></div>
-
-<!-- 工具栏底部 Sheet -->
-<div class="mobile-dock__sheet" id="mobile-dock-sheet">
-	<div class="mobile-dock__sheet-title">工具</div>
-	<div class="mobile-dock__sheet-grid">
-		<button class="mobile-dock__sheet-item" id="md-theme-btn" aria-label="主题" type="button">
-			<span class="mobile-dock__sheet-item-icon">
-				<Icon name="material-symbols:wb-sunny-outline-rounded" is:inline class="md-theme-icon-light" />
-				<Icon name="material-symbols:dark-mode-outline-rounded" is:inline class="md-theme-icon-dark" style="display:none" />
-			</span>
-			<span class="mobile-dock__sheet-item-label">主题</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-music-btn" aria-label="音乐" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:music-note-rounded" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">音乐</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-announcement-btn" aria-label="公告" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:notifications-outline-rounded" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">公告</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-tags-btn" aria-label="标签" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:label-outline" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">标签</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-categories-btn" aria-label="分类" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:folder-outline" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">分类</span>
-		</button>
-		<button class="mobile-dock__sheet-item" id="md-notebook-btn" aria-label="笔记" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:book-outline-rounded" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">笔记</span>
-		</button>
-		<button class="mobile-dock__sheet-item hide" id="md-toc-btn" aria-label="目录" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:format-list-bulleted" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">目录</span>
-		</button>
-		<button class="mobile-dock__sheet-item hide" id="md-top-btn" aria-label="回到顶部" type="button">
-			<span class="mobile-dock__sheet-item-icon"><Icon name="material-symbols:keyboard-arrow-up-rounded" is:inline /></span>
-			<span class="mobile-dock__sheet-item-label">顶部</span>
-		</button>
-	</div>
 </div>
 
 <script is:inline data-swup-ignore-script>
@@ -130,20 +46,6 @@ import { Icon } from "astro-icon/components";
 
 	var dockEl = document.getElementById("mobile-dock");
 	if (!dockEl) return;
-
-	var overlayEl = document.getElementById("mobile-dock-overlay");
-	var sheetEl = document.getElementById("mobile-dock-sheet");
-
-	// menu-sheet 在 MobileMenuSheet.astro 中渲染，位于 MobileDock 之后
-	// is:inline 脚本在解析到时立即执行，此时 menu-sheet 尚未解析
-	// 需要等待 DOM 完全解析后再获取
-	function getMenuSheetElements() {
-		return {
-			sheet: document.getElementById("menu-sheet"),
-			overlay: document.getElementById("menu-sheet-overlay"),
-			close: document.getElementById("menu-sheet-close"),
-		};
-	}
 
 	var lastScrollY = window.scrollY;
 	var isOverlayOpen = false;
@@ -157,21 +59,16 @@ import { Icon } from "astro-icon/components";
 			dockEl.classList.remove("is-hidden");
 		}
 		lastScrollY = y;
-		// 更新回顶部按钮显隐
-		var scrolled = y > 200;
-		document.getElementById("md-top-btn")?.classList.toggle("hide", !scrolled);
 	}
 
 	window.addEventListener("scroll", onScroll, { passive: true });
 
-	// 首页
 	document.getElementById("mobile-dock-home-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
 		var isHome = window.location.pathname === "/" || window.location.pathname === "";
 		if (!isHome) window.location.href = "/";
 	});
 
-	// 搜索 — 触发 SearchModal
 	document.getElementById("mobile-dock-search-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
 		if (window.__fireflySearchModalController) {
@@ -181,7 +78,6 @@ import { Icon } from "astro-icon/components";
 		}
 	});
 
-	// 菜单（打开 Bottom Sheet）
 	var menuBtn = document.getElementById("mobile-dock-menu-btn");
 	var menuCollapsedIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-collapsed");
 	var menuOpenIcon = menuBtn?.querySelector(".mobile-dock-menu-icon-open");
@@ -190,6 +86,14 @@ import { Icon } from "astro-icon/components";
 		if (menuCollapsedIcon) menuCollapsedIcon.style.display = open ? "none" : "";
 		if (menuOpenIcon) menuOpenIcon.style.display = open ? "" : "none";
 		isOverlayOpen = open;
+	}
+
+	function getMenuSheetElements() {
+		return {
+			sheet: document.getElementById("menu-sheet"),
+			overlay: document.getElementById("menu-sheet-overlay"),
+			close: document.getElementById("menu-sheet-close"),
+		};
 	}
 
 	function openMenuSheet() {
@@ -221,7 +125,6 @@ import { Icon } from "astro-icon/components";
 		}
 	});
 
-	// 延迟注册关闭事件（menu-sheet 在 MobileMenuSheet.astro 中，DOM 可能尚未就绪）
 	function bindMenuSheetCloseEvents() {
 		var els = getMenuSheetElements();
 		if (!els.sheet) return;
@@ -240,7 +143,6 @@ import { Icon } from "astro-icon/components";
 		bindMenuSheetCloseEvents();
 	}
 
-	// ESC 关闭 Sheet
 	document.addEventListener("keydown", function(e) {
 		if (e.key === "Escape") {
 			var els = getMenuSheetElements();
@@ -250,14 +152,9 @@ import { Icon } from "astro-icon/components";
 		}
 	});
 
-	// 主题切换（dock 按钮 + 工具 sheet）
 	var dockThemeBtn = document.getElementById("mobile-dock-theme-btn");
 	var dockThemeLightIcon = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-light");
 	var dockThemeDarkIcon = dockThemeBtn?.querySelector(".mobile-dock-theme-icon-dark");
-
-	var themeSheetBtn = document.getElementById("md-theme-btn");
-	var themeSheetLightIcon = themeSheetBtn?.querySelector(".md-theme-icon-light");
-	var themeSheetDarkIcon = themeSheetBtn?.querySelector(".md-theme-icon-dark");
 
 	function toggleTheme() {
 		var isDark = document.documentElement.classList.contains("dark");
@@ -273,20 +170,8 @@ import { Icon } from "astro-icon/components";
 
 	function updateAllThemeIcons() {
 		var isDark = document.documentElement.classList.contains("dark");
-		// dock 按钮
 		if (dockThemeLightIcon) dockThemeLightIcon.style.display = isDark ? "none" : "";
 		if (dockThemeDarkIcon) dockThemeDarkIcon.style.display = isDark ? "" : "none";
-		// 工具 sheet 按钮
-		if (themeSheetLightIcon) themeSheetLightIcon.style.display = isDark ? "none" : "";
-		if (themeSheetDarkIcon) themeSheetDarkIcon.style.display = isDark ? "" : "none";
-		// 浮动按钮
-		var floatingBtn = document.getElementById("floating-theme-btn");
-		if (floatingBtn) {
-			var floatingLight = floatingBtn.querySelector(".floating-theme-icon-light");
-			var floatingDark = floatingBtn.querySelector(".floating-theme-icon-dark");
-			if (floatingLight) floatingLight.style.display = isDark ? "none" : "";
-			if (floatingDark) floatingDark.style.display = isDark ? "" : "none";
-		}
 	}
 
 	dockThemeBtn?.addEventListener("click", function(e) {
@@ -294,205 +179,21 @@ import { Icon } from "astro-icon/components";
 		toggleTheme();
 	});
 
-	themeSheetBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		toggleTheme();
-	});
-
 	updateAllThemeIcons();
 	window.addEventListener("theme-change", updateAllThemeIcons);
 
-	// 返回按钮
 	document.getElementById("mobile-dock-back-btn")?.addEventListener("click", function(e) {
 		e.stopPropagation();
 		window.history.back();
 	});
 
-	// 工具栏 sheet 开关
-	function openSheet() {
-		sheetEl?.classList.add("is-open");
-		overlayEl?.classList.add("is-open");
-		overlayEl?.setAttribute("aria-hidden", "false");
-		isOverlayOpen = true;
-	}
-
-	function closeSheet() {
-		sheetEl?.classList.remove("is-open");
-		overlayEl?.classList.remove("is-open");
-		overlayEl?.setAttribute("aria-hidden", "true");
-		isOverlayOpen = false;
-	}
-
-	// 浮动按钮组
-	var floatingGroup = document.getElementById("mobile-dock-floating-group");
-	var floatingToolsStack = document.getElementById("floating-tools-stack");
-	var floatingToolsBtn = document.getElementById("floating-tools-btn");
-	var floatingTopBtn = document.getElementById("floating-top-btn");
-	var floatingTocBtn = document.getElementById("floating-toc-btn");
-	var floatingCommentBtn = document.getElementById("floating-comment-btn");
-	var floatingPostsBtn = document.getElementById("floating-posts-btn");
-	var floatingToolsOpen = false;
-
-	// dock 显隐时同步浮动按钮组（仅移动端）
-	var floatingToolsObserver = new MutationObserver(function() {
-		var isMobile = window.innerWidth <= 768;
-		var isHidden = dockEl.classList.contains("is-hidden");
-		if (floatingGroup) floatingGroup.style.display = (isHidden && isMobile) ? "" : "none";
-		if (!isHidden && floatingToolsOpen) {
-			floatingToolsOpen = false;
-			floatingToolsStack?.classList.remove("is-expanded");
-			floatingToolsBtn?.classList.remove("is-open");
-		}
-	});
-	floatingToolsObserver.observe(dockEl, { attributes: true, attributeFilter: ["class"] });
-
-	// 窗口大小变化时同步
-	window.addEventListener("resize", function() {
-		if (window.innerWidth > 768 && floatingGroup) {
-			floatingGroup.style.display = "none";
-		}
-	});
-
-	// 工具栈展开/收起
-	floatingToolsBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		floatingToolsOpen = !floatingToolsOpen;
-		floatingToolsStack?.classList.toggle("is-expanded", floatingToolsOpen);
-		floatingToolsBtn.classList.toggle("is-open", floatingToolsOpen);
-	});
-
-	// 浮动音乐
-	document.getElementById("floating-music-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		document.getElementById("dock-music-btn")?.click();
-	});
-
-	// 浮动公告
-	document.getElementById("floating-announcement-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		document.getElementById("dock-announcement-btn")?.click();
-	});
-
-	// 浮动主题切换
-	var floatingThemeBtn = document.getElementById("floating-theme-btn");
-	var floatingThemeLight = floatingThemeBtn?.querySelector(".floating-theme-icon-light");
-	var floatingThemeDark = floatingThemeBtn?.querySelector(".floating-theme-icon-dark");
-
-	function updateFloatingThemeIcon() {
-		var isDark = document.documentElement.classList.contains("dark");
-		if (floatingThemeLight) floatingThemeLight.style.display = isDark ? "none" : "";
-		if (floatingThemeDark) floatingThemeDark.style.display = isDark ? "" : "none";
-	}
-
-	floatingThemeBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		toggleTheme();
-	});
-
-	updateFloatingThemeIcon();
-	window.addEventListener("theme-change", updateFloatingThemeIcon);
-
-	// 浮动 TOC
-	floatingTocBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		document.getElementById("dock-toc-btn")?.click();
-	});
-
-	// 浮动评论
-	floatingCommentBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		var target = document.getElementById("scissor-divider") || document.getElementById("post-comments");
-		if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-	});
-
-	// 浮动全部文章
-	floatingPostsBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		document.getElementById("dock-posts-btn")?.click();
-	});
-
-	// 浮动返回顶部
-	floatingTopBtn?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		window.scroll({ top: 0, behavior: "smooth" });
-	});
-
-	// 文章详情页显示 TOC 和评论按钮，文章列表页也显示全部文章按钮
-	function updateFloatingPageButtons() {
-		var isPostList = /\/posts\/?$/.test(window.location.pathname) || window.location.pathname === "/posts";
-		var isPostDetail = /\/posts\/.+\//.test(window.location.pathname);
-		if (floatingTocBtn) floatingTocBtn.classList.toggle("hide", !isPostDetail);
-		if (floatingCommentBtn) floatingCommentBtn.classList.toggle("hide", !isPostDetail);
-		if (floatingPostsBtn) floatingPostsBtn.classList.toggle("hide", !(isPostDetail || isPostList));
-	}
-	updateFloatingPageButtons();
-	document.addEventListener("astro:page-load", updateFloatingPageButtons);
-
-	overlayEl.addEventListener("click", function() { closeSheet(); });
-
-	document.addEventListener("keydown", function(e) {
-		if (e.key === "Escape" && sheetEl.classList.contains("is-open")) {
-			closeSheet();
-		}
-	});
-
-	// sheet 内工具按钮：复用 FloatingDock 按钮逻辑
-	var sheetBtnMap = {
-		"md-music-btn": "dock-music-btn",
-		"md-announcement-btn": "dock-announcement-btn",
-		"md-tags-btn": "dock-tags-btn",
-		"md-categories-btn": "dock-categories-btn",
-		"md-toc-btn": "dock-toc-btn",
-	};
-
-	Object.keys(sheetBtnMap).forEach(function(sheetBtnId) {
-		var dockBtnId = sheetBtnMap[sheetBtnId];
-		document.getElementById(sheetBtnId)?.addEventListener("click", function(e) {
-			e.stopPropagation();
-			closeSheet();
-			setTimeout(function() {
-				document.getElementById(dockBtnId)?.click();
-			}, 50);
-		});
-	});
-
-	// 回顶部
-	document.getElementById("md-top-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		closeSheet();
-		window.scroll({ top: 0, behavior: "smooth" });
-	});
-
-	// 笔记
-	document.getElementById("md-notebook-btn")?.addEventListener("click", function(e) {
-		e.stopPropagation();
-		closeSheet();
-		window.location.href = "/life/notebooks/";
-	});
-
-	// 路径相关显隐
-	function updatePathDependent() {
-		var isHome = window.location.pathname === "/" || window.location.pathname === "";
-		var isPost = /\/posts?\//.test(window.location.pathname);
-
-		document.getElementById("mobile-dock-home-btn")?.classList.toggle("is-active", !isHome);
-		document.getElementById("md-toc-btn")?.classList.toggle("hide", !isPost);
-	}
-
-	updatePathDependent();
-
-	// Swup 页面加载后重新初始化
 	document.addEventListener("astro:page-load", function() {
-		closeSheet();
 		closeMenuSheet();
-		updatePathDependent();
 		lastScrollY = window.scrollY;
 		dockEl.classList.remove("is-hidden");
 	});
 
-	// 双保险：内容替换时立即强制关闭 Sheet（比 page-load 更早）
 	document.addEventListener("swup:content:replaced", function() {
-		closeSheet();
 		closeMenuSheet();
 	});
 })();
