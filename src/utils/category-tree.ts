@@ -130,11 +130,13 @@ export function buildCategoryTree(
 	}
 
 	const sortNodes = (nodes: CategoryNode[]) => {
-		nodes.sort(
-			(a, b) =>
-				b.count - a.count ||
-				a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
-		);
+		nodes.sort((a, b) => {
+			const aHas = a.children.length > 0 ? 1 : 0;
+			const bHas = b.children.length > 0 ? 1 : 0;
+			if (bHas !== aHas) return bHas - aHas;
+			if (b.count !== a.count) return b.count - a.count;
+			return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+		});
 		for (const n of nodes) sortNodes(n.children);
 	};
 	sortNodes(roots);
