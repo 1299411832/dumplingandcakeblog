@@ -691,7 +691,9 @@ type: feat | fix | refactor | style | docs | chore | perf
 scope: layout | config | i18n | styles | utils | components | content
 ```
 
-**每次修改后必须 `pnpm build` 验证通过再提交。**
+**每次修改后必须 `pnpm build` + `pnpm check` + `pnpm exec biome ci ./src` 全绿再提交**（`--reporter=github` 与 CI 完全一致，2026-02 CI 曾因 `useTemplate` 与 `.superpowers` 误跟踪红过）**。**
+
+> 本仓库 `biome ci` 仅覆盖 `./src`（package.json 固定 `2.5.7`），但 **任何修改后都必须跑**；新增目录（非 `src`）需提前加入 `.gitignore`。
 
 ---
 
@@ -767,10 +769,10 @@ description: 一句话概括（显示在列表页）
 模块/功能完成后，必须做收尾，**不确定就问**（问站长“怎么做”）。
 
 **必做清单**：
-1. **该清的清理**：删一次性脚本/临时文件（如 `scripts/migrate/*.mjs`、`write_places.cjs` 残留）、`node_modules/.vite` 缓存验证、未用到的 `*.test.mjs`、废弃的 `category` frontmatter 残留 `grep -rn "category:" src/content/posts` 验证 0 命中
+1. **该清的清理**：删一次性脚本/临时文件（如 `scripts/migrate/*.mjs`、`write_places.cjs` 残留）、`node_modules/.vite` 缓存验证、未用到的 `*.test.mjs`、废弃的 `category` frontmatter 残留 `grep -rn "category:" src/content/posts` 验证 0 命中；新增的本地目录（`.superpowers/` 等）不在 `src` 则应进 `.gitignore`（2026-02 bills/schedules 教训）
 2. **该保留的保留**：保留可复用工具（如 `src/utils/category-tree.ts`）、保留 `docs/superpowers/plans/*.md` 计划文档、保留 `plug-in/` 插件的独立 git 历史
 3. **该问的就问**：删/留边界模糊时（如 `plug-in/Obsidian` 是否彻底废弃还是保留 no-op）、是否需要数据迁移二次校验、是否需要提醒用户 `Obsidian Ctrl+P 重载` / `FlClash 代理` 等，**不知道就问，不要猜**
-4. **文档同步**：同步 `CLAUDE.md` 第 2/16/21 节、`.pages.yml` 与 `src/content.config.ts` 对齐校验、`README` 涉及变动的
-5. **验证**：`pnpm build` + `pnpm check` + `pnpm exec biome ci ./src` 全绿，浏览器实测关键路径（分类页展开/叶子跳转、文章页面包屑、归档过滤）
+4. **文档同步**：同步 `CLAUDE.md` 第 2/16/18/21 节、`.pages.yml` 与 `src/content.config.ts` 对齐校验、`README` 涉及变动的
+5. **验证**：`pnpm build` + `pnpm check` + `pnpm exec biome ci ./src --reporter=github` 全绿（与 CI 完全一致，勿仅跑本地默认 reporter），浏览器实测关键路径（分类页展开/叶子跳转、文章页面包屑、归档过滤）
 
 **禁止**：做完功能不写 changelog、不清临时文件、静默推断用户意图。
