@@ -278,6 +278,35 @@ const daohangCollection = defineCollection({
 	}),
 });
 
+
+const billsCollection = defineCollection({
+	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/bills" }),
+	schema: z.object({
+		title: z.string().optional().default(""),
+		amount: z.number(),
+		type: z.enum(["income", "expense", "transfer"]).default("expense"),
+		category: z.string().default("其他"),
+		account: z.string().default("其他"),
+		date: z.coerce.date(),
+		description: z.string().optional().default(""),
+		tags: z.array(z.string()).optional().default([]),
+	}),
+});
+
+const schedulesCollection = defineCollection({
+	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/schedules" }),
+	schema: z.object({
+		title: z.string(),
+		date: z.coerce.date(),
+		endDate: z.coerce.date().optional(),
+		allDay: z.boolean().optional().default(false),
+		priority: z.enum(["none", "low", "medium", "high"]).default("none"),
+		status: z.enum(["todo", "done", "cancelled"]).default("todo"),
+		location: z.string().optional().default(""),
+		repeat: z.string().optional().default(""),
+	}),
+});
+
 const changelogCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/changelog" }),
 	schema: z.object({
@@ -303,4 +332,6 @@ export const collections = {
 	apps: appsCollection,
 	changelog: changelogCollection,
 	tombstones: tombstonesCollection,
+	bills: billsCollection,
+	schedules: schedulesCollection,
 };

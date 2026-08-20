@@ -807,6 +807,126 @@ content:
                 type: string
                 required: true
 
+  # ============================================================
+  # 💰 资金与日程（账单/日程）
+  # ============================================================
+  - name: bills-schedules
+    label: 💰 资金与日程
+    type: group
+    items:
+      - name: bills
+        label: 💰 账单
+        type: collection
+        path: src/content/bills
+        format: yaml-frontmatter
+        filename:
+          template: "{year}-{month}-{day}-{primary}.md"
+          field: create
+        view:
+          primary: date
+          fields: [date, category, account, amount, type]
+          sort: ["date desc"]
+        fields:
+          - name: title
+            label: 标题
+            type: string
+          - name: amount
+            label: 金额
+            type: number
+            required: true
+            description: 收入为正，支出为负
+          - name: type
+            label: 类型
+            type: select
+            default: expense
+            options:
+              values:
+                - { label: 支出, value: expense }
+                - { label: 收入, value: income }
+                - { label: 转账, value: transfer }
+          - name: category
+            label: 分类
+            type: string
+            default: 其他
+          - name: account
+            label: 账户
+            type: string
+            default: 其他
+          - name: date
+            label: 日期
+            type: date
+            required: true
+            options:
+              time: false
+              format: yyyy-MM-dd
+          - name: description
+            label: 备注
+            type: text
+          - name: tags
+            label: 标签
+            type: string
+            list: true
+      - name: schedules
+        label: 📅 日程
+        type: collection
+        path: src/content/schedules
+        format: yaml-frontmatter
+        filename:
+          template: "{year}-{month}-{day}-{primary}.md"
+          field: create
+        view:
+          primary: title
+          fields: [title, date, priority, status]
+          sort: ["date desc"]
+        fields:
+          - name: title
+            label: 标题
+            type: string
+            required: true
+          - name: date
+            label: 开始时间
+            type: date
+            required: true
+            options:
+              time: true
+              format: "yyyy-MM-dd HH:mm:ss"
+          - name: endDate
+            label: 结束时间
+            type: date
+            options:
+              time: true
+              format: "yyyy-MM-dd HH:mm:ss"
+          - name: allDay
+            label: 全天
+            type: boolean
+            default: false
+          - name: priority
+            label: 优先级
+            type: select
+            default: none
+            options:
+              values:
+                - { label: 无, value: none }
+                - { label: 低, value: low }
+                - { label: 中, value: medium }
+                - { label: 高, value: high }
+          - name: status
+            label: 状态
+            type: select
+            default: todo
+            options:
+              values:
+                - { label: 待办, value: todo }
+                - { label: 已完成, value: done }
+                - { label: 已取消, value: cancelled }
+          - name: location
+            label: 地点
+            type: string
+          - name: repeat
+            label: 重复
+            type: string
+            description: 如 每周 / 每月
+
 settings:
   content:
     merge: false

@@ -1,0 +1,48 @@
+---
+interface Props {
+	year: number;
+	month: number;
+	marks: Set<string>;
+	selected?: string;
+}
+const { year, month, marks, selected } = Astro.props;
+const first = new Date(year, month - 1, 1);
+const startWeek = first.getDay();
+const daysInMonth = new Date(year, month, 0).getDate();
+const cells: (number | null)[] = Array(startWeek)
+	.fill(null)
+	.concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
+while (cells.length % 7 !== 0) cells.push(null);
+const isToday = (d: number) => {
+	const now = new Date();
+	return (
+		now.getFullYear() === year &&
+		now.getMonth() + 1 === month &&
+		now.getDate() === d
+	);
+};
+const keyOf = (d: number) =>
+	`${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+---
+<div class="sched-cal">
+  <div class="sched-cal__head">{year}-{String(month).padStart(2,"0")}</div>
+  <div class="sched-cal__week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+  <div class="sched-cal__grid">
+    {cells.map(d => d===null ? <span class="sched-cal__cell is-empty"></span> : (
+      <button class:list={["sched-cal__cell", isToday(d) && "is-today", selected===keyOf(d) && "is-selected", marks.has(keyOf(d)) && "has-mark"]} data-date={keyOf(d)} type="button">{d}</button>
+    ))}
+  </div>
+</div>
+<style>
+@reference "../../styles/main.css";
+.sched-cal{ background: oklch(1 0 0 / 0.72); backdrop-filter: blur(22px) saturate(1.4); border:1px solid oklch(1 0 0 / 0.55); border-radius:0.75rem; padding:0.8rem; }
+:root.dark .sched-cal{ background: oklch(0.16 0 0 / 0.72); border-color: oklch(1 0 0 / 0.12); }
+.sched-cal__head{ font-weight:700; font-size:0.85rem; margin-bottom:0.5rem; }
+.sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); font-size:0.68rem; color:var(--guestbook-muted); text-align:center; margin-bottom:0.3rem; }
+.sched-cal__grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:0.25rem; }
+.sched-cal__cell{ aspect-ratio:1; border:1px solid transparent; border-radius:0.5rem; background:transparent; font-size:0.78rem; }
+.sched-cal__cell.has-mark{ border-color: var(--guestbook-line); }
+.sched-cal__cell.is-today{ border-color: oklch(0.7 0 0); }
+.sched-cal__cell.is-selected{ background: oklch(0.15 0 0); color:#fff; }
+:root.dark .sched-cal__cell.is-selected{ background:#fff; color:#111; }
+</style>

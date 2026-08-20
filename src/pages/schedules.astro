@@ -1,0 +1,43 @@
+---
+import { getCollection } from "astro:content";
+import ScheduleCalendar from "@/components/schedules/ScheduleCalendar.astro";
+import ScheduleList from "@/components/schedules/ScheduleList.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { calendarMarks, groupSchedulesByDay } from "@/utils/schedule-adapter";
+
+const schedules = await getCollection("schedules");
+const groups = groupSchedulesByDay(schedules);
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+const marks = calendarMarks(schedules, year, month);
+const selected = now.toISOString().slice(0, 10);
+const selectedItems = groups.get(selected) || [];
+const dateLabel = `${selected} · 周${"日一二三四五六"[now.getDay()]}`;
+---
+<MainGridLayout title="日程" description="日历与日程">
+  <div class="schedules-page">
+    <div class="schedules-grid">
+      <ScheduleCalendar year={year} month={month} marks={marks} selected={selected} />
+      <ScheduleList items={selectedItems} dateLabel={dateLabel} />
+    </div>
+  </div>
+</MainGridLayout>
+<script is:inline>
+(function(){
+  document.addEventListener("click", function(e){
+    var btn=e.target.closest(".sched-cal__cell[data-date]");
+    if(!btn) return;
+    var date=btn.getAttribute("data-date");
+    if(!date) return;
+    // Phase1 前端联动：仅高亮，完整联动在 Phase2 补
+    document.querySelectorAll(".sched-cal__cell.is-selected").forEach(function(el){ el.classList.remove("is-selected"); });
+    btn.classList.add("is-selected");
+  });
+})();
+</script>
+<style>
+.schedules-page{ padding:1rem 0 2rem; }
+.schedules-grid{ display:grid; grid-template-columns:1fr; gap:0.75rem; }
+@media(min-width:1024px){ .schedules-grid{ grid-template-columns:320px 1fr; gap:0.75rem; align-items:start; } }
+</style>

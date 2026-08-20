@@ -1,0 +1,45 @@
+---
+import { getCollection } from "astro:content";
+import BillCategoryDonut from "@/components/bills/BillCategoryDonut.astro";
+import BillList from "@/components/bills/BillList.astro";
+import BillStats from "@/components/bills/BillStats.astro";
+import BillTrendLine from "@/components/bills/BillTrendLine.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import {
+	billsByCategory,
+	calcBillStats,
+	groupBillsByDay,
+	monthlyTrend,
+} from "@/utils/bill-adapter";
+
+const bills = await getCollection("bills");
+const sorted = [...bills].sort(
+	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const stats = calcBillStats(sorted);
+const groups = groupBillsByDay(sorted);
+const cats = billsByCategory(sorted);
+const trend = monthlyTrend(sorted);
+---
+<MainGridLayout title="资金" description="账单与资金仪表盘">
+  <div class="bills-page">
+    <div class="bills-filters">
+      <span class="bills-filter">本月</span><span class="bills-filter">全年</span>
+      <span class="bills-filter">账户：全部</span>
+    </div>
+    <BillStats stats={stats} />
+    <div class="bills-charts">
+      <BillCategoryDonut data={cats} />
+      <BillTrendLine data={trend} />
+    </div>
+    <BillList groups={groups} />
+  </div>
+</MainGridLayout>
+
+<style>
+.bills-page{ display:flex; flex-direction:column; gap:1rem; padding:1rem 0 2rem; }
+.bills-filters{ display:flex; gap:0.5rem; }
+.bills-filter{ padding:0.3rem 0.7rem; border:1px solid var(--guestbook-line); border-radius:9999px; font-size:0.72rem; background: var(--page-bg); }
+.bills-charts{ display:grid; grid-template-columns:1fr; gap:0.75rem; }
+@media(min-width:1024px){ .bills-charts{ grid-template-columns:1fr 1fr; } }
+</style>

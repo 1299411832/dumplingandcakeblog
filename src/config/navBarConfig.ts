@@ -121,6 +121,18 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		});
 	}
 
+	// 资金与日程
+	links.push({
+		name: "资金",
+		url: "/bills/",
+		icon: "material-symbols:account-balance-wallet-outline",
+	});
+	links.push({
+		name: "日程",
+		url: "/schedules/",
+		icon: "material-symbols:calendar-today-outline",
+	});
+
 	// 关于及其子菜单
 	links.push({
 		name: "关于",
