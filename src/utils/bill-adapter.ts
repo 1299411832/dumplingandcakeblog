@@ -16,7 +16,7 @@ export function groupBillsByDay(
 	for (const e of sorted) {
 		const k = toDateKey(e.data.date);
 		if (!map.has(k)) map.set(k, []);
-		map.get(k)!.push(e);
+		map.get(k)?.push(e);
 	}
 	return map;
 }

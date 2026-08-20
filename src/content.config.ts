@@ -278,7 +278,6 @@ const daohangCollection = defineCollection({
 	}),
 });
 
-
 const billsCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/bills" }),
 	schema: z.object({
