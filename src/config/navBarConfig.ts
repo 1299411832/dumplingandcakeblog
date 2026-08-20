@@ -71,6 +71,11 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			},
 			// 朋友圈
 			LinkPreset.Circle,
+			{
+				name: "日程",
+				url: "/schedules/",
+				icon: "material-symbols:calendar-today-outline",
+			},
 		],
 	});
 
@@ -105,6 +110,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "/apps/",
 		icon: "material-symbols:apps",
 	});
+	// 资金
+	recordChildren.push({
+		name: "资金",
+		url: "/bills/",
+		icon: "material-symbols:account-balance-wallet-outline",
+	});
 
 	if (recordChildren.length > 0) {
 		const defaultUrl = siteConfig.pages.books
@@ -120,18 +131,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			children: recordChildren,
 		});
 	}
-
-	// 资金与日程
-	links.push({
-		name: "资金",
-		url: "/bills/",
-		icon: "material-symbols:account-balance-wallet-outline",
-	});
-	links.push({
-		name: "日程",
-		url: "/schedules/",
-		icon: "material-symbols:calendar-today-outline",
-	});
 
 	// 关于及其子菜单
 	links.push({
