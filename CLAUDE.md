@@ -729,5 +729,46 @@ Vercel（PagesCMS 实例，绑定 cms-origin.tsh520.cn）
    - 新增/删除配置、i18n 键、组件、页面、集合 → 更新对应章节的数字和清单
    - 升级/降级依赖 → 更新第 16 节技术栈版本
    - 发现新的坑/规范/反模式 → 写入对应章节（或第 15 节反模式清单）
+   - 完成模块/功能 → 按第 21 节更新 `changelog`，按第 22 节做收尾
 3. **新增规范**（本次添加）：文档不准确时（数字过时、功能删除等），及时修正，禁止"文档写的和实际不一致还照着做"
 4. **验证**：提交前跑 `pnpm build`；文档修改与代码修改在同一提交或相邻提交
+
+---
+
+## 21. 更新日志规范（新增 2026-08-20）
+
+`src/content/changelog/` 是面向用户的版本历史，**每完成一个模块/功能必须新增一条**，禁止攒到最后。
+
+**文件命名**：`YYYY-MM-DD-<kebab-case>.md`（如 `2026-08-20-folder-as-category.md`）
+
+**frontmatter**（`src/content.config.ts:281` `changelogCollection`）：
+```yaml
+---
+version: "v1.23.0"  # 递增：feature → minor，fix/improvement → patch，removal → minor
+date: 2026-08-20
+time: "16:30"       # 可选，同一天多条时区分
+type: feature       # feature | improvement | fix | removal
+description: 一句话概括（显示在列表页）
+---
+```
+
+**正文**：`## 标题` + bullet 列表，按“用户视角”写改了什么、怎么用，关联关键文件 `路径:行号`（如 `src/utils/category-tree.ts:17`）。
+
+**流程**：功能验证通过（`pnpm build` + `pnpm check`）→ 立即写 changelog → 与代码同提交或紧后提交 → `changelog` 页自动按 `date` 倒序展示。
+
+**反例**：功能已上线数周但 `changelog` 仍停留在旧版本（本次 audit 发现 2026-08-13 后无更新）。
+
+---
+
+## 22. 收尾工作规范（新增 2026-08-20）
+
+模块/功能完成后，必须做收尾，**不确定就问**（问站长“怎么做”）。
+
+**必做清单**：
+1. **该清的清理**：删一次性脚本/临时文件（如 `scripts/migrate/*.mjs`、`write_places.cjs` 残留）、`node_modules/.vite` 缓存验证、未用到的 `*.test.mjs`、废弃的 `category` frontmatter 残留 `grep -rn "category:" src/content/posts` 验证 0 命中
+2. **该保留的保留**：保留可复用工具（如 `src/utils/category-tree.ts`）、保留 `docs/superpowers/plans/*.md` 计划文档、保留 `plug-in/` 插件的独立 git 历史
+3. **该问的就问**：删/留边界模糊时（如 `plug-in/Obsidian` 是否彻底废弃还是保留 no-op）、是否需要数据迁移二次校验、是否需要提醒用户 `Obsidian Ctrl+P 重载` / `FlClash 代理` 等，**不知道就问，不要猜**
+4. **文档同步**：同步 `CLAUDE.md` 第 2/16/21 节、`.pages.yml` 与 `src/content.config.ts` 对齐校验、`README` 涉及变动的
+5. **验证**：`pnpm build` + `pnpm check` + `pnpm exec biome ci ./src` 全绿，浏览器实测关键路径（分类页展开/叶子跳转、文章页面包屑、归档过滤）
+
+**禁止**：做完功能不写 changelog、不清临时文件、静默推断用户意图。
