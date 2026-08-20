@@ -57,7 +57,7 @@ src/
 │   ├── misc/            # License, RelatedPosts, SharePoster (3)
 │   ├── moments/         # 动态卡片与评论弹窗
 │   ├── bills/         # 账单/资金（Phase1）
-│   ├── schedules/     # 日程（Phase1） (3, MomentCard + MomentsCover + MomentCommentChat 单频道 /moments/ + moment-quote 引用)
+│   ├── schedules/     # 日程（Phase1）
 │   ├── pages/           # 页面级组件：bangumi, books（Bookshelf/BookCard：3D 书本卡片 + 影视页同款胶囊筛选（分类+读过/在读/想读）+ ClientPagination 分页 8/6 本每页，SSR 隐藏非首页防闪烁）, movies-games, music (10)
 │   └── widget/          # 侧栏 Widget (27)
 ├── config/              # 站点配置（26 个 .ts，index.ts barrel export）
