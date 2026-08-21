@@ -38,7 +38,7 @@ let parsed = $derived(parseSchedules(schedules));
 let year = $state(initialYear);
 let month = $state(initialMonth);
 let selected = $state(initialSelected);
-let viewMode = $state<"month" | "week">("month");
+let viewMode = $state<"month" | "week">("week");
 
 // 从 URL 恢复（静态托管下 Astro.url 拿不到 query，需客户端校正）
 function syncFromUrl(): void {
@@ -296,26 +296,26 @@ onMount(() => {
 </script>
 
 <div class="schedules-inner">
-	<!-- 顶部：左上角图标+标题+描述，右上角周视图切换（与其他页面一致） -->
+	<!-- 顶部：图标+标题，描述与切换按钮同排（移动端不另起行） -->
 	<div class="schedules-header">
-		<div class="schedules-header__left">
-			<div class="flex items-center gap-2">
-				<span class="schedules-header__icon">
-					<Calendar size={28} strokeWidth={2} />
-				</span>
-				<h1 class="schedules-header__title">日历</h1>
-			</div>
-			<p class="schedules-header__desc">用日历管理你的日程、生日与纪念日，重要时刻一目了然</p>
+		<div class="schedules-header__top">
+			<span class="schedules-header__icon">
+				<Calendar size={28} strokeWidth={2} />
+			</span>
+			<h1 class="schedules-header__title">日历</h1>
 		</div>
-		<button class="schedules-view-toggle" type="button" onclick={toggleView} aria-label="切换视图" title={viewMode === "month" ? "切换为周视图" : "切换为月视图"}>
-			{#if viewMode === "month"}
-				<Rows3 size={16} />
-				<span>周视图</span>
-			{:else}
-				<LayoutGrid size={16} />
-				<span>月视图</span>
-			{/if}
-		</button>
+		<div class="schedules-header__bottom">
+			<p class="schedules-header__desc">用日历管理你的日程、生日与纪念日，重要时刻一目了然</p>
+			<button class="schedules-view-toggle" type="button" onclick={toggleView} aria-label="切换视图" title={viewMode === "month" ? "切换为周视图" : "切换为月视图"}>
+				{#if viewMode === "month"}
+					<Rows3 size={16} />
+					<span>周视图</span>
+				{:else}
+					<LayoutGrid size={16} />
+					<span>月视图</span>
+				{/if}
+			</button>
+		</div>
 	</div>
 
 	<div class="sched-cal" data-view={viewMode}>
@@ -464,13 +464,14 @@ onMount(() => {
 
 <style>
 @reference "../../styles/main.css";
-.schedules-header{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:0.8rem; }
-.schedules-header__left{ display:flex; flex-direction:column; gap:0.35rem; }
-.schedules-header__icon{ display:flex; align-items:center; justify-content:center; width:2.25rem; height:2.25rem; border:1.5px solid #111; border-radius:0.55rem; background:#fff; }
+.schedules-header{ display:flex; flex-direction:column; gap:0.45rem; margin-bottom:0.8rem; }
+.schedules-header__top{ display:flex; align-items:center; gap:0.55rem; }
+.schedules-header__bottom{ display:flex; align-items:center; justify-content:space-between; gap:0.8rem; }
+.schedules-header__icon{ display:flex; align-items:center; justify-content:center; width:2.25rem; height:2.25rem; border:1.5px solid #111; border-radius:0.55rem; background:#fff; flex-shrink:0; }
 :root.dark .schedules-header__icon{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
 .schedules-header__title{ font-size:1.875rem; line-height:1; font-weight:800; color: oklch(0.15 0 0); }
 :root.dark .schedules-header__title{ color:#fff; }
-.schedules-header__desc{ font-size:0.875rem; color:var(--guestbook-muted); line-height:1.5; margin:0; padding-left:0.1rem; }
+.schedules-header__desc{ flex:1; font-size:0.875rem; color:var(--guestbook-muted); line-height:1.5; margin:0; min-width:0; }
 .schedules-view-toggle{ display:inline-flex; align-items:center; gap:0.35rem; padding:0.45rem 0.75rem; border:1.5px solid #111; border-radius:9999px; background:#fff; font-size:0.78rem; font-weight:600; cursor:pointer; white-space:nowrap; transition: all 0.15s ease; }
 .schedules-view-toggle:hover{ background:#111; color:#fff; }
 :root.dark .schedules-view-toggle{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
@@ -511,15 +512,13 @@ onMount(() => {
   .sched-cal__day{ font-size:0.74rem; }
   .sched-cal__lunar{ font-size:0.58rem; }
   .sched-cal__event{ font-size:0.56rem; }
-  .schedules-header{ flex-direction:column; align-items:flex-start; }
-  .schedules-view-toggle{ align-self:flex-end; }
 }
 .schedules-inner{ display:flex; flex-direction:column; gap:0.9rem; }
 .schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
 .schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:stretch; width:min(100%, 720px); margin-inline:auto; }
 @media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
-/* 两个下方卡片：等高 + 分页，同日历卡片统一 1.5px #111 边框体系，且两侧与日历对齐 */
-.schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; height:100%; min-height:280px; }
+/* 两个下方卡片：等高 + 分页，纵向翻倍，同日历卡片统一 1.5px #111 边框体系，且两侧与日历对齐 */
+.schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; height:100%; min-height:560px; }
 :root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.18); }
 .schedules-panel__header{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.65rem 0.8rem; background:#fafafa; border-bottom:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .schedules-panel__header{ background: oklch(0.14 0 0); border-color: oklch(1 0 0 / 0.08); }
