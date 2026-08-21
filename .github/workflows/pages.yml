@@ -37,6 +37,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          PUBLIC_AMAP_KEY: ${{ secrets.PUBLIC_AMAP_KEY }}
+          PUBLIC_AMAP_KEY_PLACES: ${{ secrets.PUBLIC_AMAP_KEY_PLACES }}
+          PUBLIC_UMAMI_BASE: ${{ secrets.PUBLIC_UMAMI_BASE }}
+          PUBLIC_UMAMI_USERNAME: ${{ secrets.PUBLIC_UMAMI_USERNAME }}
+          PUBLIC_UMAMI_PASSWORD: ${{ secrets.PUBLIC_UMAMI_PASSWORD }}
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ secrets.PUBLIC_UMAMI_WEBSITE_ID }}
+          PUBLIC_WALINE_SERVER: ${{ secrets.PUBLIC_WALINE_SERVER }}
+          PUBLIC_IMAGEBED_URL: ${{ secrets.PUBLIC_IMAGEBED_URL }}
+          PUBLIC_IMAGEBED_AUTH_CODE: ${{ secrets.PUBLIC_IMAGEBED_AUTH_CODE }}
+          PUBLIC_IMAGEBED_FOLDER: ${{ secrets.PUBLIC_IMAGEBED_FOLDER }}
+          PUBLIC_IMAGEBED_API_TOKEN: ${{ secrets.PUBLIC_IMAGEBED_API_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
