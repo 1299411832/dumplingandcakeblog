@@ -40,7 +40,7 @@ let month = $state(initialMonth);
 let selected = $state(initialSelected);
 let viewMode = $state<"month" | "week">("week");
 
-// 从 URL 恢复（静态托管下 Astro.url 拿不到 query，需客户端校正）
+// 从 URL 恢复（静态托管下 Astro.url 拿不到 query，需客户端校正；无参时默认今天）
 function syncFromUrl(): void {
 	if (typeof window === "undefined") return;
 	const params = new URLSearchParams(window.location.search);
@@ -49,6 +49,11 @@ function syncFromUrl(): void {
 	const qd = params.get("d");
 	const qv = params.get("view");
 	if (qv === "week" || qv === "month") viewMode = qv;
+	// 无 y/m 时用今天的年月，避免构建时的旧月份
+	const today = new Date();
+	const todayY = today.getFullYear();
+	const todayM = today.getMonth() + 1;
+	const todayD = `${todayY}-${String(todayM).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 	let hasUrlMonth = false;
 	if (qy && qm) {
 		const y = Number.parseInt(qy);
@@ -58,11 +63,15 @@ function syncFromUrl(): void {
 			month = m;
 			hasUrlMonth = true;
 		}
+	} else {
+		year = todayY;
+		month = todayM;
 	}
 	if (qd) {
 		if (/^\d{4}-\d{2}-\d{2}$/.test(qd)) selected = qd;
-	} else if (hasUrlMonth) {
-		// 保留当前 selected
+	} else {
+		// 无 d 时默认今天，避免选中昨天
+		selected = todayD;
 	}
 }
 
@@ -179,9 +188,31 @@ let allForSelected = $derived(eventsByDate.get(selected) || []);
 let todaySchedules = $derived(
 	allForSelected.filter((e) => e.data.category === "schedule"),
 );
+let todayHolidays = $derived(
+	allForSelected.filter((e) => e.data.category === "holiday"),
+);
 let todayFestivals = $derived(
 	allForSelected.filter((e) => e.data.category !== "schedule"),
 );
+// 生日/纪念日展示全年（按当前日历年份），节假日仅当天
+let yearBirthdays = $derived.by(() => {
+	const list = parsed.filter((e) => e.data.category === "birthday" || e.data.category === "anniversary");
+	// 按年份过滤到当前日历年，若当年无则回退展示全部年份的生日
+	const byYear = list.filter((e) => e.data.date.getFullYear() === year);
+	const src = byYear.length > 0 ? byYear : list;
+	return [...src].sort((a, b) => {
+		const am = a.data.date.getMonth(), ad = a.data.date.getDate();
+		const bm = b.data.date.getMonth(), bd = b.data.date.getDate();
+		if (am !== bm) return am - bm;
+		if (ad !== bd) return ad - bd;
+		return a.data.title.localeCompare(b.data.title, "zh-CN");
+	});
+});
+let displayFestivals = $derived.by(() => {
+	// 节假日仅当天且需 isRecent， 生日全年常显
+	const holidays = isRecent ? todayHolidays : [];
+	return [...holidays, ...yearBirthdays];
+});
 
 // 分页：两卡片等高，多余数据分页
 const PAGE_SIZE_SCHEDULE = 4;
@@ -192,7 +223,7 @@ let scheduleTotalPages = $derived(
 	Math.max(1, Math.ceil(todaySchedules.length / PAGE_SIZE_SCHEDULE)),
 );
 let festivalTotalPages = $derived(
-	Math.max(1, Math.ceil(todayFestivals.length / PAGE_SIZE_FESTIVAL)),
+	Math.max(1, Math.ceil(displayFestivals.length / PAGE_SIZE_FESTIVAL)),
 );
 let paginatedSchedules = $derived(
 	todaySchedules.slice(
@@ -201,7 +232,7 @@ let paginatedSchedules = $derived(
 	),
 );
 let paginatedFestivals = $derived(
-	todayFestivals.slice(
+	displayFestivals.slice(
 		(festivalPage - 1) * PAGE_SIZE_FESTIVAL,
 		festivalPage * PAGE_SIZE_FESTIVAL,
 	),
@@ -214,7 +245,7 @@ $effect(() => {
 });
 $effect(() => {
 	void selected;
-	void todayFestivals.length;
+	void displayFestivals.length;
 	festivalPage = 1;
 });
 
@@ -447,19 +478,17 @@ onMount(() => {
 					<span class="schedules-panel__icon schedules-panel__icon--festival"><Cake size={16} strokeWidth={2.2} /></span>
 					<h3 class="schedules-panel__title">生日 · 纪念日 · 节假日</h3>
 				</div>
-				<span class="schedules-panel__count schedules-panel__count--festival">{todayFestivals.length}</span>
+				<span class="schedules-panel__count schedules-panel__count--festival">{displayFestivals.length}</span>
 			</div>
 			<div class="schedules-panel__body">
-				{#if !isRecent}
-					<p class="schedules-panel__empty">已收起，仅在日历中标记</p>
-				{:else if todayFestivals.length === 0}
-					<p class="schedules-panel__empty">今日无生日/纪念日</p>
+				{#if displayFestivals.length === 0}
+					<p class="schedules-panel__empty">暂无生日/纪念日</p>
 				{:else}
 					{#each paginatedFestivals as e}
-						<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
+						<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title} · {String(e.data.date.getMonth()+1).padStart(2,"0")}-{String(e.data.date.getDate()).padStart(2,"0")}</span></div>
 					{/each}
 				{/if}
-				{#if isRecent && festivalTotalPages > 1}
+				{#if festivalTotalPages > 1}
 					<div class="schedules-panel__pagination">
 						<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === 1} onclick={() => (festivalPage = Math.max(1, festivalPage - 1))}>‹</button>
 						<span class="schedules-panel__page-info">{festivalPage} / {festivalTotalPages}</span>
