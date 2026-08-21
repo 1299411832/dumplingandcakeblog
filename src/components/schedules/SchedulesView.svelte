@@ -392,7 +392,7 @@ onMount(() => {
 								<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar">{lunar}</small></span>
 								<span class="sched-cal__events">
 									{#each dayEvents.slice(0, 2) as e}
-										<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} title={e.data.title}>{e.data.title}</span>
+										<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} class:is-anniversary={e.data.category === "anniversary"} class:is-schedule={e.data.category === "schedule"} title={e.data.title}>{e.data.title}</span>
 									{/each}
 									{#if dayEvents.length > 2}<span class="sched-cal__more">+{dayEvents.length - 2}</span>{/if}
 								</span>
@@ -419,7 +419,7 @@ onMount(() => {
 							<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar">{lunar}</small></span>
 							<span class="sched-cal__events">
 								{#each dayEvents.slice(0, 2) as e}
-									<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} title={e.data.title}>{e.data.title}</span>
+									<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} class:is-anniversary={e.data.category === "anniversary"} class:is-schedule={e.data.category === "schedule"} title={e.data.title}>{e.data.title}</span>
 								{/each}
 								{#if dayEvents.length > 2}<span class="sched-cal__more">+{dayEvents.length - 2}</span>{/if}
 							</span>
@@ -541,10 +541,16 @@ onMount(() => {
 .sched-cal__day{ font-size:0.82rem; font-weight:700; }
 .sched-cal__lunar{ color:var(--guestbook-muted); font-size:0.62rem; }
 .sched-cal__events{ display:flex; flex-direction:column; gap:0.15rem; min-height:1.6rem; }
-.sched-cal__event{ font-size:0.62rem; line-height:1.2; padding:0.1rem 0.25rem; border-radius:0.25rem; background: oklch(0.96 0 0); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.sched-cal__event.is-holiday{ background: #fef2f2; color:#dc2626; }
-.sched-cal__event.is-birthday{ background: #fef9c3; }
-:root.dark .sched-cal__event{ background: oklch(0.22 0 0); }
+.sched-cal__event{ font-size:0.62rem; line-height:1.2; padding:0.1rem 0.25rem; border-radius:0.25rem; background: oklch(0.96 0 0); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid transparent; }
+.sched-cal__event.is-schedule{ background: #dbeafe; color:#1d4ed8; border-color:#93c5fd; }
+.sched-cal__event.is-holiday{ background: #fef2f2; color:#dc2626; border-color:#fecaca; }
+.sched-cal__event.is-birthday{ background: #fef9c3; color:#a16207; border-color:#fde68a; }
+.sched-cal__event.is-anniversary{ background: #fce7f3; color:#be185d; border-color:#f9a8d4; }
+:root.dark .sched-cal__event{ background: oklch(0.22 0 0); border-color: oklch(1 0 0 / 0.08); color: oklch(0.9 0 0); }
+:root.dark .sched-cal__event.is-schedule{ background: oklch(0.22 0.6 250 / 0.35); color:#93c5fd; border-color: oklch(0.4 0.2 250 / 0.3); }
+:root.dark .sched-cal__event.is-holiday{ background: oklch(0.22 0.2 25 / 0.35); color:#fca5a5; border-color: oklch(0.4 0.2 25 / 0.3); }
+:root.dark .sched-cal__event.is-birthday{ background: oklch(0.25 0.15 80 / 0.3); color:#fde68a; border-color: oklch(0.4 0.15 80 / 0.3); }
+:root.dark .sched-cal__event.is-anniversary{ background: oklch(0.22 0.2 330 / 0.3); color:#f9a8d4; border-color: oklch(0.4 0.2 330 / 0.3); }
 .sched-cal__more{ font-size:0.6rem; color:var(--guestbook-muted); }
 @media(max-width:768px){
   .sched-cal__day{ font-size:0.74rem; }
