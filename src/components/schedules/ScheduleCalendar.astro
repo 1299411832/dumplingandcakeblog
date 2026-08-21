@@ -3,55 +3,44 @@ import { lunarLabel } from "@/utils/lunar";
 import type { ScheduleEntry } from "@/utils/schedule-adapter";
 
 interface Props {
-	year: number;
-	month: number;
-	selected?: string;
-	events: Map<string, ScheduleEntry[]>;
+  year: number;
+  month: number;
+  selected?: string;
+  events: Map<string, ScheduleEntry[]>;
 }
 const { year, month, selected, events } = Astro.props;
 const first = new Date(year, month - 1, 1);
 const startWeek = first.getDay();
+// 固定 4 行 x 7 列 = 28 格，紧贴参考图的 4 周完整展示（不做滚动分页）
 const daysInMonth = new Date(year, month, 0).getDate();
 const prevMonthDays = new Date(year, month - 1, 0).getDate();
 const cells: { day: number; inMonth: boolean; dateStr: string }[] = [];
 for (let i = startWeek - 1; i >= 0; i--) {
-	const d = prevMonthDays - i;
-	const pm = month === 1 ? 12 : month - 1;
-	const py = month === 1 ? year - 1 : year;
-	cells.push({
-		day: d,
-		inMonth: false,
-		dateStr: `${py}-${String(pm).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
-	});
+  const d = prevMonthDays - i;
+  const pm = month === 1 ? 12 : month - 1;
+  const py = month === 1 ? year - 1 : year;
+  cells.push({ day: d, inMonth: false, dateStr: `${py}-${String(pm).padStart(2,"0")}-${String(d).padStart(2,"0")}` });
 }
 for (let d = 1; d <= daysInMonth; d++) {
-	cells.push({
-		day: d,
-		inMonth: true,
-		dateStr: `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
-	});
+  cells.push({ day: d, inMonth: true, dateStr: `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}` });
 }
-let nextDay = 1;
-while (cells.length % 7 !== 0) {
-	const nm = month === 12 ? 1 : month + 1;
-	const ny = month === 12 ? year + 1 : year;
-	cells.push({
-		day: nextDay,
-		inMonth: false,
-		dateStr: `${ny}-${String(nm).padStart(2, "0")}-${String(nextDay).padStart(2, "0")}`,
-	});
-	nextDay++;
+// 补齐到整 28 格（4 周），超出则截断，多余不展示，保持固定的 4x7
+while (cells.length < 28) {
+  const nextIdx = cells.length - (startWeek + daysInMonth);
+  const d = nextIdx + 1;
+  const nm = month === 12 ? 1 : month + 1;
+  const ny = month === 12 ? year + 1 : year;
+  cells.push({ day: d, inMonth: false, dateStr: `${ny}-${String(nm).padStart(2,"0")}-${String(d).padStart(2,"0")}` });
 }
+const visibleCells = cells.slice(0, 28);
 const now = new Date();
-const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-const rows: (typeof cells)[] = [];
-for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+const rows: typeof visibleCells[] = [];
+for (let i = 0; i < visibleCells.length; i += 7) rows.push(visibleCells.slice(i, i + 7));
 ---
 <div class="sched-cal">
   <div class="sched-cal__header">
-    <button class="sched-cal__nav" data-cal-nav="prev" type="button" aria-label="上个月">‹</button>
     <h2 class="sched-cal__title">{year}年 {month}月</h2>
-    <button class="sched-cal__nav" data-cal-nav="next" type="button" aria-label="下个月">›</button>
   </div>
   <div class="sched-cal__week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
   <div class="sched-cal__grid">
@@ -86,11 +75,9 @@ for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
 @reference "../../styles/main.css";
 .sched-cal{ border:1.5px solid #111; border-radius:0.75rem; overflow:hidden; background: #fff; }
 :root.dark .sched-cal{ border-color: oklch(1 0 0 / 0.18); background: oklch(0.16 0 0 / 0.86); }
-.sched-cal__header{ display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.8rem; border-bottom:1px solid oklch(0 0 0 / 0.12); }
+.sched-cal__header{ display:flex; align-items:center; justify-content:center; padding:0.6rem 0.8rem; border-bottom:1px solid oklch(0 0 0 / 0.12); }
 :root.dark .sched-cal__header{ border-color: oklch(1 0 0 / 0.12); }
 .sched-cal__title{ font-size:0.95rem; font-weight:800; }
-.sched-cal__nav{ width:2rem; height:2rem; border:1.5px solid #111; border-radius:0.45rem; background:#fff; font-size:1.1rem; line-height:1; }
-:root.dark .sched-cal__nav{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
 .sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:0.72rem; color:var(--guestbook-muted); padding:0.4rem 0; border-bottom:1px solid oklch(0 0 0 / 0.08); }
 .sched-cal__grid{ display:flex; flex-direction:column; }
 .sched-cal__row{ display:grid; grid-template-columns:repeat(7,1fr); }
