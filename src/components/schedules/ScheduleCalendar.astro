@@ -85,13 +85,14 @@ for (let i = 0; i < visibleCells.length; i += 7)
 </div>
 <style>
 @reference "../../styles/main.css";
-.sched-cal{ border:1.5px solid #111; border-radius:0.75rem; overflow:hidden; background: #fff; }
+.sched-cal{ border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; background: #fff; padding:0.7rem; }
 :root.dark .sched-cal{ border-color: oklch(1 0 0 / 0.18); background: oklch(0.16 0 0 / 0.86); }
-.sched-cal__header{ display:flex; align-items:center; justify-content:center; padding:0.6rem 0.8rem; border-bottom:1px solid oklch(0 0 0 / 0.12); }
+.sched-cal__header{ display:flex; align-items:center; justify-content:center; padding:0.3rem 0.2rem 0.55rem; border-bottom:none; }
 :root.dark .sched-cal__header{ border-color: oklch(1 0 0 / 0.12); }
 .sched-cal__title{ font-size:0.95rem; font-weight:800; }
-.sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:0.72rem; color:var(--guestbook-muted); padding:0.4rem 0; border-bottom:1px solid oklch(0 0 0 / 0.08); }
-.sched-cal__grid{ display:flex; flex-direction:column; }
+.sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:0.72rem; color:var(--guestbook-muted); padding:0.45rem 0.2rem; }
+.sched-cal__grid{ display:flex; flex-direction:column; border:1px solid oklch(0 0 0 / 0.12); border-radius:0.6rem; overflow:hidden; background:#fff; }
+:root.dark .sched-cal__grid{ border-color: oklch(1 0 0 / 0.12); background: transparent; }
 .sched-cal__row{ display:grid; grid-template-columns:repeat(7,1fr); }
 .sched-cal__row + .sched-cal__row{ border-top:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .sched-cal__row + .sched-cal__row{ border-color: oklch(1 0 0 / 0.08); }
