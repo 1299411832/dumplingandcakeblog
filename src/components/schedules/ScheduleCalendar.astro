@@ -11,7 +11,6 @@ interface Props {
 const { year, month, selected, events } = Astro.props;
 const first = new Date(year, month - 1, 1);
 const startWeek = first.getDay();
-// 固定 4 行 x 7 列 = 28 格，紧贴参考图的 4 周完整展示（不做滚动分页）
 const daysInMonth = new Date(year, month, 0).getDate();
 const prevMonthDays = new Date(year, month - 1, 0).getDate();
 const cells: { day: number; inMonth: boolean; dateStr: string }[] = [];
@@ -24,15 +23,15 @@ for (let i = startWeek - 1; i >= 0; i--) {
 for (let d = 1; d <= daysInMonth; d++) {
   cells.push({ day: d, inMonth: true, dateStr: `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}` });
 }
-// 补齐到整 28 格（4 周），超出则截断，多余不展示，保持固定的 4x7
-while (cells.length < 28) {
+// 固定 6 行 x 7 列 = 42 格，正方形铺满
+while (cells.length < 42) {
   const nextIdx = cells.length - (startWeek + daysInMonth);
   const d = nextIdx + 1;
   const nm = month === 12 ? 1 : month + 1;
   const ny = month === 12 ? year + 1 : year;
   cells.push({ day: d, inMonth: false, dateStr: `${ny}-${String(nm).padStart(2,"0")}-${String(d).padStart(2,"0")}` });
 }
-const visibleCells = cells.slice(0, 28);
+const visibleCells = cells.slice(0, 42);
 const now = new Date();
 const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 const rows: typeof visibleCells[] = [];
@@ -83,7 +82,7 @@ for (let i = 0; i < visibleCells.length; i += 7) rows.push(visibleCells.slice(i,
 .sched-cal__row{ display:grid; grid-template-columns:repeat(7,1fr); }
 .sched-cal__row + .sched-cal__row{ border-top:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .sched-cal__row + .sched-cal__row{ border-color: oklch(1 0 0 / 0.08); }
-.sched-cal__cell{ min-height:5.2rem; padding:0.3rem 0.35rem; text-align:left; border-right:1px solid oklch(0 0 0 / 0.08); background:#fff; display:flex; flex-direction:column; gap:0.2rem; }
+.sched-cal__cell{ aspect-ratio:1; padding:0.32rem 0.36rem; text-align:left; border-right:1px solid oklch(0 0 0 / 0.08); background:#fff; display:flex; flex-direction:column; gap:0.2rem; overflow:hidden; }
 .sched-cal__cell:last-child{ border-right:none; }
 :root.dark .sched-cal__cell{ background: transparent; border-color: oklch(1 0 0 / 0.06); }
 .sched-cal__cell.is-outside{ color:#9ca3af; background: #fafafa; }
@@ -101,7 +100,6 @@ for (let i = 0; i < visibleCells.length; i += 7) rows.push(visibleCells.slice(i,
 :root.dark .sched-cal__event{ background: oklch(0.22 0 0); }
 .sched-cal__more{ font-size:0.6rem; color:var(--guestbook-muted); }
 @media(max-width:768px){
-  .sched-cal__cell{ min-height:3.8rem; padding:0.2rem; }
   .sched-cal__day{ font-size:0.74rem; }
   .sched-cal__lunar{ font-size:0.58rem; }
   .sched-cal__event{ font-size:0.56rem; }
