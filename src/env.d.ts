@@ -31,4 +31,6 @@ declare global {
 	}
 }
 
+declare module "lunar-javascript";
+
 export {};

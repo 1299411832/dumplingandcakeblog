@@ -122,6 +122,9 @@ importers:
       lucide-svelte:
         specifier: 0.469.0
         version: 0.469.0(svelte@5.56.8)
+      lunar-javascript:
+        specifier: ^1.7.7
+        version: 1.7.7
       marked:
         specifier: ^16.4.2
         version: 16.4.2
@@ -3940,6 +3943,9 @@ packages:
     resolution: {integrity: sha512-PMIJ8jrFqVUsXJz4d1yfAQplaGhNOahwwkzbunha8DhpiD73xqX24n8dE1dPpUk3vcrdWVsHc1y/liHHotOnGQ==}
     peerDependencies:
       svelte: ^3 || ^4 || ^5.0.0-next.42
+
+  lunar-javascript@1.7.7:
+    resolution: {integrity: sha512-u/KYiwPIBo/0bT+WWfU7qO1d+aqeB90Tuy4ErXenr2Gam0QcWeezUvtiOIyXR7HbVnW2I1DKfU0NBvzMZhbVQw==}
 
   magic-string@0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
@@ -10158,6 +10164,8 @@ snapshots:
   lucide-svelte@0.469.0(svelte@5.56.8):
     dependencies:
       svelte: 5.56.8
+
+  lunar-javascript@1.7.7: {}
 
   magic-string@0.25.9:
     dependencies:

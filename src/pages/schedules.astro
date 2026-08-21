@@ -11,16 +11,25 @@ const url = Astro.url;
 const qy = url.searchParams.get("y");
 const qm = url.searchParams.get("m");
 const now = new Date();
-let year = qy ? parseInt(qy) : now.getFullYear();
-let month = qm ? parseInt(qm) : now.getMonth() + 1;
-if (!(month >= 1 && month <= 12)) { year = now.getFullYear(); month = now.getMonth() + 1; }
+let year = qy ? Number.parseInt(qy) : now.getFullYear();
+let month = qm ? Number.parseInt(qm) : now.getMonth() + 1;
+if (!(month >= 1 && month <= 12)) {
+	year = now.getFullYear();
+	month = now.getMonth() + 1;
+}
 const selected = url.searchParams.get("d") || now.toISOString().slice(0, 10);
 const allForSelected = events.get(selected) || [];
-const todaySchedules = allForSelected.filter((e) => e.data.category === "schedule");
-const todayFestivals = allForSelected.filter((e) => e.data.category !== "schedule");
+const todaySchedules = allForSelected.filter(
+	(e) => e.data.category === "schedule",
+);
+const todayFestivals = allForSelected.filter(
+	(e) => e.data.category !== "schedule",
+);
 const selDate = new Date(selected);
 const dateLabel = `${selected} · 周${"日一二三四五六"[selDate.getDay()]}`;
-const festivalLabel = todayFestivals.length ? todayFestivals.map((e) => e.data.title).join("、") : "";
+const festivalLabel = todayFestivals.length
+	? todayFestivals.map((e) => e.data.title).join("、")
+	: "";
 ---
 <MainGridLayout title="日程" description="日历与日程">
   <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">

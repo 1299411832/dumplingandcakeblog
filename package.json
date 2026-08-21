@@ -60,6 +60,7 @@
     "hastscript": "^9.0.1",
     "katex": "^0.16.28",
     "lucide-svelte": "0.469.0",
+    "lunar-javascript": "^1.7.7",
     "marked": "^16.4.2",
     "mdast-util-to-string": "^4.0.0",
     "node-html-parser": "^7.0.2",

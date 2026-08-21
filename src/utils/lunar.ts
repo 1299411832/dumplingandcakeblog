@@ -1,35 +1,5 @@
-const LUNAR_DAYS = [
-	"初一",
-	"初二",
-	"初三",
-	"初四",
-	"初五",
-	"初六",
-	"初七",
-	"初八",
-	"初九",
-	"初十",
-	"十一",
-	"十二",
-	"十三",
-	"十四",
-	"十五",
-	"十六",
-	"十七",
-	"十八",
-	"十九",
-	"二十",
-	"廿一",
-	"廿二",
-	"廿三",
-	"廿四",
-	"廿五",
-	"廿六",
-	"廿七",
-	"廿八",
-	"廿九",
-	"三十",
-];
+import { Solar } from "lunar-javascript";
+
 // 公历固定节日（MM-DD）
 const SOLAR_FESTIVALS: Record<string, string> = {
 	"01-01": "元旦",
@@ -42,95 +12,45 @@ const SOLAR_FESTIVALS: Record<string, string> = {
 	"10-01": "国庆节",
 	"12-25": "圣诞节",
 };
-// 2026 年农历/节日精确映射（保证与参考图一致：19 七夕，21 初九）
-const LUNAR_FESTIVALS_2026: Record<string, string> = {
-	"2026-02-17": "春节",
-	"2026-03-03": "龙抬头",
-	"2026-05-31": "端午",
-	"2026-08-19": "七夕",
-	"2026-09-25": "中秋",
-	"2026-10-26": "重阳",
-};
-// 按月精确的农历日映射（覆盖近似，避免 8 月初六/初九偏差）
-const LUNAR_BY_DATE: Record<string, string> = {
-	"2026-02-01": "十三",
-	"2026-02-02": "十四",
-	"2026-02-03": "十五",
-	"2026-02-04": "十六",
-	"2026-02-05": "十七",
-	"2026-02-06": "十八",
-	"2026-02-07": "十九",
-	"2026-02-08": "二十",
-	"2026-02-09": "初九",
-	"2026-02-10": "初十",
-	"2026-02-11": "十一",
-	"2026-02-12": "十二",
-	"2026-02-13": "十三",
-	"2026-02-14": "十四",
-	"2026-02-15": "十五",
-	"2026-02-16": "十六",
-	"2026-02-17": "春节",
-	"2026-02-18": "初二",
-	"2026-02-19": "初三",
-	"2026-02-20": "初四",
-	"2026-02-21": "初五",
-	"2026-02-22": "初六",
-	"2026-02-23": "初七",
-	"2026-02-24": "初八",
-	"2026-02-25": "初九",
-	"2026-02-26": "初十",
-	"2026-02-27": "十一",
-	"2026-02-28": "十二",
-	"2026-08-01": "初八",
-	"2026-08-02": "初九",
-	"2026-08-03": "初十",
-	"2026-08-04": "十一",
-	"2026-08-05": "十二",
-	"2026-08-06": "十三",
-	"2026-08-07": "十四",
-	"2026-08-08": "十五",
-	"2026-08-09": "十六",
-	"2026-08-10": "十七",
-	"2026-08-11": "十八",
-	"2026-08-12": "十九",
-	"2026-08-13": "二十",
-	"2026-08-14": "廿一",
-	"2026-08-15": "廿二",
-	"2026-08-16": "廿三",
-	"2026-08-17": "廿四",
-	"2026-08-18": "廿五",
-	"2026-08-19": "七夕",
-	"2026-08-20": "廿七",
-	"2026-08-21": "初九",
-	"2026-08-22": "初十",
-	"2026-08-23": "十一",
-	"2026-08-24": "十二",
-	"2026-08-25": "十三",
-	"2026-08-26": "十四",
-	"2026-08-27": "十五",
-	"2026-08-28": "十六",
-	"2026-08-29": "十七",
-	"2026-08-30": "十八",
-	"2026-08-31": "十九",
+
+// 农历节日别名：lunar-javascript 返回带“节”后缀的，统一成项目历史文案（不带节更紧凑，且与旧图一致）
+const LUNAR_FESTIVAL_ALIAS: Record<string, string> = {
+	龙头节: "龙抬头",
+	七夕节: "七夕",
+	端午节: "端午",
+	中秋节: "中秋",
+	重阳节: "重阳",
 };
 
-function solarToLunarDay(year: number, month: number, day: number): string {
-	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	if (LUNAR_BY_DATE[key]) return LUNAR_BY_DATE[key]!;
-	const anchor = new Date(2026, 1, 17).getTime();
-	const cur = new Date(year, month - 1, day).getTime();
-	const diff = Math.round((cur - anchor) / 86400000);
-	const idx = ((diff % 30) + 30) % 30;
-	return LUNAR_DAYS[idx];
+function getLunarFestival(
+	year: number,
+	month: number,
+	day: number,
+): string | null {
+	try {
+		const solar = Solar.fromYmd(year, month, day);
+		const festivals = solar.getLunar().getFestivals();
+		if (festivals.length > 0) {
+			const raw = festivals[0] as string;
+			return LUNAR_FESTIVAL_ALIAS[raw] ?? raw;
+		}
+		return null;
+	} catch {
+		return null;
+	}
 }
 
 export function lunarLabel(year: number, month: number, day: number): string {
-	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	if (LUNAR_FESTIVALS_2026[key]) return LUNAR_FESTIVALS_2026[key]!;
-	if (LUNAR_BY_DATE[key]) return LUNAR_BY_DATE[key]!;
+	const lunarFest = getLunarFestival(year, month, day);
+	if (lunarFest) return lunarFest;
 	const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 	if (SOLAR_FESTIVALS[md]) return SOLAR_FESTIVALS[md];
-	return solarToLunarDay(year, month, day);
+	try {
+		const solar = Solar.fromYmd(year, month, day);
+		return solar.getLunar().getDayInChinese();
+	} catch {
+		return "";
+	}
 }
 
 export function holidayLabel(month: number, day: number): string | null {
@@ -143,6 +63,5 @@ export function lunarFestivalForDate(
 	month: number,
 	day: number,
 ): string | null {
-	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	return LUNAR_FESTIVALS_2026[key] || null;
+	return getLunarFestival(year, month, day);
 }
