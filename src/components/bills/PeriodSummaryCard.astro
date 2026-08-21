@@ -1,15 +1,36 @@
 ---
 interface Props {
-  today: { income: number; expense: number; label: string };
-  month: { income: number; expense: number; label: string };
-  year: { income: number; expense: number; label: string };
+	today: { income: number; expense: number; label: string };
+	month: { income: number; expense: number; label: string };
+	year: { income: number; expense: number; label: string };
 }
 const { today, month, year } = Astro.props;
 const fmt = (n: number) => n.toFixed(2);
 const rows = [
-  { key: "今天", sub: today.label, income: today.income, expense: today.expense, icon: "▤", iconClass: "icon--today" },
-  { key: "本月", sub: month.label, income: month.income, expense: month.expense, icon: "▦", iconClass: "icon--month" },
-  { key: "本年", sub: year.label, income: year.income, expense: year.expense, icon: "▧", iconClass: "icon--year" },
+	{
+		key: "今天",
+		sub: today.label,
+		income: today.income,
+		expense: today.expense,
+		icon: "▤",
+		iconClass: "icon--today",
+	},
+	{
+		key: "本月",
+		sub: month.label,
+		income: month.income,
+		expense: month.expense,
+		icon: "▦",
+		iconClass: "icon--month",
+	},
+	{
+		key: "本年",
+		sub: year.label,
+		income: year.income,
+		expense: year.expense,
+		icon: "▧",
+		iconClass: "icon--year",
+	},
 ];
 ---
 <div class="period-card">

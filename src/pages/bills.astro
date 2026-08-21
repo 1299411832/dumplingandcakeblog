@@ -8,15 +8,17 @@ import NetAssetCard from "@/components/bills/NetAssetCard.astro";
 import PeriodSummaryCard from "@/components/bills/PeriodSummaryCard.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import {
-  calcBillStats,
-  categoryExpenseRank,
-  categoryIncomeList,
-  dailyIncomeExpense,
-  getTodayMonthYearStats,
+	calcBillStats,
+	categoryExpenseRank,
+	categoryIncomeList,
+	dailyIncomeExpense,
+	getTodayMonthYearStats,
 } from "@/utils/bill-adapter";
 
 const bills = await getCollection("bills");
-const sorted = [...bills].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const sorted = [...bills].sort(
+	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
 const stats = calcBillStats(sorted);
 const now = new Date();
 // 固定用当前本地时间计算周期统计（图中为 2026-08-21，本月 08-01~08-31，本年 2026）

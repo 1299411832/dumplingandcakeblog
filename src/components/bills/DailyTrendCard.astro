@@ -1,23 +1,31 @@
 ---
 interface Props {
-  year: number;
-  month: number;
-  data: { day: string; income: number; expense: number }[];
+	year: number;
+	month: number;
+	data: { day: string; income: number; expense: number }[];
 }
 const { year, month, data } = Astro.props;
-const maxVal = Math.max(...data.map(d => Math.max(d.income, d.expense)), 1);
+const maxVal = Math.max(...data.map((d) => Math.max(d.income, d.expense)), 1);
 const width = 640;
 const height = 180;
 const pad = { l: 28, r: 12, t: 12, b: 22 };
 const innerW = width - pad.l - pad.r;
 const innerH = height - pad.t - pad.b;
-function xFor(i: number){ return pad.l + (innerW / Math.max(1, data.length-1)) * i; }
-function yFor(v: number){ return pad.t + innerH - (v / maxVal) * innerH; }
-const incomePoints = data.map((d,i)=> `${xFor(i)},${yFor(d.income)}`).join(" ");
-const expensePoints = data.map((d,i)=> `${xFor(i)},${yFor(d.expense)}`).join(" ");
-const midIdx = Math.min(14, data.length-1);
+function xFor(i: number) {
+	return pad.l + (innerW / Math.max(1, data.length - 1)) * i;
+}
+function yFor(v: number) {
+	return pad.t + innerH - (v / maxVal) * innerH;
+}
+const incomePoints = data
+	.map((d, i) => `${xFor(i)},${yFor(d.income)}`)
+	.join(" ");
+const expensePoints = data
+	.map((d, i) => `${xFor(i)},${yFor(d.expense)}`)
+	.join(" ");
+const midIdx = Math.min(14, data.length - 1);
 const midX = xFor(midIdx);
-const showXLabels = data.filter((_,i)=> i%3===0);
+const showXLabels = data.filter((_, i) => i % 3 === 0);
 ---
 <div class="trend-card">
   <div class="trend-head">

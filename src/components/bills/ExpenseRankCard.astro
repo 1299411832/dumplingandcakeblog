@@ -1,18 +1,18 @@
 ---
 interface Props {
-  data: { category: string; amount: number; count: number }[];
-  totalCount: number;
-  totalExpense: number;
+	data: { category: string; amount: number; count: number }[];
+	totalCount: number;
+	totalExpense: number;
 }
 const { data, totalCount, totalExpense } = Astro.props;
 const fmt = (n: number) => n.toFixed(2);
 const icons: Record<string, string> = {
-  "食品酒水": "🥧",
-  "居家生活": "🏠",
-  "交流通讯": "📡",
-  "餐饮": "🍜",
-  "交通": "🚌",
-  "住房": "🏠",
+	食品酒水: "🥧",
+	居家生活: "🏠",
+	交流通讯: "📡",
+	餐饮: "🍜",
+	交通: "🚌",
+	住房: "🏠",
 };
 ---
 <div class="rank-card">

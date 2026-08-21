@@ -188,13 +188,23 @@ const PAGE_SIZE_SCHEDULE = 4;
 const PAGE_SIZE_FESTIVAL = 4;
 let schedulePage = $state(1);
 let festivalPage = $state(1);
-let scheduleTotalPages = $derived(Math.max(1, Math.ceil(todaySchedules.length / PAGE_SIZE_SCHEDULE)));
-let festivalTotalPages = $derived(Math.max(1, Math.ceil(todayFestivals.length / PAGE_SIZE_FESTIVAL)));
+let scheduleTotalPages = $derived(
+	Math.max(1, Math.ceil(todaySchedules.length / PAGE_SIZE_SCHEDULE)),
+);
+let festivalTotalPages = $derived(
+	Math.max(1, Math.ceil(todayFestivals.length / PAGE_SIZE_FESTIVAL)),
+);
 let paginatedSchedules = $derived(
-	todaySchedules.slice((schedulePage - 1) * PAGE_SIZE_SCHEDULE, schedulePage * PAGE_SIZE_SCHEDULE),
+	todaySchedules.slice(
+		(schedulePage - 1) * PAGE_SIZE_SCHEDULE,
+		schedulePage * PAGE_SIZE_SCHEDULE,
+	),
 );
 let paginatedFestivals = $derived(
-	todayFestivals.slice((festivalPage - 1) * PAGE_SIZE_FESTIVAL, festivalPage * PAGE_SIZE_FESTIVAL),
+	todayFestivals.slice(
+		(festivalPage - 1) * PAGE_SIZE_FESTIVAL,
+		festivalPage * PAGE_SIZE_FESTIVAL,
+	),
 );
 // 选中日期或数据变化时重置分页
 $effect(() => {

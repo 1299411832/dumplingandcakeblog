@@ -114,7 +114,10 @@ export function calcPeriodIncomeExpense(
 	return { income, expense, count };
 }
 
-export function getTodayMonthYearStats(entries: BillEntry[], now: Date = new Date()): {
+export function getTodayMonthYearStats(
+	entries: BillEntry[],
+	now: Date = new Date(),
+): {
 	today: { income: number; expense: number; count: number; label: string };
 	month: { income: number; expense: number; count: number; label: string };
 	year: { income: number; expense: number; count: number; label: string };
@@ -130,9 +133,18 @@ export function getTodayMonthYearStats(entries: BillEntry[], now: Date = new Dat
 	const yearEnd = new Date(y, 11, 31, 23, 59, 59);
 	const fmtMonth = `${String(m + 1).padStart(2, "0")}月01日-${String(m + 1).padStart(2, "0")}月${String(new Date(y, m + 1, 0).getDate()).padStart(2, "0")}日`;
 	return {
-		today: { ...calcPeriodIncomeExpense(entries, todayStart, todayEnd), label: `${y}年${String(m + 1).padStart(2, "0")}月${String(d).padStart(2, "0")}日` },
-		month: { ...calcPeriodIncomeExpense(entries, monthStart, monthEnd), label: fmtMonth },
-		year: { ...calcPeriodIncomeExpense(entries, yearStart, yearEnd), label: `${y}年` },
+		today: {
+			...calcPeriodIncomeExpense(entries, todayStart, todayEnd),
+			label: `${y}年${String(m + 1).padStart(2, "0")}月${String(d).padStart(2, "0")}日`,
+		},
+		month: {
+			...calcPeriodIncomeExpense(entries, monthStart, monthEnd),
+			label: fmtMonth,
+		},
+		year: {
+			...calcPeriodIncomeExpense(entries, yearStart, yearEnd),
+			label: `${y}年`,
+		},
 	};
 }
 
@@ -147,7 +159,11 @@ export function dailyIncomeExpense(
 		const start = new Date(year, month - 1, d, 0, 0, 0);
 		const end = new Date(year, month - 1, d, 23, 59, 59);
 		const { income, expense } = calcPeriodIncomeExpense(entries, start, end);
-		result.push({ day: `${String(month).padStart(2, "0")}.${String(d).padStart(2, "0")}`, income, expense });
+		result.push({
+			day: `${String(month).padStart(2, "0")}.${String(d).padStart(2, "0")}`,
+			income,
+			expense,
+		});
 	}
 	return result;
 }
@@ -218,7 +234,9 @@ export function memberMonthlyStats(
 ): { name: string; role: string; income: number; expense: number }[] {
 	const start = new Date(year, month - 1, 1, 0, 0, 0);
 	const end = new Date(year, month, 0, 23, 59, 59);
-	const filtered = entries.filter((e) => e.data.date >= start && e.data.date <= end);
+	const filtered = entries.filter(
+		(e) => e.data.date >= start && e.data.date <= end,
+	);
 	// 以 account 作为成员维度，取前 3
 	const map = new Map<string, { income: number; expense: number }>();
 	for (const e of filtered) {
@@ -228,7 +246,11 @@ export function memberMonthlyStats(
 		else cur.expense += Math.abs(e.data.amount);
 		map.set(k, cur);
 	}
-	const list = [...map.entries()].map(([name, v]) => ({ name, role: "成员", ...v }));
+	const list = [...map.entries()].map(([name, v]) => ({
+		name,
+		role: "成员",
+		...v,
+	}));
 	// 若不足 3，补“本人/朋友/176****0659”占位（与图中一致，0.00）
 	const placeholders = [
 		{ name: "176****0659", role: "成员" },
@@ -237,7 +259,8 @@ export function memberMonthlyStats(
 	];
 	while (list.length < 3) {
 		const p = placeholders[list.length];
-		if (!list.find((x) => x.name === p.name)) list.push({ ...p, income: 0, expense: 0 });
+		if (!list.find((x) => x.name === p.name))
+			list.push({ ...p, income: 0, expense: 0 });
 		else break;
 	}
 	return list.slice(0, 3);
