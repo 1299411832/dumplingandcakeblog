@@ -3,41 +3,72 @@ import { getCollection } from "astro:content";
 import ScheduleCalendar from "@/components/schedules/ScheduleCalendar.astro";
 import ScheduleList from "@/components/schedules/ScheduleList.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { calendarMarks, groupSchedulesByDay } from "@/utils/schedule-adapter";
+import { eventsByDate } from "@/utils/schedule-adapter";
 
 const schedules = await getCollection("schedules");
-const groups = groupSchedulesByDay(schedules);
+const events = eventsByDate(schedules);
 const now = new Date();
 const year = now.getFullYear();
 const month = now.getMonth() + 1;
-const marks = calendarMarks(schedules, year, month);
 const selected = now.toISOString().slice(0, 10);
-const selectedItems = groups.get(selected) || [];
+const allForSelected = events.get(selected) || [];
+const todaySchedules = allForSelected.filter(
+	(e) => e.data.category === "schedule",
+);
+const todayFestivals = allForSelected.filter(
+	(e) => e.data.category !== "schedule",
+);
 const dateLabel = `${selected} · 周${"日一二三四五六"[now.getDay()]}`;
+const festivalLabel = todayFestivals.length
+	? todayFestivals.map((e) => e.data.title).join("、")
+	: "";
 ---
 <MainGridLayout title="日程" description="日历与日程">
   <div class="schedules-page">
-    <div class="schedules-grid">
-      <ScheduleCalendar year={year} month={month} marks={marks} selected={selected} />
-      <ScheduleList items={selectedItems} dateLabel={dateLabel} />
+    <ScheduleCalendar year={year} month={month} selected={selected} events={events} />
+    <div class="schedules-below">
+      <div class="schedules-panel">
+        <h3 class="schedules-panel__head">今日日程 {festivalLabel ? `· ${festivalLabel}` : ""}</h3>
+        <ScheduleList items={todaySchedules} dateLabel={dateLabel} />
+      </div>
+      <div class="schedules-panel">
+        <h3 class="schedules-panel__head">生日 · 纪念日 · 节假日</h3>
+        {todayFestivals.length === 0 ? <p class="schedules-panel__empty">今日无生日/纪念日</p> : todayFestivals.map(e => (
+          <div class="sched-festival"><span class="sched-festival__tag">{e.data.category==="birthday"?"生日":e.data.category==="anniversary"?"纪念日":"节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
+        ))}
+        <div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+      </div>
     </div>
   </div>
 </MainGridLayout>
 <script is:inline>
 (function(){
+  // 月份切换（前端仅展示，真实跨月需服务端重渲染；Phase1 仅当月）
   document.addEventListener("click", function(e){
+    var nav=e.target.closest("[data-cal-nav]");
+    if(nav){
+      // 预留：可后续接入查询参数 ?y=&m=
+      return;
+    }
     var btn=e.target.closest(".sched-cal__cell[data-date]");
     if(!btn) return;
     var date=btn.getAttribute("data-date");
     if(!date) return;
-    // Phase1 前端联动：仅高亮，完整联动在 Phase2 补
     document.querySelectorAll(".sched-cal__cell.is-selected").forEach(function(el){ el.classList.remove("is-selected"); });
     btn.classList.add("is-selected");
   });
 })();
 </script>
 <style>
-.schedules-page{ padding:1rem 0 2rem; }
-.schedules-grid{ display:grid; grid-template-columns:1fr; gap:0.75rem; }
-@media(min-width:1024px){ .schedules-grid{ grid-template-columns:320px 1fr; gap:0.75rem; align-items:start; } }
+.schedules-page{ padding:0.6rem 0 1.5rem; display:flex; flex-direction:column; gap:0.8rem; }
+.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.8rem; }
+@media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
+.schedules-panel{ background: oklch(1 0 0 / 0.72); backdrop-filter: blur(18px) saturate(1.2); border:1px solid oklch(1 0 0 / 0.45); border-radius:0.75rem; padding:0.8rem; }
+:root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.72); border-color: oklch(1 0 0 / 0.12); }
+.schedules-panel__head{ font-size:0.85rem; font-weight:800; margin:0 0 0.6rem; }
+.schedules-panel__empty{ color:var(--guestbook-muted); font-size:0.78rem; }
+.sched-festival{ display:flex; gap:0.5rem; font-size:0.82rem; padding:0.35rem 0; border-bottom:1px solid var(--guestbook-line); }
+.sched-festival__tag{ font-size:0.68rem; padding:0.1rem 0.4rem; border:1px solid var(--guestbook-line); border-radius:9999px; }
+.schedules-panel__add{ margin-top:0.6rem; font-size:0.72rem; color:var(--guestbook-muted); }
+.schedules-panel__add a{ color:var(--primary); }
 </style>

@@ -303,6 +303,11 @@ const schedulesCollection = defineCollection({
 		status: z.enum(["todo", "done", "cancelled"]).default("todo"),
 		location: z.string().optional().default(""),
 		repeat: z.string().optional().default(""),
+		category: z
+			.enum(["schedule", "birthday", "anniversary", "holiday"])
+			.optional()
+			.default("schedule"),
+		person: z.string().optional().default(""),
 	}),
 });
 

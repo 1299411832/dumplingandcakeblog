@@ -35,3 +35,35 @@ export function calendarMarks(
 	}
 	return set;
 }
+
+export function eventsByDate(
+	entries: ScheduleEntry[],
+): Map<string, ScheduleEntry[]> {
+	return groupSchedulesByDay(entries);
+}
+
+export function isHolidayOrBirthday(entry: ScheduleEntry): boolean {
+	return (
+		entry.data.category === "birthday" ||
+		entry.data.category === "anniversary" ||
+		entry.data.category === "holiday"
+	);
+}
+
+export function todaySchedules(
+	entries: ScheduleEntry[],
+	dateKey: string,
+): ScheduleEntry[] {
+	return entries.filter(
+		(e) => toDateKey(e.data.date) === dateKey && e.data.category === "schedule",
+	);
+}
+
+export function todayFestivals(
+	entries: ScheduleEntry[],
+	dateKey: string,
+): ScheduleEntry[] {
+	return entries.filter(
+		(e) => toDateKey(e.data.date) === dateKey && isHolidayOrBirthday(e),
+	);
+}

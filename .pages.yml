@@ -922,6 +922,20 @@ content:
           - name: location
             label: 地点
             type: string
+          - name: category
+            label: 类型
+            type: select
+            default: schedule
+            options:
+              values:
+                - { label: 日程, value: schedule }
+                - { label: 生日, value: birthday }
+                - { label: 纪念日, value: anniversary }
+                - { label: 节假日, value: holiday }
+          - name: person
+            label: 归属人
+            type: string
+            description: 生日/纪念日对应的人
           - name: repeat
             label: 重复
             type: string
