@@ -24,32 +24,31 @@ const festivalLabel = todayFestivals.length
 	: "";
 ---
 <MainGridLayout title="日程" description="日历与日程">
-  <div class="schedules-page">
-    <ScheduleCalendar year={year} month={month} selected={selected} events={events} />
-    <div class="schedules-below">
-      <div class="schedules-panel">
-        <h3 class="schedules-panel__head">今日日程 {festivalLabel ? `· ${festivalLabel}` : ""}</h3>
-        <ScheduleList items={todaySchedules} dateLabel={dateLabel} />
-      </div>
-      <div class="schedules-panel">
-        <h3 class="schedules-panel__head">生日 · 纪念日 · 节假日</h3>
-        {todayFestivals.length === 0 ? <p class="schedules-panel__empty">今日无生日/纪念日</p> : todayFestivals.map(e => (
-          <div class="sched-festival"><span class="sched-festival__tag">{e.data.category==="birthday"?"生日":e.data.category==="anniversary"?"纪念日":"节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
-        ))}
-        <div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+  <!-- 与 网站导航页 同款外层：card-base + 相同内边距，保证离两侧边栏距离一致 -->
+  <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+    <div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
+      <div class="schedules-inner">
+        <ScheduleCalendar year={year} month={month} selected={selected} events={events} />
+        <div class="schedules-below">
+          <div class="schedules-panel">
+            <h3 class="schedules-panel__head">今日日程 {festivalLabel ? `· ${festivalLabel}` : ""}</h3>
+            <ScheduleList items={todaySchedules} dateLabel={dateLabel} />
+          </div>
+          <div class="schedules-panel">
+            <h3 class="schedules-panel__head">生日 · 纪念日 · 节假日</h3>
+            {todayFestivals.length === 0 ? <p class="schedules-panel__empty">今日无生日/纪念日</p> : todayFestivals.map(e => (
+              <div class="sched-festival"><span class="sched-festival__tag">{e.data.category==="birthday"?"生日":e.data.category==="anniversary"?"纪念日":"节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
+            ))}
+            <div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </MainGridLayout>
 <script is:inline>
 (function(){
-  // 月份切换（前端仅展示，真实跨月需服务端重渲染；Phase1 仅当月）
   document.addEventListener("click", function(e){
-    var nav=e.target.closest("[data-cal-nav]");
-    if(nav){
-      // 预留：可后续接入查询参数 ?y=&m=
-      return;
-    }
     var btn=e.target.closest(".sched-cal__cell[data-date]");
     if(!btn) return;
     var date=btn.getAttribute("data-date");
@@ -60,7 +59,9 @@ const festivalLabel = todayFestivals.length
 })();
 </script>
 <style>
-.schedules-page{ padding:0.6rem 0 1.5rem; display:flex; flex-direction:column; gap:0.8rem; }
+/* 内层不再额外撑宽度，完全继承 card-base 的 px-4 / md:px-9；日历自身限宽并居中，保持正方形 */
+.schedules-inner{ display:flex; flex-direction:column; gap:0.8rem; }
+.schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
 .schedules-below{ display:grid; grid-template-columns:1fr; gap:0.8rem; }
 @media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
 .schedules-panel{ background: oklch(1 0 0 / 0.72); backdrop-filter: blur(18px) saturate(1.2); border:1px solid oklch(1 0 0 / 0.45); border-radius:0.75rem; padding:0.8rem; }
