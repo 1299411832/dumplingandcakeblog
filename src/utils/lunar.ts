@@ -1,17 +1,3 @@
-const LUNAR_MONTHS = [
-	"正月",
-	"二月",
-	"三月",
-	"四月",
-	"五月",
-	"六月",
-	"七月",
-	"八月",
-	"九月",
-	"十月",
-	"十一月",
-	"十二月",
-];
 const LUNAR_DAYS = [
 	"初一",
 	"初二",
@@ -44,22 +30,30 @@ const LUNAR_DAYS = [
 	"廿九",
 	"三十",
 ];
-const FESTIVALS: Record<string, string> = {
+// 公历固定节日（MM-DD）
+const SOLAR_FESTIVALS: Record<string, string> = {
 	"01-01": "元旦",
 	"02-14": "情人节",
 	"03-08": "妇女节",
 	"05-01": "劳动节",
+	"05-04": "青年节",
 	"06-01": "儿童节",
-	"08-07": "七夕",
 	"09-10": "教师节",
 	"10-01": "国庆节",
 	"12-25": "圣诞节",
-	"05-04": "青年节",
+};
+// 2026 年农历节日对应的公历日期（每年会变，当前按 2026 年标定）
+const LUNAR_FESTIVALS_2026: Record<string, string> = {
+	"2026-02-17": "春节",
+	"2026-03-03": "龙抬头",
+	"2026-05-31": "端午",
+	"2026-08-19": "七夕",
+	"2026-09-25": "中秋",
+	"2026-10-26": "重阳",
+	"2026-01-01": "元旦",
 };
 
 function solarToLunarDay(year: number, month: number, day: number): string {
-	// 极简近似：用固定偏移计算农历日（非精确，仅用于展示占位，精确可后续接入 lunar-javascript 轻量库）
-	// 这里用一个已知的 2026-02-17 为正月初一 的锚点做偏移
 	const anchor = new Date(2026, 1, 17).getTime();
 	const cur = new Date(year, month - 1, day).getTime();
 	const diff = Math.round((cur - anchor) / 86400000);
@@ -68,12 +62,19 @@ function solarToLunarDay(year: number, month: number, day: number): string {
 }
 
 export function lunarLabel(year: number, month: number, day: number): string {
+	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+	if (LUNAR_FESTIVALS_2026[key]) return LUNAR_FESTIVALS_2026[key];
 	const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	if (FESTIVALS[md]) return FESTIVALS[md];
+	if (SOLAR_FESTIVALS[md]) return SOLAR_FESTIVALS[md];
 	return solarToLunarDay(year, month, day);
 }
 
 export function holidayLabel(month: number, day: number): string | null {
 	const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	return FESTIVALS[md] || null;
+	return SOLAR_FESTIVALS[md] || null;
+}
+
+export function lunarFestivalForDate(year: number, month: number, day: number): string | null {
+	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+	return LUNAR_FESTIVALS_2026[key] || null;
 }
