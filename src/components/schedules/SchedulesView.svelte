@@ -448,15 +448,14 @@ onMount(() => {
 					{#each paginatedFestivals as e}
 						<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
 					{/each}
-					{#if festivalTotalPages > 1}
-						<div class="schedules-panel__pagination">
-							<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === 1} onclick={() => (festivalPage = Math.max(1, festivalPage - 1))}>‹</button>
-							<span class="schedules-panel__page-info">{festivalPage} / {festivalTotalPages}</span>
-							<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === festivalTotalPages} onclick={() => (festivalPage = Math.min(festivalTotalPages, festivalPage + 1))}>›</button>
-						</div>
-					{/if}
 				{/if}
-				<div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+				{#if isRecent && festivalTotalPages > 1}
+					<div class="schedules-panel__pagination">
+						<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === 1} onclick={() => (festivalPage = Math.max(1, festivalPage - 1))}>‹</button>
+						<span class="schedules-panel__page-info">{festivalPage} / {festivalTotalPages}</span>
+						<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === festivalTotalPages} onclick={() => (festivalPage = Math.min(festivalTotalPages, festivalPage + 1))}>›</button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -534,7 +533,7 @@ onMount(() => {
 :root.dark .schedules-panel__count{ background:#fff; color:#111; }
 .schedules-panel__count--festival{ background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
 :root.dark .schedules-panel__count--festival{ background: oklch(0.22 0 0); color:#f87171; }
-.schedules-panel__body{ padding:0.8rem; flex:1; background:#fff; }
+.schedules-panel__body{ padding:0.8rem; flex:1; background:#fff; display:flex; flex-direction:column; }
 :root.dark .schedules-panel__body{ background: transparent; }
 .schedules-panel__date{ font-size:0.78rem; font-weight:700; color:var(--guestbook-muted); margin:0 0 0.6rem; }
 .schedules-panel__empty{ color:var(--guestbook-muted); font-size:0.78rem; text-align:center; padding:0.8rem 0; }
@@ -552,7 +551,7 @@ onMount(() => {
 .sched-row__dot{ width:0.45rem; height:0.45rem; border-radius:9999px; display:inline-block; }
 .sched-row__time{ color:var(--guestbook-muted); font-size:0.72rem; }
 .sched-list__empty{ color:var(--guestbook-muted); font-size:0.82rem; text-align:center; padding:0.8rem 0; }
-.schedules-panel__pagination{ display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:0.7rem; padding-top:0.6rem; border-top:1px solid var(--guestbook-line); }
+.schedules-panel__pagination{ display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:auto; padding-top:0.6rem; border-top:1px solid var(--guestbook-line); }
 .schedules-panel__page-btn{ width:1.6rem; height:1.6rem; border:1px solid #111; border-radius:0.35rem; background:#fff; font-size:0.9rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .schedules-panel__page-btn:disabled{ opacity:0.35; cursor:not-allowed; }
 :root.dark .schedules-panel__page-btn{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
