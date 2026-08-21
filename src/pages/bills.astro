@@ -45,9 +45,9 @@ const incomeTotalAmt = incomeList.reduce((s, r) => s + r.amount, 0);
         <IncomeCategoryCard data={incomeList} totalCount={incomeTotalCount} totalIncome={incomeTotalAmt} />
       </div>
       <div class="bills-col">
+        <MonthlySummaryCard income={monthIncome} expense={monthExpense} balance={monthBalance} />
         <PeriodSummaryCard today={period.today} month={period.month} year={period.year} />
         <ExpenseRankCard data={expenseRank} totalCount={expenseCount} totalExpense={expenseTotal} />
-        <MonthlySummaryCard income={monthIncome} expense={monthExpense} balance={monthBalance} />
       </div>
     </div>
     <div class="bills-footer">
