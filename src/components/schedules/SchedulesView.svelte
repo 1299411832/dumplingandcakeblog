@@ -270,6 +270,29 @@ let festivalLabel = $derived(
 		: "",
 );
 
+const FESTIVAL_SET = new Set([
+	"春节",
+	"龙抬头",
+	"端午",
+	"七夕",
+	"中秋",
+	"重阳",
+	"元旦",
+	"情人节",
+	"妇女节",
+	"劳动节",
+	"青年节",
+	"儿童节",
+	"教师节",
+	"国庆节",
+	"圣诞节",
+	"除夕",
+	"元宵节",
+]);
+function isFestival(label: string): boolean {
+	return FESTIVAL_SET.has(label);
+}
+
 const priorityColor: Record<string, string> = {
 	none: "#9ca3af",
 	low: "#3b82f6",
@@ -324,7 +347,27 @@ function toggleView(): void {
 }
 
 onMount(() => {
-	syncFromUrl();
+	// 刷新时归位到当天（日历选中、当月、周视图、卡片分页均重置）
+	const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+	const isReload = navEntry?.type === "reload" || (performance as unknown as { navigation?: { type: number } }).navigation?.type === 1;
+	if (isReload) {
+		const today = new Date();
+		const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+		selected = todayStr;
+		year = today.getFullYear();
+		month = today.getMonth() + 1;
+		viewMode = "week";
+		schedulePage = 1;
+		festivalPage = 1;
+		const url = new URL(window.location.href);
+		url.searchParams.delete("y");
+		url.searchParams.delete("m");
+		url.searchParams.delete("d");
+		url.searchParams.delete("view");
+		window.history.replaceState({}, "", url.toString());
+	} else {
+		syncFromUrl();
+	}
 	const onPop = () => syncFromUrl();
 	window.addEventListener("popstate", onPop);
 	const onSwup = () => syncFromUrl();
@@ -389,7 +432,7 @@ onMount(() => {
 								type="button"
 								onclick={() => selectDate(cell.dateStr)}
 							>
-								<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar">{lunar}</small></span>
+								<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar" class:is-festival={isFestival(lunar)}>{lunar}</small></span>
 								<span class="sched-cal__events">
 									{#each dayEvents.slice(0, 2) as e}
 										<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} class:is-anniversary={e.data.category === "anniversary"} class:is-schedule={e.data.category === "schedule"} title={e.data.title}>{e.data.title}</span>
@@ -416,7 +459,7 @@ onMount(() => {
 							type="button"
 							onclick={() => selectDate(cell.dateStr)}
 						>
-							<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar">{lunar}</small></span>
+							<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar" class:is-festival={isFestival(lunar)}>{lunar}</small></span>
 							<span class="sched-cal__events">
 								{#each dayEvents.slice(0, 2) as e}
 									<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} class:is-anniversary={e.data.category === "anniversary"} class:is-schedule={e.data.category === "schedule"} title={e.data.title}>{e.data.title}</span>
@@ -540,6 +583,8 @@ onMount(() => {
 .sched-cal__day-row{ display:flex; justify-content:space-between; align-items:baseline; font-size:0.72rem; }
 .sched-cal__day{ font-size:0.82rem; font-weight:700; }
 .sched-cal__lunar{ color:var(--guestbook-muted); font-size:0.62rem; }
+.sched-cal__lunar.is-festival{ color:#dc2626; font-weight:700; }
+:root.dark .sched-cal__lunar.is-festival{ color:#f87171; }
 .sched-cal__events{ display:flex; flex-direction:column; gap:0.15rem; min-height:1.6rem; }
 .sched-cal__event{ font-size:0.62rem; line-height:1.2; padding:0.1rem 0.25rem; border-radius:0.25rem; background: oklch(0.96 0 0); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid transparent; }
 .sched-cal__event.is-schedule{ background: #dbeafe; color:#1d4ed8; border-color:#93c5fd; }
