@@ -111,3 +111,31 @@ Docker 容器的文件系统是隔离的。容器 A 里下载的文件，容器 
 | 问题 | 关键词 | 解决思路 |
 |---|---|---|
 | 视频发送失败：文件不存在 | `ENOENT`、`file:///AstrBot/data`、容器挂载 | NapCat 容器加 AstrBot 数据挂载 |
+---
+
+## 新增踩坑：日程“2分钟后”提醒时间错乱 + 微信不推送（2026-08-22）
+
+**现象**：`/日程 3分钟后在会议室A开周会 高优 提前1分钟` 在 02:14 发，机器人回 `周会 时间2026-08-22 02:25:00` 看似对，但日志显示 `18:14` 调度 `02:25`，`/提醒 列表` 显示 `提前10分`，到点 `02:39` 日志 `到点提醒` 有但微信没收到，且 `MessageChain` 报错 `Timeout context manager should be used inside a task` / `'list' object has no attribute 'chain'`。
+
+**根因 1 - 时区**：`datetime.now()` 在你本机（Windows CST）是 `02:xx`，在 AstrBot 容器（OpenCloudOS 默认 UTC）是 `18:xx`，差 8 小时。`SCHEDULE_PROMPT` 没写时区，LLM 按 UTC 猜成 `18:17`，`allDay` 误判不进提醒。
+
+**根因 2 - 标题残留**：LLM 回 `2分钟后周会`，`_normalize` 未去掉 `2分钟后` 前缀。
+
+**根因 3 - 调度**：`BackgroundScheduler()` 默认 UTC，`remind_at` 用 naive 的 `02:24` 被当 UTC 调度，到点不触发；且 `origin` 硬编码 `weixin_oc` 而实际是 `weixin_personal_bglh:FriendMessage:...`，`send_message` 拿不到平台。
+
+**根因 4 - 推送**：`MessageChain().message()` 在 APScheduler 线程里会触发 `asyncio.timeout` 必须在 task 内用的校验；且 `hasattr(MessageChain, 'chain')` 判 `list` 别名误判，导致 `Plain`/`str` 直接丢给 `send_message` 报 `no attribute chain`。
+
+**修复（v1.0.20 → v1.0.28）**
+
+1.  **统一上海时区**：`blog_writer_core.py:12` + `main.py:27` 新增 `SHANGHAI_TZ = timezone(timedelta(hours=8))` + `now_shanghai()`，全量 `datetime.now()`→`now_shanghai()`（13+10 处），`SCHEDULE_PROMPT` 加 `时区为 Asia/Shanghai` + `时间基准：{now}` 动态填入，`2分钟后=基准+2分钟` 明确规则。
+
+2.  **标题与相对时间兜底**：`_parse_schedule_time` 新增 `(\d+分钟后|半小时后)` 相对分支（基准用传入的 now），`parse_schedule` 清洗标题去掉 `2分钟后/半小时后`，`main.py:564` `_normalize_schedule_data` 对 LLM 仍错的 `00:00:00` 或 `17:57` 用本地正则重算覆盖（>120秒偏差即覆盖）。
+
+3.  **调度持久化**：`BackgroundScheduler(timezone=SHANGHAI_TZ)`，`REMINDER_FILE = data/schedules_reminder.json` 存 `remind_before` + `origin`，`_restore_reminders` 按上海解释，`_schedule_remind` 存 `origin`（`event.unified_msg_origin`）并 `DateTrigger(run_date=remind_at_tz)`，`_handle_remind` 按条显示实际 `1分` 而非默认 `10分`。
+
+4.  **推送兼容**：`_send_remind` 改 `def _make_chain` 优先 `MessageChain(chain=[Plain])` / `MessageChain([Plain])`，不调 ` .message()`（避 timeout），`_send_remind_sync` 存 `self._loop = get_running_loop()` 并 `run_coroutine_threadsafe(..., self._loop)`，`send_message` 先试 `origin` 纯文本/`Plain`/`[Plain]`，再按 `origin` 解析平台名 `weixin_personal_bglh` 兜底。
+
+**验证**：`02:22` 发 `3分钟后…提前1分钟` → 回 `02:25:00`，`/提醒 列表` 显示 `02:24:00 (提前1分)`，`02:24:00.002` 日志 `到点提醒` 后 `主动推送 via origin 成功`，微信收到 `🔔 日程提醒：周会 时间到了`。`103` 单测 OK，打包 `v1.0.28`（` main.py:291` 日志可定位）。
+
+**教训**：系统时区、LLM 时区、调度器时区三处必须同一 `Asia/Shanghai`；相对时间必须本地正则兜底；`MessageChain` 构造与 `send_message(origin, chain)` 必须按官方文档 `from astrbot.core.message.message_event_result import MessageChain` + `MessageChain().message()` / `chain=[Plain]` 双试，且调度线程不能直接 `asyncio.timeout`。
+
