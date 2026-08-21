@@ -183,6 +183,31 @@ let todayFestivals = $derived(
 	allForSelected.filter((e) => e.data.category !== "schedule"),
 );
 
+// 分页：两卡片等高，多余数据分页
+const PAGE_SIZE_SCHEDULE = 4;
+const PAGE_SIZE_FESTIVAL = 4;
+let schedulePage = $state(1);
+let festivalPage = $state(1);
+let scheduleTotalPages = $derived(Math.max(1, Math.ceil(todaySchedules.length / PAGE_SIZE_SCHEDULE)));
+let festivalTotalPages = $derived(Math.max(1, Math.ceil(todayFestivals.length / PAGE_SIZE_FESTIVAL)));
+let paginatedSchedules = $derived(
+	todaySchedules.slice((schedulePage - 1) * PAGE_SIZE_SCHEDULE, schedulePage * PAGE_SIZE_SCHEDULE),
+);
+let paginatedFestivals = $derived(
+	todayFestivals.slice((festivalPage - 1) * PAGE_SIZE_FESTIVAL, festivalPage * PAGE_SIZE_FESTIVAL),
+);
+// 选中日期或数据变化时重置分页
+$effect(() => {
+	void selected;
+	void todaySchedules.length;
+	schedulePage = 1;
+});
+$effect(() => {
+	void selected;
+	void todayFestivals.length;
+	festivalPage = 1;
+});
+
 // 一个月前的过滤：selected 早于今天 30 天则下方列表收起
 let isRecent = $derived.by(() => {
 	const today = new Date(todayKey + "T00:00:00");
@@ -386,7 +411,7 @@ onMount(() => {
 					<p class="sched-list__empty">当日无日程</p>
 				{:else}
 					<div class="sched-list">
-						{#each todaySchedules as e}
+						{#each paginatedSchedules as e}
 							<div class="sched-row" class:is-done={e.data.status === "done"}>
 								<span class="sched-row__dot" style={`background:${priorityColor[e.data.priority] || "#9ca3af"}`}></span>
 								<span class="sched-row__title">{e.data.title}</span>
@@ -395,6 +420,13 @@ onMount(() => {
 							</div>
 						{/each}
 					</div>
+					{#if scheduleTotalPages > 1}
+						<div class="schedules-panel__pagination">
+							<button class="schedules-panel__page-btn" type="button" disabled={schedulePage === 1} onclick={() => (schedulePage = Math.max(1, schedulePage - 1))}>‹</button>
+							<span class="schedules-panel__page-info">{schedulePage} / {scheduleTotalPages}</span>
+							<button class="schedules-panel__page-btn" type="button" disabled={schedulePage === scheduleTotalPages} onclick={() => (schedulePage = Math.min(scheduleTotalPages, schedulePage + 1))}>›</button>
+						</div>
+					{/if}
 				{/if}
 			</div>
 		</div>
@@ -413,9 +445,16 @@ onMount(() => {
 				{:else if todayFestivals.length === 0}
 					<p class="schedules-panel__empty">今日无生日/纪念日</p>
 				{:else}
-					{#each todayFestivals as e}
+					{#each paginatedFestivals as e}
 						<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
 					{/each}
+					{#if festivalTotalPages > 1}
+						<div class="schedules-panel__pagination">
+							<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === 1} onclick={() => (festivalPage = Math.max(1, festivalPage - 1))}>‹</button>
+							<span class="schedules-panel__page-info">{festivalPage} / {festivalTotalPages}</span>
+							<button class="schedules-panel__page-btn" type="button" disabled={festivalPage === festivalTotalPages} onclick={() => (festivalPage = Math.min(festivalTotalPages, festivalPage + 1))}>›</button>
+						</div>
+					{/if}
 				{/if}
 				<div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
 			</div>
@@ -477,10 +516,10 @@ onMount(() => {
 }
 .schedules-inner{ display:flex; flex-direction:column; gap:0.9rem; }
 .schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
-.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:start; }
+.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:stretch; width:min(100%, 720px); margin-inline:auto; }
 @media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
-/* 两个下方卡片：独立卡片区分，同日历卡片统一 1.5px #111 边框体系 */
-.schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; }
+/* 两个下方卡片：等高 + 分页，同日历卡片统一 1.5px #111 边框体系，且两侧与日历对齐 */
+.schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; height:100%; min-height:280px; }
 :root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.18); }
 .schedules-panel__header{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.65rem 0.8rem; background:#fafafa; border-bottom:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .schedules-panel__header{ background: oklch(0.14 0 0); border-color: oklch(1 0 0 / 0.08); }
@@ -514,4 +553,9 @@ onMount(() => {
 .sched-row__dot{ width:0.45rem; height:0.45rem; border-radius:9999px; display:inline-block; }
 .sched-row__time{ color:var(--guestbook-muted); font-size:0.72rem; }
 .sched-list__empty{ color:var(--guestbook-muted); font-size:0.82rem; text-align:center; padding:0.8rem 0; }
+.schedules-panel__pagination{ display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:0.7rem; padding-top:0.6rem; border-top:1px solid var(--guestbook-line); }
+.schedules-panel__page-btn{ width:1.6rem; height:1.6rem; border:1px solid #111; border-radius:0.35rem; background:#fff; font-size:0.9rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.schedules-panel__page-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+:root.dark .schedules-panel__page-btn{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
+.schedules-panel__page-info{ font-size:0.72rem; color:var(--guestbook-muted); min-width:2.6rem; text-align:center; }
 </style>
