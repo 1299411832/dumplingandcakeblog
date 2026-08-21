@@ -7,24 +7,22 @@ import { eventsByDate } from "@/utils/schedule-adapter";
 
 const schedules = await getCollection("schedules");
 const events = eventsByDate(schedules);
+const url = Astro.url;
+const qy = url.searchParams.get("y");
+const qm = url.searchParams.get("m");
 const now = new Date();
-const year = now.getFullYear();
-const month = now.getMonth() + 1;
-const selected = now.toISOString().slice(0, 10);
+let year = qy ? parseInt(qy) : now.getFullYear();
+let month = qm ? parseInt(qm) : now.getMonth() + 1;
+if (!(month >= 1 && month <= 12)) { year = now.getFullYear(); month = now.getMonth() + 1; }
+const selected = url.searchParams.get("d") || now.toISOString().slice(0, 10);
 const allForSelected = events.get(selected) || [];
-const todaySchedules = allForSelected.filter(
-	(e) => e.data.category === "schedule",
-);
-const todayFestivals = allForSelected.filter(
-	(e) => e.data.category !== "schedule",
-);
-const dateLabel = `${selected} · 周${"日一二三四五六"[now.getDay()]}`;
-const festivalLabel = todayFestivals.length
-	? todayFestivals.map((e) => e.data.title).join("、")
-	: "";
+const todaySchedules = allForSelected.filter((e) => e.data.category === "schedule");
+const todayFestivals = allForSelected.filter((e) => e.data.category !== "schedule");
+const selDate = new Date(selected);
+const dateLabel = `${selected} · 周${"日一二三四五六"[selDate.getDay()]}`;
+const festivalLabel = todayFestivals.length ? todayFestivals.map((e) => e.data.title).join("、") : "";
 ---
 <MainGridLayout title="日程" description="日历与日程">
-  <!-- 与 网站导航页 同款外层：card-base + 相同内边距，保证离两侧边栏距离一致 -->
   <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
     <div class="card-base z-10 px-4 py-6 md:px-9 relative w-full">
       <div class="schedules-inner">
@@ -48,18 +46,31 @@ const festivalLabel = todayFestivals.length
 </MainGridLayout>
 <script is:inline>
 (function(){
+  function navigate(y,m,d){
+    var u=new URL(window.location.href);
+    u.searchParams.set("y", String(y));
+    u.searchParams.set("m", String(m));
+    if(d) u.searchParams.set("d", d); else u.searchParams.delete("d");
+    window.location.href=u.toString();
+  }
   document.addEventListener("click", function(e){
+    var nav=e.target.closest("[data-cal-nav]");
+    if(nav){
+      var y=parseInt(nav.getAttribute("data-nav-year"));
+      var m=parseInt(nav.getAttribute("data-nav-month"));
+      if(y && m) navigate(y,m, null);
+      return;
+    }
     var btn=e.target.closest(".sched-cal__cell[data-date]");
     if(!btn) return;
     var date=btn.getAttribute("data-date");
     if(!date) return;
-    document.querySelectorAll(".sched-cal__cell.is-selected").forEach(function(el){ el.classList.remove("is-selected"); });
-    btn.classList.add("is-selected");
+    var d=new Date(date);
+    navigate(d.getFullYear(), d.getMonth()+1, date);
   });
 })();
 </script>
 <style>
-/* 内层不再额外撑宽度，完全继承 card-base 的 px-4 / md:px-9；日历自身限宽并居中，保持正方形 */
 .schedules-inner{ display:flex; flex-direction:column; gap:0.8rem; }
 .schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
 .schedules-below{ display:grid; grid-template-columns:1fr; gap:0.8rem; }

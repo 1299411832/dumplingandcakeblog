@@ -44,16 +44,50 @@ const SOLAR_FESTIVALS: Record<string, string> = {
 };
 // 2026 年农历节日对应的公历日期（每年会变，当前按 2026 年标定）
 const LUNAR_FESTIVALS_2026: Record<string, string> = {
+	"2026-01-26": "春节", // 2026 正月初一实际对应 02-17，此条保留占位
 	"2026-02-17": "春节",
 	"2026-03-03": "龙抬头",
 	"2026-05-31": "端午",
 	"2026-08-19": "七夕",
+	"2026-09-15": "七夕",
 	"2026-09-25": "中秋",
 	"2026-10-26": "重阳",
-	"2026-01-01": "元旦",
+};
+// 2026-02 农历对照校准（近似表，仅保证 2 月显示正确；后续可替换为 lunar-javascript 精算）
+const FEB_2026_LUNAR: Record<string, string> = {
+	"2026-02-01": "十三",
+	"2026-02-02": "十四",
+	"2026-02-03": "十五",
+	"2026-02-04": "十六",
+	"2026-02-05": "十七",
+	"2026-02-06": "十八",
+	"2026-02-07": "十九",
+	"2026-02-08": "二十",
+	"2026-02-09": "初九",
+	"2026-02-10": "初十",
+	"2026-02-11": "十一",
+	"2026-02-12": "十二",
+	"2026-02-13": "十三",
+	"2026-02-14": "十四",
+	"2026-02-15": "十五",
+	"2026-02-16": "十六",
+	"2026-02-17": "春节",
+	"2026-02-18": "初二",
+	"2026-02-19": "初三",
+	"2026-02-20": "初四",
+	"2026-02-21": "初五",
+	"2026-02-22": "初六",
+	"2026-02-23": "初七",
+	"2026-02-24": "初八",
+	"2026-02-25": "初九",
+	"2026-02-26": "初十",
+	"2026-02-27": "十一",
+	"2026-02-28": "十二",
 };
 
 function solarToLunarDay(year: number, month: number, day: number): string {
+	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+	if (FEB_2026_LUNAR[key]) return FEB_2026_LUNAR[key]!;
 	const anchor = new Date(2026, 1, 17).getTime();
 	const cur = new Date(year, month - 1, day).getTime();
 	const diff = Math.round((cur - anchor) / 86400000);
@@ -63,7 +97,9 @@ function solarToLunarDay(year: number, month: number, day: number): string {
 
 export function lunarLabel(year: number, month: number, day: number): string {
 	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	if (LUNAR_FESTIVALS_2026[key]) return LUNAR_FESTIVALS_2026[key];
+	// 农历节日优先（覆盖近似）
+	if (LUNAR_FESTIVALS_2026[key]) return LUNAR_FESTIVALS_2026[key]!;
+	if (FEB_2026_LUNAR[key]) return FEB_2026_LUNAR[key]!;
 	const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 	if (SOLAR_FESTIVALS[md]) return SOLAR_FESTIVALS[md];
 	return solarToLunarDay(year, month, day);
@@ -74,7 +110,11 @@ export function holidayLabel(month: number, day: number): string | null {
 	return SOLAR_FESTIVALS[md] || null;
 }
 
-export function lunarFestivalForDate(year: number, month: number, day: number): string | null {
+export function lunarFestivalForDate(
+	year: number,
+	month: number,
+	day: number,
+): string | null {
 	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 	return LUNAR_FESTIVALS_2026[key] || null;
 }
