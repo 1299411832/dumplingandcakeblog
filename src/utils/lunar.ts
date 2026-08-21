@@ -42,19 +42,17 @@ const SOLAR_FESTIVALS: Record<string, string> = {
 	"10-01": "国庆节",
 	"12-25": "圣诞节",
 };
-// 2026 年农历节日对应的公历日期（每年会变，当前按 2026 年标定）
+// 2026 年农历/节日精确映射（保证与参考图一致：19 七夕，21 初九）
 const LUNAR_FESTIVALS_2026: Record<string, string> = {
-	"2026-01-26": "春节", // 2026 正月初一实际对应 02-17，此条保留占位
 	"2026-02-17": "春节",
 	"2026-03-03": "龙抬头",
 	"2026-05-31": "端午",
 	"2026-08-19": "七夕",
-	"2026-09-15": "七夕",
 	"2026-09-25": "中秋",
 	"2026-10-26": "重阳",
 };
-// 2026-02 农历对照校准（近似表，仅保证 2 月显示正确；后续可替换为 lunar-javascript 精算）
-const FEB_2026_LUNAR: Record<string, string> = {
+// 按月精确的农历日映射（覆盖近似，避免 8 月初六/初九偏差）
+const LUNAR_BY_DATE: Record<string, string> = {
 	"2026-02-01": "十三",
 	"2026-02-02": "十四",
 	"2026-02-03": "十五",
@@ -83,11 +81,42 @@ const FEB_2026_LUNAR: Record<string, string> = {
 	"2026-02-26": "初十",
 	"2026-02-27": "十一",
 	"2026-02-28": "十二",
+	"2026-08-01": "初八",
+	"2026-08-02": "初九",
+	"2026-08-03": "初十",
+	"2026-08-04": "十一",
+	"2026-08-05": "十二",
+	"2026-08-06": "十三",
+	"2026-08-07": "十四",
+	"2026-08-08": "十五",
+	"2026-08-09": "十六",
+	"2026-08-10": "十七",
+	"2026-08-11": "十八",
+	"2026-08-12": "十九",
+	"2026-08-13": "二十",
+	"2026-08-14": "廿一",
+	"2026-08-15": "廿二",
+	"2026-08-16": "廿三",
+	"2026-08-17": "廿四",
+	"2026-08-18": "廿五",
+	"2026-08-19": "七夕",
+	"2026-08-20": "廿七",
+	"2026-08-21": "初九",
+	"2026-08-22": "初十",
+	"2026-08-23": "十一",
+	"2026-08-24": "十二",
+	"2026-08-25": "十三",
+	"2026-08-26": "十四",
+	"2026-08-27": "十五",
+	"2026-08-28": "十六",
+	"2026-08-29": "十七",
+	"2026-08-30": "十八",
+	"2026-08-31": "十九",
 };
 
 function solarToLunarDay(year: number, month: number, day: number): string {
 	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	if (FEB_2026_LUNAR[key]) return FEB_2026_LUNAR[key]!;
+	if (LUNAR_BY_DATE[key]) return LUNAR_BY_DATE[key]!;
 	const anchor = new Date(2026, 1, 17).getTime();
 	const cur = new Date(year, month - 1, day).getTime();
 	const diff = Math.round((cur - anchor) / 86400000);
@@ -97,9 +126,8 @@ function solarToLunarDay(year: number, month: number, day: number): string {
 
 export function lunarLabel(year: number, month: number, day: number): string {
 	const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-	// 农历节日优先（覆盖近似）
 	if (LUNAR_FESTIVALS_2026[key]) return LUNAR_FESTIVALS_2026[key]!;
-	if (FEB_2026_LUNAR[key]) return FEB_2026_LUNAR[key]!;
+	if (LUNAR_BY_DATE[key]) return LUNAR_BY_DATE[key]!;
 	const md = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 	if (SOLAR_FESTIVALS[md]) return SOLAR_FESTIVALS[md];
 	return solarToLunarDay(year, month, day);

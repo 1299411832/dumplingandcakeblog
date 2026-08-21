@@ -46,19 +46,19 @@ const festivalLabel = todayFestivals.length ? todayFestivals.map((e) => e.data.t
 </MainGridLayout>
 <script is:inline>
 (function(){
-  function navigate(y,m,d){
-    var u=new URL(window.location.href);
-    u.searchParams.set("y", String(y));
-    u.searchParams.set("m", String(m));
-    if(d) u.searchParams.set("d", d); else u.searchParams.delete("d");
-    window.location.href=u.toString();
+  // 关键修复：使用 Swup 感知的导航，避免在 SPA 容器内被吞；同时处理 date 选中
+  function go(y,m,d){
+    var url = "/schedules/?y=" + y + "&m=" + m + (d ? "&d=" + encodeURIComponent(d) : "");
+    if (window.swup && window.swup.navigate) { window.swup.navigate(url); return; }
+    if (window.swup && window.swup.loadPage) { window.swup.loadPage({ url: url }); return; }
+    window.location.href = url;
   }
   document.addEventListener("click", function(e){
     var nav=e.target.closest("[data-cal-nav]");
     if(nav){
       var y=parseInt(nav.getAttribute("data-nav-year"));
       var m=parseInt(nav.getAttribute("data-nav-month"));
-      if(y && m) navigate(y,m, null);
+      if(y && m) { e.preventDefault(); e.stopPropagation(); go(y,m,null); }
       return;
     }
     var btn=e.target.closest(".sched-cal__cell[data-date]");
@@ -66,8 +66,14 @@ const festivalLabel = todayFestivals.length ? todayFestivals.map((e) => e.data.t
     var date=btn.getAttribute("data-date");
     if(!date) return;
     var d=new Date(date);
-    navigate(d.getFullYear(), d.getMonth()+1, date);
+    // 同步更新下方选中态（不等整页重载时也能立即反馈）
+    document.querySelectorAll(".sched-cal__cell.is-selected").forEach(function(el){ el.classList.remove("is-selected"); });
+    btn.classList.add("is-selected");
+    e.preventDefault();
+    go(d.getFullYear(), d.getMonth()+1, date);
   });
+  // Swup 重载后确保新 DOM 的选中态正确由服务端渲染，无需额外逻辑
+  document.addEventListener("swup:content:replaced", function(){});
 })();
 </script>
 <style>
