@@ -91,8 +91,7 @@ for (let i = 0; i < visibleCells.length; i += 7)
 :root.dark .sched-cal__header{ border-color: oklch(1 0 0 / 0.12); }
 .sched-cal__title{ font-size:0.95rem; font-weight:800; }
 .sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:0.72rem; color:var(--guestbook-muted); padding:0.45rem 0.2rem; }
-.sched-cal__grid{ display:flex; flex-direction:column; border:1px solid oklch(0 0 0 / 0.12); border-radius:0.6rem; overflow:hidden; background:#fff; }
-:root.dark .sched-cal__grid{ border-color: oklch(1 0 0 / 0.12); background: transparent; }
+.sched-cal__grid{ display:flex; flex-direction:column; border:none; border-radius:0; overflow:visible; background:transparent; }
 .sched-cal__row{ display:grid; grid-template-columns:repeat(7,1fr); }
 .sched-cal__row + .sched-cal__row{ border-top:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .sched-cal__row + .sched-cal__row{ border-color: oklch(1 0 0 / 0.08); }
