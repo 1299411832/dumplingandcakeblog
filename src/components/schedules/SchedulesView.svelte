@@ -1,6 +1,12 @@
 <script lang="ts">
 import type { CollectionEntry } from "astro:content";
-import { Calendar, LayoutGrid, Rows3 } from "lucide-svelte";
+import {
+	Cake,
+	Calendar,
+	CalendarCheck2,
+	LayoutGrid,
+	Rows3,
+} from "lucide-svelte";
 import { onMount } from "svelte";
 import { lunarLabel } from "@/utils/lunar";
 
@@ -359,19 +365,27 @@ onMount(() => {
 	</div>
 
 	<div class="schedules-below">
-		<div class="schedules-panel">
-			<h3 class="schedules-panel__head">今日日程 {festivalLabel ? `· ${festivalLabel}` : ""}</h3>
-			{#if !isRecent}
-				<div class="schedules-panel__archive-tip">
-					<p class="schedules-panel__empty">一个月前的数据已收起，仅在日历格子中显示</p>
-					<p class="schedules-panel__hint">点击上方日历块可查看当日详情</p>
+		<!-- 左：今日日程 - 独立卡片 -->
+		<div class="schedules-panel schedules-panel--schedule">
+			<div class="schedules-panel__header">
+				<div class="schedules-panel__title-wrap">
+					<span class="schedules-panel__icon schedules-panel__icon--schedule"><CalendarCheck2 size={16} strokeWidth={2.2} /></span>
+					<h3 class="schedules-panel__title">今日日程</h3>
+					{#if festivalLabel}<span class="schedules-panel__badge">{festivalLabel}</span>{/if}
 				</div>
-			{:else}
-				<div class="sched-list">
-					<h3 class="sched-list__head">{dateLabel}</h3>
-					{#if todaySchedules.length === 0}
-						<p class="sched-list__empty">当日无日程</p>
-					{:else}
+				<span class="schedules-panel__count">{todaySchedules.length}</span>
+			</div>
+			<div class="schedules-panel__body">
+				<p class="schedules-panel__date">{dateLabel}</p>
+				{#if !isRecent}
+					<div class="schedules-panel__archive-tip">
+						<p class="schedules-panel__empty">一个月前的数据已收起，仅在日历格子中显示</p>
+						<p class="schedules-panel__hint">点击上方日历块可查看当日详情</p>
+					</div>
+				{:else if todaySchedules.length === 0}
+					<p class="sched-list__empty">当日无日程</p>
+				{:else}
+					<div class="sched-list">
 						{#each todaySchedules as e}
 							<div class="sched-row" class:is-done={e.data.status === "done"}>
 								<span class="sched-row__dot" style={`background:${priorityColor[e.data.priority] || "#9ca3af"}`}></span>
@@ -380,22 +394,31 @@ onMount(() => {
 								<span class="sched-row__check">{e.data.status === "done" ? "✓" : "○"}</span>
 							</div>
 						{/each}
-					{/if}
-				</div>
-			{/if}
+					</div>
+				{/if}
+			</div>
 		</div>
-		<div class="schedules-panel">
-			<h3 class="schedules-panel__head">生日 · 纪念日 · 节假日</h3>
-			{#if !isRecent}
-				<p class="schedules-panel__empty">已收起，仅在日历中标记</p>
-			{:else if todayFestivals.length === 0}
-				<p class="schedules-panel__empty">今日无生日/纪念日</p>
-			{:else}
-				{#each todayFestivals as e}
-					<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
-				{/each}
-			{/if}
-			<div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+		<!-- 右：生日纪念日 - 独立卡片 -->
+		<div class="schedules-panel schedules-panel--festival">
+			<div class="schedules-panel__header">
+				<div class="schedules-panel__title-wrap">
+					<span class="schedules-panel__icon schedules-panel__icon--festival"><Cake size={16} strokeWidth={2.2} /></span>
+					<h3 class="schedules-panel__title">生日 · 纪念日 · 节假日</h3>
+				</div>
+				<span class="schedules-panel__count schedules-panel__count--festival">{todayFestivals.length}</span>
+			</div>
+			<div class="schedules-panel__body">
+				{#if !isRecent}
+					<p class="schedules-panel__empty">已收起，仅在日历中标记</p>
+				{:else if todayFestivals.length === 0}
+					<p class="schedules-panel__empty">今日无生日/纪念日</p>
+				{:else}
+					{#each todayFestivals as e}
+						<div class="sched-festival"><span class="sched-festival__tag">{e.data.category === "birthday" ? "生日" : e.data.category === "anniversary" ? "纪念日" : "节假日"}</span><span>{e.data.person ? `${e.data.person} · ` : ""}{e.data.title}</span></div>
+					{/each}
+				{/if}
+				<div class="schedules-panel__add"><a href="/life/notebooks/">去添加</a> 或在 PagesCMS 日程中新增 类型=生日/纪念日/节假日</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -452,26 +475,43 @@ onMount(() => {
   .schedules-header{ flex-direction:column; align-items:flex-start; }
   .schedules-view-toggle{ align-self:flex-end; }
 }
-.schedules-inner{ display:flex; flex-direction:column; gap:0.8rem; }
+.schedules-inner{ display:flex; flex-direction:column; gap:0.9rem; }
 .schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
-.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.8rem; }
+.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:start; }
 @media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
-.schedules-panel{ background: oklch(1 0 0 / 0.72); backdrop-filter: blur(18px) saturate(1.2); border:1px solid oklch(1 0 0 / 0.45); border-radius:0.75rem; padding:0.8rem; }
-:root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.72); border-color: oklch(1 0 0 / 0.12); }
-.schedules-panel__head{ font-size:0.85rem; font-weight:800; margin:0 0 0.6rem; }
-.schedules-panel__empty{ color:var(--guestbook-muted); font-size:0.78rem; }
-.schedules-panel__archive-tip{ padding:0.6rem 0; }
-.schedules-panel__hint{ font-size:0.72rem; color:var(--guestbook-muted); margin-top:0.3rem; }
-.sched-festival{ display:flex; gap:0.5rem; font-size:0.82rem; padding:0.35rem 0; border-bottom:1px solid var(--guestbook-line); }
-.sched-festival__tag{ font-size:0.68rem; padding:0.1rem 0.4rem; border:1px solid var(--guestbook-line); border-radius:9999px; }
-.schedules-panel__add{ margin-top:0.6rem; font-size:0.72rem; color:var(--guestbook-muted); }
+/* 两个下方卡片：独立卡片区分，同日历卡片统一 1.5px #111 边框体系 */
+.schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; }
+:root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.18); }
+.schedules-panel__header{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; padding:0.65rem 0.8rem; background:#fafafa; border-bottom:1px solid oklch(0 0 0 / 0.08); }
+:root.dark .schedules-panel__header{ background: oklch(0.14 0 0); border-color: oklch(1 0 0 / 0.08); }
+.schedules-panel__title-wrap{ display:flex; align-items:center; gap:0.45rem; min-width:0; }
+.schedules-panel__icon{ display:flex; align-items:center; justify-content:center; width:1.6rem; height:1.6rem; border-radius:0.4rem; flex-shrink:0; }
+.schedules-panel__icon--schedule{ background:#111; color:#fff; }
+:root.dark .schedules-panel__icon--schedule{ background:#fff; color:#111; }
+.schedules-panel__icon--festival{ background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+:root.dark .schedules-panel__icon--festival{ background: oklch(0.22 0 0); color:#f87171; border-color: oklch(1 0 0 / 0.08); }
+.schedules-panel__title{ font-size:0.85rem; font-weight:800; white-space:nowrap; }
+.schedules-panel__badge{ font-size:0.68rem; color:var(--guestbook-muted); border:1px solid var(--guestbook-line); border-radius:9999px; padding:0.05rem 0.4rem; white-space:nowrap; max-width:8rem; overflow:hidden; text-overflow:ellipsis; }
+.schedules-panel__count{ font-size:0.72rem; font-weight:700; background:#111; color:#fff; border-radius:9999px; padding:0.15rem 0.5rem; min-width:1.4rem; text-align:center; flex-shrink:0; }
+:root.dark .schedules-panel__count{ background:#fff; color:#111; }
+.schedules-panel__count--festival{ background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+:root.dark .schedules-panel__count--festival{ background: oklch(0.22 0 0); color:#f87171; }
+.schedules-panel__body{ padding:0.8rem; flex:1; background:#fff; }
+:root.dark .schedules-panel__body{ background: transparent; }
+.schedules-panel__date{ font-size:0.78rem; font-weight:700; color:var(--guestbook-muted); margin:0 0 0.6rem; }
+.schedules-panel__empty{ color:var(--guestbook-muted); font-size:0.78rem; text-align:center; padding:0.8rem 0; }
+.schedules-panel__archive-tip{ padding:0.4rem 0; text-align:center; }
+.schedules-panel__hint{ font-size:0.72rem; color:var(--guestbook-muted); margin-top:0.3rem; text-align:center; }
+.sched-festival{ display:flex; gap:0.5rem; font-size:0.82rem; padding:0.5rem 0; border-bottom:1px solid var(--guestbook-line); }
+.sched-festival:last-child{ border-bottom:none; }
+.sched-festival__tag{ font-size:0.68rem; padding:0.1rem 0.4rem; border:1px solid var(--guestbook-line); border-radius:9999px; flex-shrink:0; }
+.schedules-panel__add{ margin-top:0.7rem; font-size:0.72rem; color:var(--guestbook-muted); padding-top:0.6rem; border-top:1px dashed var(--guestbook-line); text-align:center; }
 .schedules-panel__add a{ color:var(--primary); }
-.sched-list{ background: oklch(1 0 0 / 0.72); backdrop-filter: blur(22px) saturate(1.4); border:1px solid oklch(1 0 0 / 0.55); border-radius:0.75rem; padding:0.8rem; }
-:root.dark .sched-list{ background: oklch(0.16 0 0 / 0.72); border-color: oklch(1 0 0 / 0.12); }
-.sched-list__head{ position:sticky; top:0; background: transparent; font-size:0.82rem; font-weight:700; margin:0 0 0.5rem; }
-.sched-row{ display:grid; grid-template-columns:0.45rem 1fr auto auto; gap:0.6rem; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--guestbook-line); font-size:0.82rem; }
+.sched-list{ display:flex; flex-direction:column; }
+.sched-row{ display:grid; grid-template-columns:0.45rem 1fr auto auto; gap:0.6rem; align-items:center; padding:0.55rem 0; border-bottom:1px solid var(--guestbook-line); font-size:0.82rem; }
+.sched-row:last-child{ border-bottom:none; }
 .sched-row.is-done{ opacity:0.6; text-decoration: line-through; }
 .sched-row__dot{ width:0.45rem; height:0.45rem; border-radius:9999px; display:inline-block; }
 .sched-row__time{ color:var(--guestbook-muted); font-size:0.72rem; }
-.sched-list__empty{ color:var(--guestbook-muted); font-size:0.82rem; }
+.sched-list__empty{ color:var(--guestbook-muted); font-size:0.82rem; text-align:center; padding:0.8rem 0; }
 </style>
