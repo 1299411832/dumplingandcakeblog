@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { CollectionEntry } from "astro:content";
+import { Calendar, LayoutGrid, Rows3 } from "lucide-svelte";
 import { onMount } from "svelte";
 import { lunarLabel } from "@/utils/lunar";
 
@@ -31,6 +32,7 @@ let parsed = $derived(parseSchedules(schedules));
 let year = $state(initialYear);
 let month = $state(initialMonth);
 let selected = $state(initialSelected);
+let viewMode = $state<"month" | "week">("month");
 
 // 从 URL 恢复（静态托管下 Astro.url 拿不到 query，需客户端校正）
 function syncFromUrl(): void {
@@ -39,6 +41,8 @@ function syncFromUrl(): void {
 	const qy = params.get("y");
 	const qm = params.get("m");
 	const qd = params.get("d");
+	const qv = params.get("view");
+	if (qv === "week" || qv === "month") viewMode = qv;
 	let hasUrlMonth = false;
 	if (qy && qm) {
 		const y = Number.parseInt(qy);
@@ -50,10 +54,9 @@ function syncFromUrl(): void {
 		}
 	}
 	if (qd) {
-		// 简单校验 YYYY-MM-DD
 		if (/^\d{4}-\d{2}-\d{2}$/.test(qd)) selected = qd;
 	} else if (hasUrlMonth) {
-		// 切月时若 URL 没带 d，保持当前 selected 即可，不强制重置
+		// 保留当前 selected
 	}
 }
 
@@ -63,6 +66,7 @@ function pushUrl(): void {
 	url.searchParams.set("y", String(year));
 	url.searchParams.set("m", String(month));
 	url.searchParams.set("d", selected);
+	url.searchParams.set("view", viewMode);
 	window.history.replaceState({}, "", url.toString());
 }
 
@@ -122,6 +126,39 @@ let rows = $derived.by(() => {
 	return r;
 });
 
+// 周视图：以 selected 为中心的周
+let weekCells = $derived.by(() => {
+	const sel = new Date(selected + "T00:00:00");
+	const day = sel.getDay();
+	const start = new Date(sel);
+	start.setDate(sel.getDate() - day);
+	const arr: { day: number; inMonth: boolean; dateStr: string }[] = [];
+	for (let i = 0; i < 7; i++) {
+		const d = new Date(start);
+		d.setDate(start.getDate() + i);
+		const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+		arr.push({
+			day: d.getDate(),
+			inMonth: d.getMonth() + 1 === month,
+			dateStr,
+		});
+	}
+	return arr;
+});
+
+let weekRangeLabel = $derived.by(() => {
+	if (weekCells.length === 0) return "";
+	const start = weekCells[0].dateStr.slice(5).replace("-", "月") + "日";
+	const end = weekCells[6].dateStr.slice(5).replace("-", "月") + "日";
+	const startYear = Number.parseInt(weekCells[0].dateStr.slice(0, 4));
+	const endYear = Number.parseInt(weekCells[6].dateStr.slice(0, 4));
+	if (startYear !== endYear)
+		return `${weekCells[0].dateStr} ~ ${weekCells[6].dateStr}`;
+	if (weekCells[0].dateStr.slice(0, 7) === weekCells[6].dateStr.slice(0, 7))
+		return `${start} - ${end}`;
+	return `${weekCells[0].dateStr.slice(5, 7)}月${weekCells[0].dateStr.slice(8)}日 ~ ${weekCells[6].dateStr.slice(5, 7)}月${weekCells[6].dateStr.slice(8)}日`;
+});
+
 let todayKey = $derived.by(() => {
 	const now = new Date();
 	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -139,6 +176,17 @@ let todaySchedules = $derived(
 let todayFestivals = $derived(
 	allForSelected.filter((e) => e.data.category !== "schedule"),
 );
+
+// 一个月前的过滤：selected 早于今天 30 天则下方列表收起
+let isRecent = $derived.by(() => {
+	const today = new Date(todayKey + "T00:00:00");
+	const sel = new Date(selected + "T00:00:00");
+	const diff = today.getTime() - sel.getTime();
+	const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+	// 未来日期视为近期待办，需要展示；仅过去 30 天以上的隐藏
+	if (sel.getTime() > today.getTime()) return true;
+	return diff <= thirtyDays;
+});
 
 let selDate = $derived(new Date(selected + "T00:00:00"));
 let dateLabel = $derived(
@@ -158,29 +206,48 @@ const priorityColor: Record<string, string> = {
 };
 
 function goPrev(): void {
-	if (month === 1) {
-		year = year - 1;
-		month = 12;
+	if (viewMode === "week") {
+		const d = new Date(selected + "T00:00:00");
+		d.setDate(d.getDate() - 7);
+		selected = toDateKey(d);
+		year = d.getFullYear();
+		month = d.getMonth() + 1;
 	} else {
-		month = month - 1;
+		if (month === 1) {
+			year = year - 1;
+			month = 12;
+		} else {
+			month = month - 1;
+		}
 	}
 	pushUrl();
 }
 function goNext(): void {
-	if (month === 12) {
-		year = year + 1;
-		month = 1;
+	if (viewMode === "week") {
+		const d = new Date(selected + "T00:00:00");
+		d.setDate(d.getDate() + 7);
+		selected = toDateKey(d);
+		year = d.getFullYear();
+		month = d.getMonth() + 1;
 	} else {
-		month = month + 1;
+		if (month === 12) {
+			year = year + 1;
+			month = 1;
+		} else {
+			month = month + 1;
+		}
 	}
 	pushUrl();
 }
 function selectDate(dateStr: string): void {
 	selected = dateStr;
-	// 同步切到该日所在月（避免点灰色外月日时月历不跟随）
 	const d = new Date(dateStr + "T00:00:00");
 	year = d.getFullYear();
 	month = d.getMonth() + 1;
+	pushUrl();
+}
+function toggleView(): void {
+	viewMode = viewMode === "month" ? "week" : "month";
 	pushUrl();
 }
 
@@ -188,7 +255,6 @@ onMount(() => {
 	syncFromUrl();
 	const onPop = () => syncFromUrl();
 	window.addEventListener("popstate", onPop);
-	// Swup 导航后重新校正（静态托管下新页面仍需从 URL 取 y/m）
 	const onSwup = () => syncFromUrl();
 	document.addEventListener("swup:content:replaced", onSwup);
 	return () => {
@@ -199,24 +265,79 @@ onMount(() => {
 </script>
 
 <div class="schedules-inner">
-	<div class="sched-cal">
+	<!-- 顶部：左上角图标+标题+描述，右上角周视图切换（与其他页面一致） -->
+	<div class="schedules-header">
+		<div class="schedules-header__left">
+			<div class="flex items-center gap-2">
+				<span class="schedules-header__icon">
+					<Calendar size={28} strokeWidth={2} />
+				</span>
+				<h1 class="schedules-header__title">日历</h1>
+			</div>
+			<p class="schedules-header__desc">用日历管理你的日程、生日与纪念日，重要时刻一目了然</p>
+		</div>
+		<button class="schedules-view-toggle" type="button" onclick={toggleView} aria-label="切换视图" title={viewMode === "month" ? "切换为周视图" : "切换为月视图"}>
+			{#if viewMode === "month"}
+				<Rows3 size={16} />
+				<span>周视图</span>
+			{:else}
+				<LayoutGrid size={16} />
+				<span>月视图</span>
+			{/if}
+		</button>
+	</div>
+
+	<div class="sched-cal" data-view={viewMode}>
 		<div class="sched-cal__header">
-			<button class="sched-cal__nav" type="button" aria-label="上个月" onclick={goPrev}>‹</button>
-			<h2 class="sched-cal__title">{year}年 {month}月</h2>
-			<button class="sched-cal__nav" type="button" aria-label="下个月" onclick={goNext}>›</button>
+			<button class="sched-cal__nav" type="button" aria-label={viewMode === "week" ? "上一周" : "上个月"} onclick={goPrev}>‹</button>
+			<div class="sched-cal__title-wrap">
+				<h2 class="sched-cal__title">{year}年 {month}月</h2>
+				{#if viewMode === "week"}
+					<span class="sched-cal__subtitle">{weekRangeLabel}</span>
+				{/if}
+			</div>
+			<button class="sched-cal__nav" type="button" aria-label={viewMode === "week" ? "下一周" : "下个月"} onclick={goNext}>›</button>
 		</div>
 		<div class="sched-cal__week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
 		<div class="sched-cal__grid">
-			{#each rows as row}
-				<div class="sched-cal__row">
-					{#each row as cell}
+			{#if viewMode === "month"}
+				{#each rows as row}
+					<div class="sched-cal__row">
+						{#each row as cell}
+							{@const lunar = lunarLabel(Number.parseInt(cell.dateStr.slice(0, 4)), Number.parseInt(cell.dateStr.slice(5, 7)), cell.day)}
+							{@const dayEvents = eventsByDate.get(cell.dateStr) || []}
+							{@const isToday = cell.dateStr === todayKey}
+							{@const isSelected = cell.dateStr === selected}
+							<button
+								class="sched-cal__cell"
+								class:is-outside={!cell.inMonth}
+								class:is-today={isToday}
+								class:is-selected={isSelected}
+								data-date={cell.dateStr}
+								type="button"
+								onclick={() => selectDate(cell.dateStr)}
+							>
+								<span class="sched-cal__day-row"><b class="sched-cal__day">{cell.day}</b><small class="sched-cal__lunar">{lunar}</small></span>
+								<span class="sched-cal__events">
+									{#each dayEvents.slice(0, 2) as e}
+										<span class="sched-cal__event" class:is-holiday={e.data.category === "holiday"} class:is-birthday={e.data.category === "birthday"} title={e.data.title}>{e.data.title}</span>
+									{/each}
+									{#if dayEvents.length > 2}<span class="sched-cal__more">+{dayEvents.length - 2}</span>{/if}
+								</span>
+							</button>
+						{/each}
+					</div>
+				{/each}
+			{:else}
+				<!-- 周视图：一排 7 天 -->
+				<div class="sched-cal__row sched-cal__row--week">
+					{#each weekCells as cell}
 						{@const lunar = lunarLabel(Number.parseInt(cell.dateStr.slice(0, 4)), Number.parseInt(cell.dateStr.slice(5, 7)), cell.day)}
 						{@const dayEvents = eventsByDate.get(cell.dateStr) || []}
 						{@const isToday = cell.dateStr === todayKey}
 						{@const isSelected = cell.dateStr === selected}
 						<button
-							class="sched-cal__cell"
-							class:is-outside={!cell.inMonth}
+							class="sched-cal__cell sched-cal__cell--week"
 							class:is-today={isToday}
 							class:is-selected={isSelected}
 							data-date={cell.dateStr}
@@ -233,32 +354,41 @@ onMount(() => {
 						</button>
 					{/each}
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
 	<div class="schedules-below">
 		<div class="schedules-panel">
 			<h3 class="schedules-panel__head">今日日程 {festivalLabel ? `· ${festivalLabel}` : ""}</h3>
-			<div class="sched-list">
-				<h3 class="sched-list__head">{dateLabel}</h3>
-				{#if todaySchedules.length === 0}
-					<p class="sched-list__empty">当日无日程</p>
-				{:else}
-					{#each todaySchedules as e}
-						<div class="sched-row" class:is-done={e.data.status === "done"}>
-							<span class="sched-row__dot" style={`background:${priorityColor[e.data.priority] || "#9ca3af"}`}></span>
-							<span class="sched-row__title">{e.data.title}</span>
-							<span class="sched-row__time">{e.data.allDay ? "全天" : new Date(e.data.date).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span>
-							<span class="sched-row__check">{e.data.status === "done" ? "✓" : "○"}</span>
-						</div>
-					{/each}
-				{/if}
-			</div>
+			{#if !isRecent}
+				<div class="schedules-panel__archive-tip">
+					<p class="schedules-panel__empty">一个月前的数据已收起，仅在日历格子中显示</p>
+					<p class="schedules-panel__hint">点击上方日历块可查看当日详情</p>
+				</div>
+			{:else}
+				<div class="sched-list">
+					<h3 class="sched-list__head">{dateLabel}</h3>
+					{#if todaySchedules.length === 0}
+						<p class="sched-list__empty">当日无日程</p>
+					{:else}
+						{#each todaySchedules as e}
+							<div class="sched-row" class:is-done={e.data.status === "done"}>
+								<span class="sched-row__dot" style={`background:${priorityColor[e.data.priority] || "#9ca3af"}`}></span>
+								<span class="sched-row__title">{e.data.title}</span>
+								<span class="sched-row__time">{e.data.allDay ? "全天" : new Date(e.data.date).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span>
+								<span class="sched-row__check">{e.data.status === "done" ? "✓" : "○"}</span>
+							</div>
+						{/each}
+					{/if}
+				</div>
+			{/if}
 		</div>
 		<div class="schedules-panel">
 			<h3 class="schedules-panel__head">生日 · 纪念日 · 节假日</h3>
-			{#if todayFestivals.length === 0}
+			{#if !isRecent}
+				<p class="schedules-panel__empty">已收起，仅在日历中标记</p>
+			{:else if todayFestivals.length === 0}
 				<p class="schedules-panel__empty">今日无生日/纪念日</p>
 			{:else}
 				{#each todayFestivals as e}
@@ -272,10 +402,23 @@ onMount(() => {
 
 <style>
 @reference "../../styles/main.css";
-.sched-cal{ border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; background: #fff; padding:0.7rem; }
+.schedules-header{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:0.8rem; }
+.schedules-header__left{ display:flex; flex-direction:column; gap:0.35rem; }
+.schedules-header__icon{ display:flex; align-items:center; justify-content:center; width:2.25rem; height:2.25rem; border:1.5px solid #111; border-radius:0.55rem; background:#fff; }
+:root.dark .schedules-header__icon{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
+.schedules-header__title{ font-size:1.875rem; line-height:1; font-weight:800; color: oklch(0.15 0 0); }
+:root.dark .schedules-header__title{ color:#fff; }
+.schedules-header__desc{ font-size:0.875rem; color:var(--guestbook-muted); line-height:1.5; margin:0; padding-left:0.1rem; }
+.schedules-view-toggle{ display:inline-flex; align-items:center; gap:0.35rem; padding:0.45rem 0.75rem; border:1.5px solid #111; border-radius:9999px; background:#fff; font-size:0.78rem; font-weight:600; cursor:pointer; white-space:nowrap; transition: all 0.15s ease; }
+.schedules-view-toggle:hover{ background:#111; color:#fff; }
+:root.dark .schedules-view-toggle{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
+:root.dark .schedules-view-toggle:hover{ background:#fff; color:#111; }
+.sched-cal{ border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; background: #fff; padding:0.7rem; transition: all 0.25s ease; }
 :root.dark .sched-cal{ border-color: oklch(1 0 0 / 0.18); background: oklch(0.16 0 0 / 0.86); }
 .sched-cal__header{ display:flex; align-items:center; justify-content:space-between; padding:0.3rem 0.2rem 0.55rem; }
+.sched-cal__title-wrap{ display:flex; flex-direction:column; align-items:center; gap:0.1rem; }
 .sched-cal__title{ font-size:0.95rem; font-weight:800; }
+.sched-cal__subtitle{ font-size:0.68rem; color:var(--guestbook-muted); }
 .sched-cal__nav{ width:2rem; height:2rem; border:1.5px solid #111; border-radius:0.45rem; background:#fff; font-size:1.1rem; line-height:1; cursor:pointer; }
 :root.dark .sched-cal__nav{ border-color: oklch(1 0 0 / 0.18); background: transparent; color:#fff; }
 .sched-cal__week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:0.72rem; color:var(--guestbook-muted); padding:0.45rem 0.2rem; }
@@ -283,8 +426,10 @@ onMount(() => {
 .sched-cal__row{ display:grid; grid-template-columns:repeat(7,1fr); }
 .sched-cal__row + .sched-cal__row{ border-top:1px solid oklch(0 0 0 / 0.08); }
 :root.dark .sched-cal__row + .sched-cal__row{ border-color: oklch(1 0 0 / 0.08); }
+.sched-cal__row--week{ border-top:none !important; }
 .sched-cal__cell{ aspect-ratio:1; padding:0.32rem 0.36rem; text-align:left; border-right:1px solid oklch(0 0 0 / 0.08); background:#fff; display:flex; flex-direction:column; gap:0.2rem; overflow:hidden; cursor:pointer; }
 .sched-cal__cell:last-child{ border-right:none; }
+.sched-cal__cell--week{ aspect-ratio: 1.1; }
 :root.dark .sched-cal__cell{ background: transparent; border-color: oklch(1 0 0 / 0.06); }
 .sched-cal__cell.is-outside{ color:#9ca3af; background: #fafafa; }
 :root.dark .sched-cal__cell.is-outside{ background: oklch(0.14 0 0 / 1); }
@@ -304,6 +449,8 @@ onMount(() => {
   .sched-cal__day{ font-size:0.74rem; }
   .sched-cal__lunar{ font-size:0.58rem; }
   .sched-cal__event{ font-size:0.56rem; }
+  .schedules-header{ flex-direction:column; align-items:flex-start; }
+  .schedules-view-toggle{ align-self:flex-end; }
 }
 .schedules-inner{ display:flex; flex-direction:column; gap:0.8rem; }
 .schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
@@ -313,6 +460,8 @@ onMount(() => {
 :root.dark .schedules-panel{ background: oklch(0.16 0 0 / 0.72); border-color: oklch(1 0 0 / 0.12); }
 .schedules-panel__head{ font-size:0.85rem; font-weight:800; margin:0 0 0.6rem; }
 .schedules-panel__empty{ color:var(--guestbook-muted); font-size:0.78rem; }
+.schedules-panel__archive-tip{ padding:0.6rem 0; }
+.schedules-panel__hint{ font-size:0.72rem; color:var(--guestbook-muted); margin-top:0.3rem; }
 .sched-festival{ display:flex; gap:0.5rem; font-size:0.82rem; padding:0.35rem 0; border-bottom:1px solid var(--guestbook-line); }
 .sched-festival__tag{ font-size:0.68rem; padding:0.1rem 0.4rem; border:1px solid var(--guestbook-line); border-radius:9999px; }
 .schedules-panel__add{ margin-top:0.6rem; font-size:0.72rem; color:var(--guestbook-muted); }
