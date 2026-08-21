@@ -1,0 +1,54 @@
+---
+interface Props {
+  data: { category: string; amount: number; count: number }[];
+  totalCount: number;
+  totalExpense: number;
+}
+const { data, totalCount, totalExpense } = Astro.props;
+const fmt = (n: number) => n.toFixed(2);
+const icons: Record<string, string> = {
+  "食品酒水": "🥧",
+  "居家生活": "🏠",
+  "交流通讯": "📡",
+  "餐饮": "🍜",
+  "交通": "🚌",
+  "住房": "🏠",
+};
+---
+<div class="rank-card">
+  <div class="rank-head">
+    <h3 class="rank-title">本月各分类支出排行</h3>
+    <span class="rank-sub">记账笔数 {totalCount} &nbsp; 总支出 {fmt(totalExpense)}</span>
+  </div>
+  <div class="rank-list">
+    {data.length===0 ? <p class="rank-empty">暂无支出</p> :
+      data.map((item, idx) => (
+        <div class="rank-row">
+          <span class="rank-num">{idx+1}</span>
+          <span class="rank-icon">{icons[item.category] ?? "🧾"}</span>
+          <span class="rank-cat">{item.category}</span>
+          <span class="rank-amt">{fmt(item.amount)}</span>
+        </div>
+      ))
+    }
+  </div>
+</div>
+<style>
+@reference "../../styles/main.css";
+.rank-card{ background:#fff; border:1px solid oklch(0 0 0 / 0.06); border-radius:0.75rem; padding:0.7rem 0.85rem 0.55rem; }
+:root.dark .rank-card{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.08); }
+.rank-head{ display:flex; align-items:baseline; justify-content:space-between; gap:0.6rem; margin-bottom:0.5rem; }
+.rank-title{ font-size:0.82rem; font-weight:700; white-space:nowrap; }
+.rank-sub{ font-size:0.62rem; color:var(--guestbook-muted); white-space:nowrap; }
+.rank-list{ display:flex; flex-direction:column; }
+.rank-row{ display:grid; grid-template-columns:1rem 1.5rem 1fr auto; gap:0.4rem; align-items:center; padding:0.55rem 0; border-bottom:1px solid oklch(0 0 0 / 0.06); }
+:root.dark .rank-row{ border-color: oklch(1 0 0 / 0.06); }
+.rank-row:last-child{ border-bottom:none; }
+.rank-num{ font-size:0.72rem; color:var(--guestbook-muted); text-align:center; }
+.rank-icon{ width:1.5rem; height:1.5rem; display:flex; align-items:center; justify-content:center; background:#fef9ec; border:1px solid #fef3c7; border-radius:0.4rem; font-size:0.85rem; }
+:root.dark .rank-icon{ background: oklch(0.22 0.6 80 / 0.15); border-color: transparent; }
+.rank-cat{ font-size:0.78rem; font-weight:500; }
+.rank-cat::after{ content:""; display:block; height:2px; background: oklch(0 0 0 / 0.06); margin-top:0.25rem; border-radius:9999px; }
+.rank-amt{ font-size:0.78rem; font-weight:600; }
+.rank-empty{ font-size:0.78rem; color:var(--guestbook-muted); text-align:center; padding:0.6rem 0; }
+</style>
