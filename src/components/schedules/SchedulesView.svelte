@@ -248,14 +248,13 @@ let todayHolidays = $derived(
 let todayFestivals = $derived(
 	allForSelected.filter((e) => e.data.category !== "schedule"),
 );
-// 生日/纪念日展示全年（按当前日历年份），农历按当年阳历换算，节假日仅当天
+// 生日/纪念日展示全年（按当前日历年份换算，农历跨年也显示）
 let yearBirthdays = $derived.by(() => {
 	const list = parsed.filter(
 		(e) => e.data.category === "birthday" || e.data.category === "anniversary",
 	);
 	const withSolar = list.map((e) => ({ e, sd: effectiveDate(e, year) }));
-	const byYear = withSolar.filter(({ sd }) => sd.getFullYear() === year);
-	const src = (byYear.length > 0 ? byYear : withSolar).map(
+	const src = withSolar.map(
 		({ e, sd }) => ({ ...e, data: { ...e.data, date: sd } }) as ScheduleEntry,
 	);
 	return [...src].sort((a, b) => {
