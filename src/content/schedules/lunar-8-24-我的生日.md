@@ -1,6 +1,5 @@
 ---
 title: "我的生日"
-date: 2026-10-04
 allDay: true
 priority: "none"
 status: "todo"

@@ -19,7 +19,7 @@ const priorityColor: Record<string, string> = {
     <div class:list={["sched-row", e.data.status==="done" && "is-done"]}>
       <span class="sched-row__dot" style={`background:${priorityColor[e.data.priority] || "#9ca3af"}`}></span>
       <span class="sched-row__title">{e.data.title}</span>
-      <span class="sched-row__time">{e.data.allDay ? "全天" : new Date(e.data.date).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}</span>
+      <span class="sched-row__time">{e.data.allDay ? "全天" : e.data.date ? new Date(e.data.date as unknown as string | number | Date).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}) : ""}</span>
       <span class="sched-row__check">{e.data.status==="done" ? "✓" : "○"}</span>
     </div>
   ))}

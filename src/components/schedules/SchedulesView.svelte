@@ -28,8 +28,11 @@ function toDateKey(d: Date): string {
 
 function parseSchedules(raw: ScheduleEntry[]): ScheduleEntry[] {
 	return raw.map((e) => {
-		const dateVal = e.data.date as unknown as string | Date;
-		const date = dateVal instanceof Date ? dateVal : new Date(dateVal);
+		const rawDate = (e.data as unknown as Record<string, unknown>).date as unknown as string | Date | undefined;
+		let date: Date;
+		if (rawDate instanceof Date) date = rawDate;
+		else if (typeof rawDate === "string" && rawDate) date = new Date(rawDate);
+		else date = new Date(8640000000000000); // 无 date 的农历由 effectiveDate 重算
 		return { ...e, data: { ...e.data, date } };
 	});
 }
@@ -58,12 +61,45 @@ function effectiveDate(entry: ScheduleEntry, displayYear: number): Date {
 
 let parsed = $derived(parseSchedules(schedules));
 
-let year = $state(initialYear);
-let month = $state(initialMonth);
-let selected = $state(initialSelected);
-let viewMode = $state<"month" | "week">("week");
+// 首屏消闪：初始化即按 URL 或客户端今天算好，不等 onMount 再覆写
+function resolveInitial(): { y: number; m: number; d: string; v: "month" | "week" } {
+	if (typeof window !== "undefined") {
+		const p = new URLSearchParams(window.location.search);
+		const qy = p.get("y");
+		const qm = p.get("m");
+		const qd = p.get("d");
+		const qv = p.get("view");
+		const today = new Date();
+		const todayD = today.toISOString().slice(0, 10);
+		if (qy && qm) {
+			const y = Number.parseInt(qy, 10);
+			const m = Number.parseInt(qm, 10);
+			if (!Number.isNaN(y) && !Number.isNaN(m) && m >= 1 && m <= 12) {
+				return {
+					y,
+					m,
+					d: qd && /^\d{4}-\d{2}-\d{2}$/.test(qd) ? qd : todayD,
+					v: qv === "month" || qv === "week" ? (qv as "month" | "week") : "week",
+				};
+			}
+		}
+		// 无 URL 时直接用客户端今天，避免构建时旧月份闪烁
+		return {
+			y: today.getFullYear(),
+			m: today.getMonth() + 1,
+			d: qd && /^\d{4}-\d{2}-\d{2}$/.test(qd) ? qd : todayD,
+			v: qv === "month" || qv === "week" ? (qv as "month" | "week") : "week",
+		};
+	}
+	return { y: initialYear, m: initialMonth, d: initialSelected, v: "week" };
+}
+const _init = resolveInitial();
+let year = $state(_init.y);
+let month = $state(_init.m);
+let selected = $state(_init.d);
+let viewMode = $state<"month" | "week">(_init.v);
 
-// 从 URL 恢复（静态托管下 Astro.url 拿不到 query，需客户端校正；无参时默认今天）
+// 仅 URL 变化时同步，不再无参覆写今天（已在初始化完成）
 function syncFromUrl(): void {
 	if (typeof window === "undefined") return;
 	const params = new URLSearchParams(window.location.search);
@@ -72,30 +108,15 @@ function syncFromUrl(): void {
 	const qd = params.get("d");
 	const qv = params.get("view");
 	if (qv === "week" || qv === "month") viewMode = qv;
-	// 无 y/m 时用今天的年月，避免构建时的旧月份
-	const today = new Date();
-	const todayY = today.getFullYear();
-	const todayM = today.getMonth() + 1;
-	const todayD = `${todayY}-${String(todayM).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-	let hasUrlMonth = false;
 	if (qy && qm) {
 		const y = Number.parseInt(qy, 10);
 		const m = Number.parseInt(qm, 10);
 		if (!Number.isNaN(y) && !Number.isNaN(m) && m >= 1 && m <= 12) {
 			year = y;
 			month = m;
-			hasUrlMonth = true;
 		}
-	} else {
-		year = todayY;
-		month = todayM;
 	}
-	if (qd) {
-		if (/^\d{4}-\d{2}-\d{2}$/.test(qd)) selected = qd;
-	} else {
-		// 无 d 时默认今天，避免选中昨天
-		selected = todayD;
-	}
+	if (qd && /^\d{4}-\d{2}-\d{2}$/.test(qd)) selected = qd;
 }
 
 function pushUrl(): void {
@@ -379,7 +400,7 @@ function toggleView(): void {
 }
 
 onMount(() => {
-	// 刷新时归位到当天（日历选中、当月、周视图、卡片分页均重置）
+	// 刷新归位已在 resolveInitial 同步完成，此处仅清 URL 残参避免闪烁
 	const navEntry = performance.getEntriesByType("navigation")[0] as
 		| PerformanceNavigationTiming
 		| undefined;
@@ -388,22 +409,15 @@ onMount(() => {
 		(performance as unknown as { navigation?: { type: number } }).navigation
 			?.type === 1;
 	if (isReload) {
-		const today = new Date();
-		const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-		selected = todayStr;
-		year = today.getFullYear();
-		month = today.getMonth() + 1;
-		viewMode = "week";
-		schedulePage = 1;
-		festivalPage = 1;
 		const url = new URL(window.location.href);
-		url.searchParams.delete("y");
-		url.searchParams.delete("m");
-		url.searchParams.delete("d");
-		url.searchParams.delete("view");
-		window.history.replaceState({}, "", url.toString());
-	} else {
-		syncFromUrl();
+		const had = url.searchParams.has("y") || url.searchParams.has("m") || url.searchParams.has("d") || url.searchParams.has("view");
+		if (had) {
+			url.searchParams.delete("y");
+			url.searchParams.delete("m");
+			url.searchParams.delete("d");
+			url.searchParams.delete("view");
+			window.history.replaceState({}, "", url.toString());
+		}
 	}
 	const onPop = () => syncFromUrl();
 	window.addEventListener("popstate", onPop);

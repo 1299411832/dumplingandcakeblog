@@ -294,25 +294,34 @@ const billsCollection = defineCollection({
 
 const schedulesCollection = defineCollection({
 	loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/schedules" }),
-	schema: z.object({
-		title: z.string(),
-		date: z.coerce.date(),
-		endDate: z.coerce.date().optional(),
-		allDay: z.boolean().optional().default(false),
-		priority: z.enum(["none", "low", "medium", "high"]).default("none"),
-		status: z.enum(["todo", "done", "cancelled"]).default("todo"),
-		location: z.string().optional().default(""),
-		repeat: z.string().optional().default(""),
-		category: z
-			.enum(["schedule", "birthday", "anniversary", "holiday"])
-			.optional()
-			.default("schedule"),
-		person: z.string().optional().default(""),
-		isLunar: z.boolean().optional().default(false),
-		lunarMonth: z.number().int().min(1).max(12).optional(),
-		lunarDay: z.number().int().min(1).max(30).optional(),
-		lunarLeap: z.boolean().optional().default(false),
-	}),
+	schema: z
+		.object({
+			title: z.string(),
+			date: z.coerce.date().optional(),
+			endDate: z.coerce.date().optional(),
+			allDay: z.boolean().optional().default(false),
+			priority: z.enum(["none", "low", "medium", "high"]).default("none"),
+			status: z.enum(["todo", "done", "cancelled"]).default("todo"),
+			location: z.string().optional().default(""),
+			repeat: z.string().optional().default(""),
+			category: z
+				.enum(["schedule", "birthday", "anniversary", "holiday"])
+				.optional()
+				.default("schedule"),
+			person: z.string().optional().default(""),
+			isLunar: z.boolean().optional().default(false),
+			lunarMonth: z.number().int().min(1).max(12).optional(),
+			lunarDay: z.number().int().min(1).max(30).optional(),
+			lunarLeap: z.boolean().optional().default(false),
+		})
+		.superRefine((data, ctx) => {
+			if (!data.isLunar && !data.date) {
+				ctx.addIssue({ code: z.ZodIssueCode.custom, message: "非农历需填 date", path: ["date"] });
+			}
+			if (data.isLunar && (!data.lunarMonth || !data.lunarDay)) {
+				ctx.addIssue({ code: z.ZodIssueCode.custom, message: "农历需填 lunarMonth/lunarDay", path: ["lunarMonth"] });
+			}
+		}),
 });
 
 const changelogCollection = defineCollection({

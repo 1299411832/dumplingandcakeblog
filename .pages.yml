@@ -886,7 +886,8 @@ content:
           - name: date
             label: 开始时间
             type: date
-            required: true
+            required: false
+            description: 农历生日留空，自动按 lunarMonth/Day 换算
             options:
               time: true
               format: "yyyy-MM-dd HH:mm:ss"
