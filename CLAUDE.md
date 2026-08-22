@@ -33,7 +33,7 @@
 | 框架 | Astro 7.1.6 + Svelte 5 + Tailwind CSS v4 |
 | 包管理 | pnpm 9.14.4 (ESM, `preinstall` 强制) |
 | 运行时 | Node.js >= 22 |
-| 部署 | EdgeOne Pages（主，GitHub 集成自动构建） |
+| 部署 | GitHub Pages（构建，`.github/workflows/pages.yml`） + EdgeOne 站点加速（CDN，回源 `tianshihao2003.github.io`） |
 | 线上 | https://blog.tsh520.cn/ |
 | 后台 | PagesCMS 自托管（Vercel + EdgeOne 加速）：https://cms.tsh520.cn/（配置见第 19 节） |
 | 来源 | Fork 自 CuteLeaf/Firefly ← saicaca/fuwari，已深度定制为独立演化 |
@@ -709,8 +709,9 @@ scope: layout | config | i18n | styles | utils | components | content
 Vercel（PagesCMS 实例，绑定 cms-origin.tsh520.cn）
     ↓ GitHub API 写回
 仓库 main 分支（内容文件）
-    ↓ EdgeOne Pages 检测 push 自动重建
-博客站点
+    ↓ GitHub Actions 构建（.github/workflows/pages.yml：pnpm build，注入 11 个 PUBLIC_* Secrets）
+    ↓ 上传 dist（含 public/CNAME）到 GitHub Pages
+博客站点（GitHub Pages 托管，https://blog.tsh520.cn，DNS → EdgeOne 站点加速 → 回源 tianshihao2003.github.io，HOST blog.tsh520.cn）
 ```
 
 - **源站域名分离**：Vercel 绑定 `cms-origin.tsh520.cn`（DNS → vercel.app），用户域名 `cms.tsh520.cn` 走 EdgeOne（回源 Host = cms-origin）——Vercel 的域名验证机制要求 DNS 持续指向它，不能直接套 CDN

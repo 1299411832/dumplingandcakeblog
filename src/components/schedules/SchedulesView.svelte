@@ -196,13 +196,17 @@ let todayFestivals = $derived(
 );
 // 生日/纪念日展示全年（按当前日历年份），节假日仅当天
 let yearBirthdays = $derived.by(() => {
-	const list = parsed.filter((e) => e.data.category === "birthday" || e.data.category === "anniversary");
+	const list = parsed.filter(
+		(e) => e.data.category === "birthday" || e.data.category === "anniversary",
+	);
 	// 按年份过滤到当前日历年，若当年无则回退展示全部年份的生日
 	const byYear = list.filter((e) => e.data.date.getFullYear() === year);
 	const src = byYear.length > 0 ? byYear : list;
 	return [...src].sort((a, b) => {
-		const am = a.data.date.getMonth(), ad = a.data.date.getDate();
-		const bm = b.data.date.getMonth(), bd = b.data.date.getDate();
+		const am = a.data.date.getMonth();
+		const ad = a.data.date.getDate();
+		const bm = b.data.date.getMonth();
+		const bd = b.data.date.getDate();
 		if (am !== bm) return am - bm;
 		if (ad !== bd) return ad - bd;
 		return a.data.title.localeCompare(b.data.title, "zh-CN");
@@ -348,8 +352,13 @@ function toggleView(): void {
 
 onMount(() => {
 	// 刷新时归位到当天（日历选中、当月、周视图、卡片分页均重置）
-	const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-	const isReload = navEntry?.type === "reload" || (performance as unknown as { navigation?: { type: number } }).navigation?.type === 1;
+	const navEntry = performance.getEntriesByType("navigation")[0] as
+		| PerformanceNavigationTiming
+		| undefined;
+	const isReload =
+		navEntry?.type === "reload" ||
+		(performance as unknown as { navigation?: { type: number } }).navigation
+			?.type === 1;
 	if (isReload) {
 		const today = new Date();
 		const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
