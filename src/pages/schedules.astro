@@ -1,8 +1,8 @@
 ---
 import { getCollection } from "astro:content";
+import { Lunar } from "lunar-javascript";
 import SchedulesView from "@/components/schedules/SchedulesView.svelte";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { Lunar } from "lunar-javascript";
 
 const raw = await getCollection("schedules");
 // 服务端预换算农历→当年阳历，消首屏闪烁：isLunar 无 date 的生日在此算好 solar
@@ -31,7 +31,10 @@ const schedules = raw.map((e) => {
 	}
 	// 非农历但 date 缺失（如旧占位）给回退
 	if (!e.data.date) {
-		return { ...e, data: { ...e.data, date: new Date(curYear, 0, 1) } } as typeof e;
+		return {
+			...e,
+			data: { ...e.data, date: new Date(curYear, 0, 1) },
+		} as typeof e;
 	}
 	return e;
 });

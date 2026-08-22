@@ -28,7 +28,8 @@ function toDateKey(d: Date): string {
 
 function parseSchedules(raw: ScheduleEntry[]): ScheduleEntry[] {
 	return raw.map((e) => {
-		const rawDate = (e.data as unknown as Record<string, unknown>).date as unknown as string | Date | undefined;
+		const rawDate = (e.data as unknown as Record<string, unknown>)
+			.date as unknown as string | Date | undefined;
 		let date: Date;
 		if (rawDate instanceof Date) date = rawDate;
 		else if (typeof rawDate === "string" && rawDate) date = new Date(rawDate);
@@ -62,7 +63,12 @@ function effectiveDate(entry: ScheduleEntry, displayYear: number): Date {
 let parsed = $derived(parseSchedules(schedules));
 
 // 首屏消闪：初始化即按 URL 或客户端今天算好，不等 onMount 再覆写
-function resolveInitial(): { y: number; m: number; d: string; v: "month" | "week" } {
+function resolveInitial(): {
+	y: number;
+	m: number;
+	d: string;
+	v: "month" | "week";
+} {
 	if (typeof window !== "undefined") {
 		const p = new URLSearchParams(window.location.search);
 		const qy = p.get("y");
@@ -79,7 +85,8 @@ function resolveInitial(): { y: number; m: number; d: string; v: "month" | "week
 					y,
 					m,
 					d: qd && /^\d{4}-\d{2}-\d{2}$/.test(qd) ? qd : todayD,
-					v: qv === "month" || qv === "week" ? (qv as "month" | "week") : "week",
+					v:
+						qv === "month" || qv === "week" ? (qv as "month" | "week") : "week",
 				};
 			}
 		}
@@ -410,7 +417,11 @@ onMount(() => {
 			?.type === 1;
 	if (isReload) {
 		const url = new URL(window.location.href);
-		const had = url.searchParams.has("y") || url.searchParams.has("m") || url.searchParams.has("d") || url.searchParams.has("view");
+		const had =
+			url.searchParams.has("y") ||
+			url.searchParams.has("m") ||
+			url.searchParams.has("d") ||
+			url.searchParams.has("view");
 		if (had) {
 			url.searchParams.delete("y");
 			url.searchParams.delete("m");

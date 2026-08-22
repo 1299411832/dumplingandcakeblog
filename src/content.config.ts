@@ -316,10 +316,18 @@ const schedulesCollection = defineCollection({
 		})
 		.superRefine((data, ctx) => {
 			if (!data.isLunar && !data.date) {
-				ctx.addIssue({ code: z.ZodIssueCode.custom, message: "非农历需填 date", path: ["date"] });
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "非农历需填 date",
+					path: ["date"],
+				});
 			}
 			if (data.isLunar && (!data.lunarMonth || !data.lunarDay)) {
-				ctx.addIssue({ code: z.ZodIssueCode.custom, message: "农历需填 lunarMonth/lunarDay", path: ["lunarMonth"] });
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "农历需填 lunarMonth/lunarDay",
+					path: ["lunarMonth"],
+				});
 			}
 		}),
 });

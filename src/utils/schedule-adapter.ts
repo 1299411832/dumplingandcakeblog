@@ -38,7 +38,8 @@ export function calendarMarks(
 	for (const e of entries) {
 		const d = e.data.date as Date | undefined;
 		if (!d) continue;
-		if (d.getFullYear() === year && d.getMonth() + 1 === month) set.add(toDateKey(d));
+		if (d.getFullYear() === year && d.getMonth() + 1 === month)
+			set.add(toDateKey(d));
 	}
 	return set;
 }
@@ -63,7 +64,9 @@ export function todaySchedules(
 ): ScheduleEntry[] {
 	return entries.filter((e) => {
 		const d = e.data.date as Date | undefined;
-		return d ? toDateKey(d) === dateKey && e.data.category === "schedule" : false;
+		return d
+			? toDateKey(d) === dateKey && e.data.category === "schedule"
+			: false;
 	});
 }
 
