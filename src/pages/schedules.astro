@@ -8,8 +8,8 @@ const url = Astro.url;
 const qy = url.searchParams.get("y");
 const qm = url.searchParams.get("m");
 const now = new Date();
-let year = qy ? Number.parseInt(qy) : now.getFullYear();
-let month = qm ? Number.parseInt(qm) : now.getMonth() + 1;
+let year = qy ? Number.parseInt(qy, 10) : now.getFullYear();
+let month = qm ? Number.parseInt(qm, 10) : now.getMonth() + 1;
 if (!(month >= 1 && month <= 12)) {
 	year = now.getFullYear();
 	month = now.getMonth() + 1;

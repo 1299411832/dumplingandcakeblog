@@ -143,7 +143,7 @@ function getQuotePreview(c: Comment): string {
 	if (!parent) return "";
 	// 提取纯文本预览（去掉 HTML 标签）
 	const text = parent.comment.replace(/<[^>]*>/g, "").trim();
-	return text.length > 60 ? text.slice(0, 60) + "..." : text;
+	return text.length > 60 ? `${text.slice(0, 60)}...` : text;
 }
 
 function getAvatarSrc(c: Comment): string {

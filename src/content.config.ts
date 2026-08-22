@@ -308,6 +308,10 @@ const schedulesCollection = defineCollection({
 			.optional()
 			.default("schedule"),
 		person: z.string().optional().default(""),
+		isLunar: z.boolean().optional().default(false),
+		lunarMonth: z.number().int().min(1).max(12).optional(),
+		lunarDay: z.number().int().min(1).max(30).optional(),
+		lunarLeap: z.boolean().optional().default(false),
 	}),
 });
 

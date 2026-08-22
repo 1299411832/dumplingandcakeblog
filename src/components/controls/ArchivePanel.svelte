@@ -237,10 +237,10 @@ function updateTabIndicator() {
 		'[role="tab"][aria-selected="true"]',
 	);
 	if (!activeBtn) return;
-	tabIndicatorEl.style.left = activeBtn.offsetLeft + "px";
-	tabIndicatorEl.style.top = activeBtn.offsetTop + "px";
-	tabIndicatorEl.style.width = activeBtn.offsetWidth + "px";
-	tabIndicatorEl.style.height = activeBtn.offsetHeight + "px";
+	tabIndicatorEl.style.left = `${activeBtn.offsetLeft}px`;
+	tabIndicatorEl.style.top = `${activeBtn.offsetTop}px`;
+	tabIndicatorEl.style.width = `${activeBtn.offsetWidth}px`;
+	tabIndicatorEl.style.height = `${activeBtn.offsetHeight}px`;
 	tabIndicatorEl.style.opacity = "1";
 }
 function formatFilterSummary(fs: ActiveFilter[]): string {

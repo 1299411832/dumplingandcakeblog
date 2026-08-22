@@ -70,7 +70,7 @@ const mgItems: MgItem[] = customBangumi
 		const imageSrc =
 			typeof data.image === "string" ? data.image : data.image.src;
 
-		const finalLink = "/bangumi/" + removeFileExtension(id) + "/";
+		const finalLink = `/bangumi/${removeFileExtension(id)}/`;
 
 		const subjectTypeMap: Record<string, number> = {
 			anime: 2,

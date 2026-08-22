@@ -936,10 +936,27 @@ content:
             label: 归属人
             type: string
             description: 生日/纪念日对应的人
+          - name: isLunar
+            label: 农历（慢历）
+            type: boolean
+            default: false
+            description: 勾选后按农历记，日历自动换算为当年阳历（快历）显示
+          - name: lunarMonth
+            label: 农历月
+            type: number
+            description: 1-12，isLunar 时必填
+          - name: lunarDay
+            label: 农历日
+            type: number
+            description: 1-30，isLunar 时必填
+          - name: lunarLeap
+            label: 闰月
+            type: boolean
+            default: false
           - name: repeat
             label: 重复
             type: string
-            description: 如 每周 / 每月
+            description: 如 每周 / 每月 / 每年
 
 settings:
   content:

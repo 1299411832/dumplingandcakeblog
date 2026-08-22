@@ -108,7 +108,7 @@ function walk(
 	);
 
 	for (const [name, child] of folders) {
-		const folderId = "folder-" + folderCounter++;
+		const folderId = `folder-${folderCounter++}`;
 		const result = walk(child, depth + 1);
 
 		// 检查子文章中是否有当前文章

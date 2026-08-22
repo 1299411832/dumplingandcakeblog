@@ -218,8 +218,8 @@ export function categoryIncomeList(
 		const v = map.get(cat) || { amount: 0, count: 0 };
 		// 兼容旧分类“工资”映射到职业收入
 		if (cat === "职业收入" && !map.has(cat) && map.has("工资")) {
-			const w = map.get("工资")!;
-			result.push({ category: cat, amount: w.amount, count: w.count });
+			const w = map.get("工资");
+			if (w) result.push({ category: cat, amount: w.amount, count: w.count });
 		} else {
 			result.push({ category: cat, ...v });
 		}

@@ -79,7 +79,7 @@ const mappedData = customBangumi.map((item) => {
 	}
 
 	if (!finalLink.startsWith("http") && !finalLink.startsWith("/")) {
-		finalLink = "/" + finalLink;
+		finalLink = `/${finalLink}`;
 	}
 
 	return {

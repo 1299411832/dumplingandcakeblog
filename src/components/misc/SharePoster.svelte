@@ -460,7 +460,7 @@ async function generatePoster() {
 
 		// Site branding below QR text
 		if (siteTitle) {
-			ctx.font = "700 " + 10 * scale + "px Roboto, sans-serif";
+			ctx.font = `700 ${10 * scale}px Roboto, sans-serif`;
 			ctx.fillStyle = "#9ca3af";
 			ctx.fillText(siteTitle, width / 2, footerY + qrSize + 42 * scale);
 		}

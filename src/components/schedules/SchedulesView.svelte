@@ -7,6 +7,7 @@ import {
 	LayoutGrid,
 	Rows3,
 } from "lucide-svelte";
+import { Lunar } from "lunar-javascript";
 import { onMount } from "svelte";
 import { lunarLabel } from "@/utils/lunar";
 
@@ -33,6 +34,28 @@ function parseSchedules(raw: ScheduleEntry[]): ScheduleEntry[] {
 	});
 }
 
+// 农历(慢历) → 阳历(快历) 当年换算：isLunar 本地按当前日历年份动态映射，保证每年自动对
+function solarForLunar(entry: ScheduleEntry, displayYear: number): Date | null {
+	const d = entry.data as unknown as Record<string, unknown>;
+	if (!d.isLunar) return null;
+	const lm = d.lunarMonth as number | undefined;
+	const ld = d.lunarDay as number | undefined;
+	const leap = Boolean(d.lunarLeap);
+	if (!lm || !ld) return null;
+	try {
+		const l = Lunar.fromYmd(displayYear, lm, ld, leap);
+		const s = l.getSolar();
+		return new Date(s.getYear(), s.getMonth() - 1, s.getDay());
+	} catch {
+		return null;
+	}
+}
+function effectiveDate(entry: ScheduleEntry, displayYear: number): Date {
+	const solar = solarForLunar(entry, displayYear);
+	if (solar) return solar;
+	return entry.data.date as Date;
+}
+
 let parsed = $derived(parseSchedules(schedules));
 
 let year = $state(initialYear);
@@ -56,8 +79,8 @@ function syncFromUrl(): void {
 	const todayD = `${todayY}-${String(todayM).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 	let hasUrlMonth = false;
 	if (qy && qm) {
-		const y = Number.parseInt(qy);
-		const m = Number.parseInt(qm);
+		const y = Number.parseInt(qy, 10);
+		const m = Number.parseInt(qm, 10);
 		if (!Number.isNaN(y) && !Number.isNaN(m) && m >= 1 && m <= 12) {
 			year = y;
 			month = m;
@@ -87,13 +110,16 @@ function pushUrl(): void {
 
 let eventsByDate = $derived.by(() => {
 	const map = new Map<string, ScheduleEntry[]>();
-	const sorted = [...parsed].sort(
-		(a, b) => a.data.date.getTime() - b.data.date.getTime(),
+	// 农历条目按当前日历 year 换算为当年阳历，保证每年自动换算
+	const withEffective = parsed.map((e) => ({ e, ed: effectiveDate(e, year) }));
+	const sorted = [...withEffective].sort(
+		(a, b) => a.ed.getTime() - b.ed.getTime(),
 	);
-	for (const e of sorted) {
-		const k = toDateKey(e.data.date);
+	for (const { e, ed } of sorted) {
+		const k = toDateKey(ed);
 		if (!map.has(k)) map.set(k, []);
-		map.get(k)?.push(e);
+		// 用换算后日期覆盖展示，但保留原始 isLunar 标记供标签用
+		map.get(k)?.push({ ...e, data: { ...e.data, date: ed } } as ScheduleEntry);
 	}
 	return map;
 });
@@ -143,7 +169,7 @@ let rows = $derived.by(() => {
 
 // 周视图：以 selected 为中心的周
 let weekCells = $derived.by(() => {
-	const sel = new Date(selected + "T00:00:00");
+	const sel = new Date(`${selected}T00:00:00`);
 	const day = sel.getDay();
 	const start = new Date(sel);
 	start.setDate(sel.getDate() - day);
@@ -163,10 +189,10 @@ let weekCells = $derived.by(() => {
 
 let weekRangeLabel = $derived.by(() => {
 	if (weekCells.length === 0) return "";
-	const start = weekCells[0].dateStr.slice(5).replace("-", "月") + "日";
-	const end = weekCells[6].dateStr.slice(5).replace("-", "月") + "日";
-	const startYear = Number.parseInt(weekCells[0].dateStr.slice(0, 4));
-	const endYear = Number.parseInt(weekCells[6].dateStr.slice(0, 4));
+	const start = `${weekCells[0].dateStr.slice(5).replace("-", "月")}日`;
+	const end = `${weekCells[6].dateStr.slice(5).replace("-", "月")}日`;
+	const startYear = Number.parseInt(weekCells[0].dateStr.slice(0, 4), 10);
+	const endYear = Number.parseInt(weekCells[6].dateStr.slice(0, 4), 10);
 	if (startYear !== endYear)
 		return `${weekCells[0].dateStr} ~ ${weekCells[6].dateStr}`;
 	if (weekCells[0].dateStr.slice(0, 7) === weekCells[6].dateStr.slice(0, 7))
@@ -194,14 +220,16 @@ let todayHolidays = $derived(
 let todayFestivals = $derived(
 	allForSelected.filter((e) => e.data.category !== "schedule"),
 );
-// 生日/纪念日展示全年（按当前日历年份），节假日仅当天
+// 生日/纪念日展示全年（按当前日历年份），农历按当年阳历换算，节假日仅当天
 let yearBirthdays = $derived.by(() => {
 	const list = parsed.filter(
 		(e) => e.data.category === "birthday" || e.data.category === "anniversary",
 	);
-	// 按年份过滤到当前日历年，若当年无则回退展示全部年份的生日
-	const byYear = list.filter((e) => e.data.date.getFullYear() === year);
-	const src = byYear.length > 0 ? byYear : list;
+	const withSolar = list.map((e) => ({ e, sd: effectiveDate(e, year) }));
+	const byYear = withSolar.filter(({ sd }) => sd.getFullYear() === year);
+	const src = (byYear.length > 0 ? byYear : withSolar).map(
+		({ e, sd }) => ({ ...e, data: { ...e.data, date: sd } }) as ScheduleEntry,
+	);
 	return [...src].sort((a, b) => {
 		const am = a.data.date.getMonth();
 		const ad = a.data.date.getDate();
@@ -255,8 +283,8 @@ $effect(() => {
 
 // 一个月前的过滤：selected 早于今天 30 天则下方列表收起
 let isRecent = $derived.by(() => {
-	const today = new Date(todayKey + "T00:00:00");
-	const sel = new Date(selected + "T00:00:00");
+	const today = new Date(`${todayKey}T00:00:00`);
+	const sel = new Date(`${selected}T00:00:00`);
 	const diff = today.getTime() - sel.getTime();
 	const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 	// 未来日期视为近期待办，需要展示；仅过去 30 天以上的隐藏
@@ -264,7 +292,7 @@ let isRecent = $derived.by(() => {
 	return diff <= thirtyDays;
 });
 
-let selDate = $derived(new Date(selected + "T00:00:00"));
+let selDate = $derived(new Date(`${selected}T00:00:00`));
 let dateLabel = $derived(
 	`${selected} · 周${"日一二三四五六"[selDate.getDay()]}`,
 );
@@ -306,7 +334,7 @@ const priorityColor: Record<string, string> = {
 
 function goPrev(): void {
 	if (viewMode === "week") {
-		const d = new Date(selected + "T00:00:00");
+		const d = new Date(`${selected}T00:00:00`);
 		d.setDate(d.getDate() - 7);
 		selected = toDateKey(d);
 		year = d.getFullYear();
@@ -323,7 +351,7 @@ function goPrev(): void {
 }
 function goNext(): void {
 	if (viewMode === "week") {
-		const d = new Date(selected + "T00:00:00");
+		const d = new Date(`${selected}T00:00:00`);
 		d.setDate(d.getDate() + 7);
 		selected = toDateKey(d);
 		year = d.getFullYear();
@@ -340,7 +368,7 @@ function goNext(): void {
 }
 function selectDate(dateStr: string): void {
 	selected = dateStr;
-	const d = new Date(dateStr + "T00:00:00");
+	const d = new Date(`${dateStr}T00:00:00`);
 	year = d.getFullYear();
 	month = d.getMonth() + 1;
 	pushUrl();
