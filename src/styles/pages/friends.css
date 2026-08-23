@@ -104,6 +104,11 @@
 
 /* 区块计数徽标（蓝色字体 + 淡蓝毛玻璃底） */
 .friend-group-badge {
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+	flex-shrink: 0;
+	align-self: center;
 	padding: 0.2rem 0.55rem;
 	border-radius: 999px;
 	border: 1px solid color-mix(in oklch, var(--friend-badge-blue) 15%, transparent);
