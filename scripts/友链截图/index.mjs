@@ -51,14 +51,18 @@ const context = await browser.newContext({
 	deviceScaleFactor: 2,
 });
 
-// 单次截图：load 后等字体就绪 → 等网络空闲（开屏动画站动画放完才空闲；
-// 轮询/长连接站等不到，6s 超时放弃继续）→ 固定缓冲（懒加载图/骨架屏转完）
+// 单次截图：load 后先等网络空闲（覆盖二次导航/客户端路由接管/开屏动画，
+// 轮询站等不到则 6s 超时放弃）→ 再等字体就绪 → 固定缓冲（懒加载图/骨架屏转完）
 async function takeShot(entry) {
 	const page = await context.newPage();
 	try {
 		await page.goto(entry.url, { waitUntil: "load", timeout: 30000 });
-		await page.evaluate(() => document.fonts.ready.then(() => true));
 		await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {});
+		// 字体就绪最多等 5s：资源挂起时 fonts.ready 永不 resolve；二次导航销毁
+		// 执行上下文会抛 context destroyed——两种情况都跳过字体等待即可
+		await page
+			.evaluate(() => Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 5000))]).then(() => true))
+			.catch(() => {});
 		await page.waitForTimeout(2000);
 		const buf = await page.screenshot({ type: "png" });
 		return await sharp(buf).resize({ width: 640 }).webp({ quality: 75 }).toBuffer();
