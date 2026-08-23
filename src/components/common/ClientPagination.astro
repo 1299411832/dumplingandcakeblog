@@ -56,7 +56,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 		<div class="mobile-pagination items-center gap-3">
 			<button
 				type="button"
-				class="btn-card flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
+				class="btn-card flex items-center justify-center w-11 h-11 rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
 				data-page="prev"
 				data-section={sectionId}
 				disabled={currentPage === 1}
@@ -65,7 +65,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 				<Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" />
 			</button>
 
-			<div class="bg-[var(--card-bg)] flex items-center rounded-lg px-3.5 h-11 gap-1.5 border border-dashed border-[var(--line-divider)] shadow-sm">
+			<div class="bg-[var(--card-bg)] flex items-center rounded-[0.5rem] px-3.5 h-11 gap-1.5 border border-dashed border-[var(--line-divider)] shadow-sm">
 				<span class="mobile-current-page text-sm font-bold text-[var(--primary)] tabular-nums">{currentPage}</span>
 				<span class="text-sm text-[var(--content-meta)]">/</span>
 				<span class="mobile-total-pages text-sm font-bold text-[var(--content-meta)] tabular-nums">{totalPagesMobile}</span>
@@ -73,7 +73,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 
 			<button
 				type="button"
-				class="btn-card flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
+				class="btn-card flex items-center justify-center w-11 h-11 rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
 				data-page="next"
 				data-section={sectionId}
 				disabled={currentPage >= totalPagesMobile}
@@ -87,7 +87,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 		<div class="desktop-pagination items-center gap-3">
 			<button
 				type="button"
-				class="btn-card flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
+				class="btn-card flex items-center justify-center w-11 h-11 rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
 				data-page="prev"
 				data-section={sectionId}
 				disabled={currentPage === 1}
@@ -107,7 +107,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 						<button
 							type="button"
 							class:list={[
-								"bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-lg overflow-hidden transition-all duration-150 border",
+								"bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-[0.5rem] overflow-hidden transition-all duration-150 border",
 								{
 									"bg-[var(--primary)] text-white dark:text-black/70 border-[var(--primary)]": pageItem === currentPage,
 									"bg-[var(--card-bg)] border-[var(--line-divider)] hover:bg-[var(--btn-card-bg-hover)] text-neutral-700 dark:text-neutral-300 active:scale-90": pageItem !== currentPage
@@ -126,7 +126,7 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 
 			<button
 				type="button"
-				class="btn-card flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
+				class="btn-card flex items-center justify-center w-11 h-11 rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--btn-card-bg-hover)] transition-all duration-150"
 				data-page="next"
 				data-section={sectionId}
 				disabled={currentPage >= totalPagesDesktop}
@@ -137,6 +137,9 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 		</div>
 	</div>
 )}
+
+<!-- Tailwind safelist for JS-generated pagination buttons (avoid purge → 直角) -->
+<div class="hidden w-11 h-11 rounded-[0.5rem] bg-[var(--primary)] text-white dark:text-black/70 border border-[var(--primary)] bg-[var(--card-bg)] border-[var(--line-divider)] hover:bg-[var(--btn-card-bg-hover)] text-neutral-700 dark:text-neutral-300" aria-hidden="true"></div>
 
 <script is:inline define:vars={{ itemsPerPage, itemsPerPageMobile, sectionId }}>
 	(function() {
@@ -218,8 +221,8 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 						} else {
 							const btn = document.createElement('button');
 							btn.className = pageItem === currentPage
-								? 'bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-lg overflow-hidden bg-[var(--primary)] text-white dark:text-black/70 border border-[var(--primary)]'
-								: 'bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-lg overflow-hidden bg-[var(--card-bg)] border border-[var(--line-divider)] hover:bg-[var(--btn-card-bg-hover)] text-neutral-700 dark:text-neutral-300 active:scale-90';
+								? 'bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-[0.5rem] overflow-hidden bg-[var(--primary)] text-white dark:text-black/70 border border-[var(--primary)]'
+								: 'bangumi-page-btn w-11 h-11 flex items-center justify-center font-bold text-base rounded-[0.5rem] overflow-hidden bg-[var(--card-bg)] border border-[var(--line-divider)] hover:bg-[var(--btn-card-bg-hover)] text-neutral-700 dark:text-neutral-300 active:scale-90';
 							btn.dataset.page = pageItem.toString();
 							btn.dataset.section = sectionId;
 							btn.textContent = pageItem.toString();
