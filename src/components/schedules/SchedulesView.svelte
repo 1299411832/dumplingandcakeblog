@@ -664,8 +664,8 @@ onMount(() => {
   .sched-cal__event{ font-size:0.56rem; }
 }
 .schedules-inner{ display:flex; flex-direction:column; gap:0.9rem; }
-.schedules-inner :global(.sched-cal){ width:min(100%, 720px); margin-inline:auto; }
-.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:stretch; width:min(100%, 720px); margin-inline:auto; }
+.schedules-inner :global(.sched-cal){ width:100%; margin-inline:0; }
+.schedules-below{ display:grid; grid-template-columns:1fr; gap:0.9rem; align-items:stretch; width:100%; margin-inline:0; }
 @media(min-width:900px){ .schedules-below{ grid-template-columns:1fr 1fr; } }
 /* 两个下方卡片：等高 + 分页，纵向翻倍，同日历卡片统一 1.5px #111 边框体系，且两侧与日历对齐 */
 .schedules-panel{ background:#fff; border:1.5px solid #111; border-radius:0.85rem; overflow:hidden; display:flex; flex-direction:column; height:100%; min-height:560px; }
