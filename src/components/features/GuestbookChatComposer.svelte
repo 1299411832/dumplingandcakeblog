@@ -132,6 +132,7 @@ function closeGuestProfile() {
 
 function validateGuestProfile(nextProfile: GuestbookProfile): string {
 	if (nextProfile.nick.length < 2) return "游客昵称至少需要 2 个字符";
+	if (!nextProfile.mail) return "请填写邮箱，游客留言需要留下邮箱";
 	if (
 		nextProfile.mail &&
 		!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(nextProfile.mail)

@@ -690,6 +690,9 @@ function validateComposer(content: string): string {
 				? "请先通过游客访问填写资料后再发送"
 				: "请选择游客访问并填写资料，或登录后发送";
 	}
+	if (!authUser && !profile.mail.trim()) {
+		return "请先在游客资料中填写邮箱后再发送";
+	}
 	if (profile.mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(profile.mail)) {
 		return "邮箱格式不正确";
 	}

@@ -140,24 +140,35 @@ function handleChatKeydown(event: KeyboardEvent) {
 	sidebarOpen = false;
 }
 
+/** 锁背景滚动：html+body 双锁，仅锁 body 在 iOS 上仍会被触摸滚动穿透 */
+function lockBackgroundScroll() {
+	document.documentElement.style.overflow = "hidden";
+	document.body.style.overflow = "hidden";
+}
+
+function unlockBackgroundScroll() {
+	document.documentElement.style.overflow = "";
+	document.body.style.overflow = "";
+}
+
 async function openAnnouncement(announcement: GuestbookAnnouncementItem) {
 	selectedAnnouncement = announcement;
 	sidebarOpen = false;
 	await tick();
 	if (!announcementDialog?.open) announcementDialog?.showModal();
-	document.body.style.overflow = "hidden";
+	lockBackgroundScroll();
 }
 
 function closeAnnouncement() {
 	if (announcementDialog?.open) announcementDialog.close();
-	if (!visible) document.body.style.overflow = "";
+	if (!visible) unlockBackgroundScroll();
 }
 
 function closeDeleteDialog() {
 	if (deleteTarget && mutatingMessageId === deleteTarget.id) return;
 	if (deleteDialog?.open) deleteDialog.close();
 	deleteTarget = null;
-	if (!visible) document.body.style.overflow = "";
+	if (!visible) unlockBackgroundScroll();
 }
 
 async function requestDeleteMessage(message: MomentChatMessage) {
@@ -166,7 +177,7 @@ async function requestDeleteMessage(message: MomentChatMessage) {
 	deleteTarget = message;
 	await tick();
 	if (!deleteDialog?.open) deleteDialog?.showModal();
-	document.body.style.overflow = "hidden";
+	lockBackgroundScroll();
 }
 
 function readStoredValue<T>(storage: Storage, key: string): T | null {
@@ -669,6 +680,9 @@ function validateComposer(content: string): string {
 				? "请先通过游客访问填写资料后再发送"
 				: "请选择游客访问并填写资料，或登录后发送";
 	}
+	if (!authUser && !profile.mail.trim()) {
+		return "请先在游客资料中填写邮箱后再发送";
+	}
 	if (profile.mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(profile.mail)) {
 		return "邮箱格式不正确";
 	}
@@ -891,7 +905,7 @@ async function confirmDeleteMessage() {
 		mutatingMessageId = null;
 		deleteTarget = null;
 		if (deleteDialog?.open) deleteDialog.close();
-		if (!visible) document.body.style.overflow = "";
+		if (!visible) unlockBackgroundScroll();
 		queueLatestSync();
 	} catch (error) {
 		handleAuthenticationError(error);
@@ -1013,7 +1027,7 @@ async function jumpToQuotedMessage(message: MomentChatMessage) {
 function openModal(id: string, published: string, excerpt: string) {
 	momentQuote = { id, published, excerpt };
 	visible = true;
-	document.body.style.overflow = "hidden";
+	lockBackgroundScroll();
 	// 确保数据已加载
 	if (messages.length === 0 && !initialLoading) void loadInitial();
 	void tick().then(() => scrollToBottom(false));
@@ -1026,7 +1040,7 @@ export function open(id: string, published: string, excerpt: string) {
 function closeModal() {
 	visible = false;
 	sidebarOpen = false;
-	document.body.style.overflow = "";
+	unlockBackgroundScroll();
 	if (announcementDialog?.open) announcementDialog.close();
 	if (deleteDialog?.open) deleteDialog.close();
 }
@@ -1073,7 +1087,7 @@ onMount(() => {
 		if (announcementDialog?.open) announcementDialog.close();
 		if (deleteDialog?.open) deleteDialog.close();
 		// 不清理 window.__momentComment，保留单例供下一次挂载复用
-		if (!visible) document.body.style.overflow = "";
+		if (!visible) unlockBackgroundScroll();
 		document.removeEventListener("visibilitychange", handleVisibilityChange);
 		window.removeEventListener("online", handleOnline);
 		window.removeEventListener("offline", handleOffline);
@@ -1436,7 +1450,7 @@ onMount(() => {
 					class="privacy-modal guestbook-announcement-modal"
 					aria-labelledby="moment-announcement-title"
 					onclose={() => {
-						if (!visible) document.body.style.overflow = "";
+						if (!visible) unlockBackgroundScroll();
 					}}
 					oncancel={(event) => {
 						event.preventDefault();
@@ -1482,7 +1496,7 @@ onMount(() => {
 					class="privacy-modal guestbook-delete-modal"
 					aria-labelledby="moment-delete-title"
 					onclose={() => {
-						if (!visible) document.body.style.overflow = "";
+						if (!visible) unlockBackgroundScroll();
 						if (!mutatingMessageId) deleteTarget = null;
 					}}
 					oncancel={(event) => {
@@ -1657,6 +1671,10 @@ onMount(() => {
 			border-radius: 0;
 			border-left: 0;
 			border-right: 0;
+			/* 全屏面板直接不透明：不再透视背后的说说列表，也省掉 backdrop-filter 开销 */
+			background: var(--float-panel-bg);
+			backdrop-filter: none;
+			-webkit-backdrop-filter: none;
 		}
 
 		/* 移动端弹窗是 fixed 全屏，已盖住 MobileDock，输入框无需为 dock 预留 6.25rem，直接贴底 */

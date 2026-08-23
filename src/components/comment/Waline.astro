@@ -12,6 +12,7 @@ const config = {
 	path: Astro.props.path,
 	dark: "html.dark",
 	wordLimit: ["2", "300"],
+	requiredMeta: ["nick", "mail"],
 	...(commentConfig.waline?.visitorCount ? { pageview: true } : {}),
 };
 ---

@@ -361,6 +361,37 @@ const dockMusicPlaylist = JSON.stringify(musicEntries);
       setExpanded(stack.getAttribute("data-expanded") !== "true");
     });
 
+    const udThemeBtn = document.getElementById("ud-theme-btn") as HTMLElement | null;
+    const udThemeLight = udThemeBtn?.querySelector(".ud-theme-light") as HTMLElement | null;
+    const udThemeDark = udThemeBtn?.querySelector(".ud-theme-dark") as HTMLElement | null;
+
+    function updateUnifiedThemeIcons() {
+      const isDark = document.documentElement.classList.contains("dark");
+      if (udThemeLight) udThemeLight.style.display = isDark ? "none" : "";
+      if (udThemeDark) udThemeDark.style.display = isDark ? "" : "none";
+    }
+
+    function toggleUnifiedTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      const next = isDark ? "light" : "dark";
+      localStorage.setItem("theme", next);
+      if (next === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      updateUnifiedThemeIcons();
+      window.dispatchEvent(new CustomEvent("theme-change"));
+    }
+
+    udThemeBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleUnifiedTheme();
+    });
+
+    updateUnifiedThemeIcons();
+    window.addEventListener("theme-change", updateUnifiedThemeIcons, { signal });
+
     const drawerMap: Record<string, string> = {
       "ud-tags-btn": "dock-drawer-tags",
       "ud-categories-btn": "dock-drawer-categories",
