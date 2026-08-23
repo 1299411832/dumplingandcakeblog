@@ -24,12 +24,23 @@ const items = friendsEntries
 	.filter((item) => item.data.enabled !== false)
 	.sort((a, b) => (b.data.weight || 0) - (a.data.weight || 0));
 
-// 新朋友：按添加日期（added）降序取最近 3 个；无 added 的不参与
+// 新朋友：按添加日期（added）降序取最近 3 个；无 added 时兜底按文件 mtime（无需手动补日期，插件新建时自动写入 added）
+const getFileTime = (item: (typeof items)[number]): number => {
+	try {
+		const filePath = path.join(process.cwd(), "src", "content", "friends", `${item.id}.md`);
+		const stat = fs.statSync(filePath);
+		return stat.mtime.getTime();
+	} catch {
+		return 0;
+	}
+};
 const latestItems = [...items]
-	.filter((item) => item.data.added)
-	.sort(
-		(a, b) => (b.data.added?.getTime() ?? 0) - (a.data.added?.getTime() ?? 0),
-	)
+	.sort((a, b) => {
+		const at = a.data.added?.getTime() ?? 0;
+		const bt = b.data.added?.getTime() ?? 0;
+		if (bt !== at) return bt - at;
+		return getFileTime(b) - getFileTime(a);
+	})
 	.slice(0, 3);
 
 // 新朋友区块独立展示后，从分组中排除，避免同一站点出现两次

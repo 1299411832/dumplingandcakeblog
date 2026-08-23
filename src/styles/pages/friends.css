@@ -4,7 +4,7 @@
 
 .friends-grid {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 	/* 卡片悬停会向下扩展，顶部对齐避免整行被拉伸 */
 	align-items: start;
 	gap: 1rem 0.85rem;
@@ -12,15 +12,9 @@
 	padding-bottom: 1rem;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
 	.friends-grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
-@media (max-width: 640px) {
-	.friends-grid {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(1, 1fr);
 	}
 }
 
