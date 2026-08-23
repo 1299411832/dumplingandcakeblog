@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import Comment from "@/components/comment/index.astro";
 import MomentCard from "@/components/moments/MomentCard.astro";
+import MomentCommentChat from "@/components/moments/MomentCommentChat.svelte";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 const moments = await getCollection("moments");
@@ -53,6 +54,31 @@ const pinnedMoments = moments
   <div id="moments-comments">
     <Comment customPath="/moments/pinned/" />
   </div>
+
+  <!-- 置顶页同样需要动态评论弹窗（Swup 内） -->
+  <MomentCommentChat client:load />
+
+  <script is:inline>
+  (function() {
+    function bindOnce(){
+      if (window.__momentCommentDelegateBound) return;
+      window.__momentCommentDelegateBound = true;
+      document.addEventListener("click", function(e) {
+        var btn = e.target.closest(".comment-toggle-btn");
+        if (!btn) return;
+        var id = btn.getAttribute("data-moment-id") || "";
+        var published = btn.getAttribute("data-moment-published") || "";
+        var excerpt = btn.getAttribute("data-moment-excerpt") || "";
+        if (!id || !window.__momentComment || !window.__momentComment.open) return;
+        e.preventDefault();
+        window.__momentComment.open(id, published, excerpt);
+      });
+    }
+    bindOnce();
+    document.addEventListener("swup:content:replaced", bindOnce);
+    document.addEventListener("astro:page-load", bindOnce);
+  })();
+  </script>
 </MainGridLayout>
 
 <style>
