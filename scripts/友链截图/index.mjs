@@ -51,13 +51,15 @@ const context = await browser.newContext({
 	deviceScaleFactor: 2,
 });
 
-// 单次截图：load 后等字体就绪 + 固定缓冲（懒加载图/骨架屏转完），解决空白/加载中截图
+// 单次截图：load 后等字体就绪 → 等网络空闲（开屏动画站动画放完才空闲；
+// 轮询/长连接站等不到，6s 超时放弃继续）→ 固定缓冲（懒加载图/骨架屏转完）
 async function takeShot(entry) {
 	const page = await context.newPage();
 	try {
 		await page.goto(entry.url, { waitUntil: "load", timeout: 30000 });
 		await page.evaluate(() => document.fonts.ready.then(() => true));
-		await page.waitForTimeout(1500);
+		await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {});
+		await page.waitForTimeout(2000);
 		const buf = await page.screenshot({ type: "png" });
 		return await sharp(buf).resize({ width: 640 }).webp({ quality: 75 }).toBuffer();
 	} finally {
