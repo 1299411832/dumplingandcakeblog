@@ -5,7 +5,7 @@ import ExpenseRankCard from "@/components/bills/ExpenseRankCard.astro";
 import IncomeCategoryCard from "@/components/bills/IncomeCategoryCard.astro";
 import MonthlySummaryCard from "@/components/bills/MonthlySummaryCard.astro";
 import NetAssetCard from "@/components/bills/NetAssetCard.astro";
-import PeriodSummaryCard from "@/components/bills/PeriodSummaryCard.astro";
+import YearlyFlowCard from "@/components/bills/YearlyFlowCard.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import {
 	calcBillStats,
@@ -13,6 +13,7 @@ import {
 	categoryIncomeList,
 	dailyIncomeExpense,
 	getTodayMonthYearStats,
+	yearlyMonthlyFlow,
 } from "@/utils/bill-adapter";
 
 const bills = await getCollection("bills");
@@ -26,6 +27,7 @@ const period = getTodayMonthYearStats(sorted, now);
 const year = now.getFullYear();
 const month = now.getMonth() + 1;
 const daily = dailyIncomeExpense(sorted, year, month);
+const yearly = yearlyMonthlyFlow(sorted, year);
 const expenseRank = categoryExpenseRank(sorted, year, month, 100);
 const incomeList = categoryIncomeList(sorted, year, month, 100);
 const monthIncome = period.month.income;
@@ -48,7 +50,7 @@ const incomeTotalAmt = incomeList.reduce((s, r) => s + r.amount, 0);
       </div>
       <div class="bills-col">
         <MonthlySummaryCard income={monthIncome} expense={monthExpense} balance={monthBalance} />
-        <PeriodSummaryCard today={period.today} month={period.month} year={period.year} />
+        <YearlyFlowCard year={year} data={yearly} />
         <ExpenseRankCard data={expenseRank} totalCount={expenseCount} totalExpense={expenseTotal} />
       </div>
     </div>

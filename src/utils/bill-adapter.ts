@@ -183,6 +183,30 @@ export function getTodayMonthYearStats(
 	};
 }
 
+export function yearlyMonthlyFlow(
+	entries: BillEntry[],
+	year: number,
+): { month: string; income: number; expense: number; balance: number }[] {
+	const result: {
+		month: string;
+		income: number;
+		expense: number;
+		balance: number;
+	}[] = [];
+	for (let m = 1; m <= 12; m++) {
+		const start = new Date(year, m - 1, 1, 0, 0, 0);
+		const end = new Date(year, m, 0, 23, 59, 59);
+		const { income, expense } = calcPeriodIncomeExpense(entries, start, end);
+		result.push({
+			month: `${String(m).padStart(2, "0")}月`,
+			income,
+			expense,
+			balance: income - expense,
+		});
+	}
+	return result;
+}
+
 export function dailyIncomeExpense(
 	entries: BillEntry[],
 	year: number,
