@@ -67,9 +67,9 @@ const getPageUrl = (p: number) => {
   -->
 
   <!-- 分页控件 - 统一样式 3/9 虚线（对齐图片） -->
-  <div class="flex flex-row gap-3 justify-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
+  <div class="flex flex-row gap-4 justify-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
     <!-- 移动端 3/9 -->
-    <div class="flex md:hidden items-center gap-3">
+    <div class="flex md:hidden items-center gap-4">
       <a
         href={page.url.prev || "#"}
         aria-label={i18n(I18nKey.paginationPrev)}
@@ -101,7 +101,7 @@ const getPageUrl = (p: number) => {
       </a>
     </div>
     <!-- 桌面端 1 2 3 …14 -->
-    <div class="hidden md:flex flex-row gap-3 justify-center items-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
+    <div class="hidden md:flex flex-row gap-4 justify-center items-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
       <a
         href={page.url.prev || "#"}
         aria-label={i18n(I18nKey.paginationPrev)}
