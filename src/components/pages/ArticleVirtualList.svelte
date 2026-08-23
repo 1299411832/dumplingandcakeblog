@@ -413,7 +413,7 @@ $effect(() => {
 
 	{#if totalPages > 1}
 		<div class="article-list-pagination">
-			<div class="article-list-pagination__inner">
+			<div class="article-list-pagination__inner article-list-pagination__inner--simple">
 				<button
 					type="button"
 					class="article-list-pagination__btn"
@@ -424,24 +424,10 @@ $effect(() => {
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
 				</button>
 
-				<div class="article-list-pagination__pages">
-					{#each pageNumbers as pageItem (pageItem)}
-						{#if pageItem === "..."}
-							<span class="article-list-pagination__dots">
-								<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-							</span>
-						{:else}
-							<button
-								type="button"
-								class="article-list-pagination__page"
-								class:is-active={pageItem === currentPage}
-								aria-current={pageItem === currentPage ? "page" : undefined}
-								onclick={() => goToPage(pageItem as number)}
-							>
-								{pageItem}
-							</button>
-						{/if}
-					{/each}
+				<div class="bg-[var(--card-bg)] flex items-center rounded-[0.5rem] px-3.5 h-11 gap-1.5 border border-dashed border-[var(--line-divider)] shadow-sm">
+					<span class="text-sm font-bold text-[var(--primary)] tabular-nums">{currentPage}</span>
+					<span class="text-sm text-[var(--content-meta)]">/</span>
+					<span class="text-sm font-bold text-[var(--content-meta)] tabular-nums">{totalPages}</span>
 				</div>
 
 				<button
