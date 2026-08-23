@@ -134,158 +134,172 @@ const pinnedData = pinnedMoments.map((m) => ({
     </div>
   </div>
 
-  <!-- 评论弹窗（单频道聊天室，复用留言板样式） -->
-  <MomentCommentChat client:only="svelte" />
-</MainGridLayout>
+  <!-- 评论弹窗（单频道聊天室，复用留言板样式，client:load 确保 Swup SPA 首入即水合） -->
+  <MomentCommentChat client:load />
 
-
-<!-- 评论按钮委托（单频道弹窗） -->
-<script is:inline>
-(function() {
-  if (window.__momentCommentDelegateBound) return;
-  window.__momentCommentDelegateBound = true;
-  document.addEventListener("click", function(e) {
-    var btn = e.target.closest(".comment-toggle-btn");
-    if (!btn) return;
-    var id = btn.getAttribute("data-moment-id") || "";
-    var published = btn.getAttribute("data-moment-published") || "";
-    var excerpt = btn.getAttribute("data-moment-excerpt") || "";
-    if (!id || !window.__momentComment || !window.__momentComment.open) return;
-    e.preventDefault();
-    window.__momentComment.open(id, published, excerpt);
-  });
-})();
-</script>
-<script is:inline define:vars={{ walineServerURL }}>
-  var countElements = document.querySelectorAll('.waline-count[data-path="/moments/"]');
-  if (countElements.length > 0) {
-    fetch(walineServerURL + "/api/uv?path=/moments/")
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        var count = data.data ? data.data.unique_visitor || data.uv || 0 : (data.uv || 0);
-        countElements.forEach(function(el) { el.textContent = String(count); });
-      })
-      .catch(function() {
-        countElements.forEach(function(el) { el.textContent = "-"; });
+  <!-- 评论按钮委托（Swup 内，SPA 首入即生效） -->
+  <script is:inline>
+  (function() {
+    function bindOnce(){
+      if (window.__momentCommentDelegateBound) return;
+      window.__momentCommentDelegateBound = true;
+      document.addEventListener("click", function(e) {
+        var btn = e.target.closest(".comment-toggle-btn");
+        if (!btn) return;
+        var id = btn.getAttribute("data-moment-id") || "";
+        var published = btn.getAttribute("data-moment-published") || "";
+        var excerpt = btn.getAttribute("data-moment-excerpt") || "";
+        if (!id || !window.__momentComment || !window.__momentComment.open) return;
+        e.preventDefault();
+        window.__momentComment.open(id, published, excerpt);
       });
-  }
-</script>
-
-<!-- 无限滚动加载 -->
-<script is:inline>
-(function() {
-  var BATCH_SIZE = 5;
-  var currentCount = BATCH_SIZE;
-  var isLoading = false;
-  var allLoaded = false;
-  var observer = null;
-
-  function getItems() {
-    var feed = document.getElementById('moments-feed');
-    return feed ? Array.from(feed.querySelectorAll('.wx-feed-item')) : [];
-  }
-
-  function updateVisibility() {
-    var items = getItems();
-    var total = items.length;
-    for (var i = 0; i < total; i++) {
-      if (i < currentCount) {
-        items[i].classList.remove('wx-feed-hidden');
-      } else {
-        items[i].classList.add('wx-feed-hidden');
-      }
     }
-    return total;
-  }
-
-  function checkAllLoaded() {
-    var sentinel = document.getElementById('load-more-sentinel');
-    if (!sentinel) return;
-    var total = getItems().length;
-    if (currentCount >= total) {
-      allLoaded = true;
-      sentinel.classList.add('hidden');
-    } else {
-      allLoaded = false;
-      sentinel.classList.remove('hidden');
+    bindOnce();
+    // Swup 导航后 Svelte 重挂会更新 window.__momentComment，但委托只需一次；同时监听以防首次从首页进
+    document.addEventListener("swup:content:replaced", bindOnce);
+    document.addEventListener("astro:page-load", bindOnce);
+  })();
+  </script>
+  <script is:inline define:vars={{ walineServerURL }}>
+  (function(){
+    function updateWalineUV(){
+      var countElements = document.querySelectorAll('.waline-count[data-path="/moments/"]');
+      if (!countElements.length) return;
+      if (!walineServerURL) return;
+      fetch(walineServerURL + "/api/uv?path=/moments/")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          var count = data.data ? data.data.unique_visitor || data.uv || 0 : (data.uv || 0);
+          countElements.forEach(function(el) { el.textContent = String(count); });
+        })
+        .catch(function() {
+          countElements.forEach(function(el) { el.textContent = "-"; });
+        });
     }
-  }
+    updateWalineUV();
+    document.addEventListener("swup:content:replaced", updateWalineUV);
+    document.addEventListener("astro:page-load", updateWalineUV);
+  })();
+  </script>
 
-  function loadMore() {
-    if (isLoading || allLoaded) return;
-    isLoading = true;
+  <!-- 无限滚动加载（Swup 内，支持 SPA 重入） -->
+  <script is:inline>
+  (function() {
+    var BATCH_SIZE = 5;
+    var currentCount = BATCH_SIZE;
+    var isLoading = false;
+    var allLoaded = false;
+    var observer = null;
 
-    var items = getItems();
-    var total = items.length;
+    function getItems() {
+      var feed = document.getElementById('moments-feed');
+      return feed ? Array.from(feed.querySelectorAll('.wx-feed-item')) : [];
+    }
 
-    setTimeout(function() {
-      var nextBatch = Math.min(currentCount + BATCH_SIZE, total);
-      for (var i = currentCount; i < nextBatch; i++) {
-        if (items[i]) {
+    function updateVisibility() {
+      var items = getItems();
+      var total = items.length;
+      for (var i = 0; i < total; i++) {
+        if (i < currentCount) {
           items[i].classList.remove('wx-feed-hidden');
+        } else {
+          items[i].classList.add('wx-feed-hidden');
         }
       }
-      currentCount = nextBatch;
-      isLoading = false;
-      checkAllLoaded();
+      return total;
+    }
 
-      if (!allLoaded && isSentinelInViewport()) {
-        loadMore();
+    function checkAllLoaded() {
+      var sentinel = document.getElementById('load-more-sentinel');
+      if (!sentinel) return;
+      var total = getItems().length;
+      if (currentCount >= total) {
+        allLoaded = true;
+        sentinel.classList.add('hidden');
+      } else {
+        allLoaded = false;
+        sentinel.classList.remove('hidden');
       }
-    }, 300);
-  }
-
-  function isSentinelInViewport() {
-    var sentinel = document.getElementById('load-more-sentinel');
-    if (!sentinel) return false;
-    var rect = sentinel.getBoundingClientRect();
-    return rect.top < window.innerHeight + 200;
-  }
-
-  function setupObserver() {
-    var sentinel = document.getElementById('load-more-sentinel');
-    if (!sentinel) return;
-
-    if (observer) {
-      observer.disconnect();
-      observer = null;
     }
 
-    if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            loadMore();
+    function loadMore() {
+      if (isLoading || allLoaded) return;
+      isLoading = true;
+
+      var items = getItems();
+      var total = items.length;
+
+      setTimeout(function() {
+        var nextBatch = Math.min(currentCount + BATCH_SIZE, total);
+        for (var i = currentCount; i < nextBatch; i++) {
+          if (items[i]) {
+            items[i].classList.remove('wx-feed-hidden');
           }
-        });
-      }, { root: null, rootMargin: '200px', threshold: 0.1 });
-      observer.observe(sentinel);
+        }
+        currentCount = nextBatch;
+        isLoading = false;
+        checkAllLoaded();
+
+        if (!allLoaded && isSentinelInViewport()) {
+          loadMore();
+        }
+      }, 300);
     }
-  }
 
-  function init() {
-    var feed = document.getElementById('moments-feed');
-    var sentinel = document.getElementById('load-more-sentinel');
-    if (!feed || !sentinel) return false;
+    function isSentinelInViewport() {
+      var sentinel = document.getElementById('load-more-sentinel');
+      if (!sentinel) return false;
+      var rect = sentinel.getBoundingClientRect();
+      return rect.top < window.innerHeight + 200;
+    }
 
-    currentCount = BATCH_SIZE;
-    isLoading = false;
-    allLoaded = false;
+    function setupObserver() {
+      var sentinel = document.getElementById('load-more-sentinel');
+      if (!sentinel) return;
 
-    updateVisibility();
-    checkAllLoaded();
-    setupObserver();
-    return true;
-  }
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
 
-  // 首次加载
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { init(); });
-  } else {
-    init();
-  }
-})();
-</script>
+      if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              loadMore();
+            }
+          });
+        }, { root: null, rootMargin: '200px', threshold: 0.1 });
+        observer.observe(sentinel);
+      }
+    }
+
+    function init() {
+      var feed = document.getElementById('moments-feed');
+      var sentinel = document.getElementById('load-more-sentinel');
+      if (!feed || !sentinel) return false;
+
+      currentCount = BATCH_SIZE;
+      isLoading = false;
+      allLoaded = false;
+
+      updateVisibility();
+      checkAllLoaded();
+      setupObserver();
+      return true;
+    }
+
+    function reinit(){ init(); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { init(); });
+    } else {
+      init();
+    }
+    document.addEventListener("swup:content:replaced", reinit);
+    document.addEventListener("astro:page-load", reinit);
+  })();
+  </script>
+</MainGridLayout>
 
 
 
