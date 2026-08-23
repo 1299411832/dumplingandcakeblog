@@ -207,7 +207,7 @@ export function categoryExpenseRank(
 	entries: BillEntry[],
 	year: number,
 	month: number,
-	limit = 3,
+	limit = 100,
 ): { category: string; amount: number; count: number }[] {
 	const start = new Date(year, month - 1, 1, 0, 0, 0);
 	const end = new Date(year, month, 0, 23, 59, 59);
@@ -233,6 +233,7 @@ export function categoryIncomeList(
 	entries: BillEntry[],
 	year: number,
 	month: number,
+	limit = 100,
 ): { category: string; amount: number; count: number }[] {
 	const start = new Date(year, month - 1, 1, 0, 0, 0);
 	const end = new Date(year, month, 0, 23, 59, 59);
@@ -258,24 +259,23 @@ export function categoryIncomeList(
 		map.set("职业收入", cur);
 		map.delete("工资");
 	}
-	// 按金额降序取前 3 收入分类，避免固定列表漏掉“工资”等
+	// 按金额降序取前 limit 收入分类，工资已合并
 	const sorted = [...map.entries()]
 		.map(([category, v]) => ({ category, ...v }))
 		.sort((a, b) => b.amount - a.amount)
-		.slice(0, 3);
-	// 若不足 3，用固定占位补齐（保持卡片 3 行结构）
-	const fixed = ["职业收入", "人情收礼", "其他收入"];
-	const result: { category: string; amount: number; count: number }[] = [
-		...sorted,
-	];
-	for (const cat of fixed) {
-		if (result.length >= 3) break;
-		if (!result.find((r) => r.category === cat)) {
-			const v = map.get(cat) || { amount: 0, count: 0 };
-			result.push({ category: cat, ...v });
+		.slice(0, limit);
+	// 若不足 3，用固定占位补齐（保持卡片不少于 3 行，避免过空）
+	if (sorted.length < 3) {
+		const fixed = ["职业收入", "人情收礼", "其他收入"];
+		for (const cat of fixed) {
+			if (sorted.length >= 3) break;
+			if (!sorted.find((r) => r.category === cat)) {
+				const v = map.get(cat) || { amount: 0, count: 0 };
+				sorted.push({ category: cat, ...v });
+			}
 		}
 	}
-	return result.slice(0, 3);
+	return sorted.slice(0, limit);
 }
 
 export function memberMonthlyStats(

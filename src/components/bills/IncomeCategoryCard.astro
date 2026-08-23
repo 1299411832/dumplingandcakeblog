@@ -6,26 +6,33 @@ interface Props {
 }
 const { data, totalCount, totalIncome } = Astro.props;
 const fmt = (n: number) => n.toFixed(2);
+const PAGE_SIZE = 6;
+const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
 const icons: Record<string, string> = {
 	职业收入: "💼",
 	工资: "💼",
 	人情收礼: "🙂",
 	其他收入: "➕",
+	兼职: "🧰",
+	爸妈给的: "👨‍👩‍👧",
+	投资收益: "📈",
 };
 const subMap: Record<string, string> = {
 	职业收入: "收入类别",
 	人情收礼: "收入类别",
 	其他收入: "收入类别",
+	兼职: "收入类别",
+	爸妈给的: "收入类别",
 };
 ---
-<div class="income-card">
+<div class="income-card bill-pager-card" data-pager="income" data-total={data.length} data-pages={totalPages}>
   <div class="income-head">
     <h3 class="income-title">本月分类收入</h3>
     <span class="income-sub">收入笔数 {totalCount} &nbsp; 总收入 <b class="income-total">{fmt(totalIncome)}</b></span>
   </div>
-  <div class="income-list">
-    {data.map(item => (
-      <div class="income-row">
+  <div class="income-list bill-pager-list">
+    {data.map((item, idx) => (
+      <div class="income-row bill-pager-item" data-idx={idx}>
         <span class="income-icon">{icons[item.category] ?? "💰"}</span>
         <div class="income-main">
           <div class="income-cat">{item.category}</div>
@@ -38,16 +45,66 @@ const subMap: Record<string, string> = {
       </div>
     ))}
   </div>
+  {totalPages > 1 && (
+    <div class="bill-pager">
+      <button class="pager-btn" type="button" data-dir="-1" aria-label="上一页">‹</button>
+      <span class="pager-info">1 / {totalPages}</span>
+      <button class="pager-btn" type="button" data-dir="1" aria-label="下一页">›</button>
+    </div>
+  )}
 </div>
+<script is:inline>
+(function(){
+  const pageSize = 6;
+  function init(root){
+    if(!root || root.dataset.pagerInit==="1") return;
+    const items = Array.from(root.querySelectorAll('.bill-pager-item'));
+    const pages = Math.max(1, Math.ceil(items.length / pageSize));
+    if(pages <= 1) return;
+    let cur = 1;
+    const info = root.querySelector('.pager-info');
+    const btns = Array.from(root.querySelectorAll('.pager-btn'));
+    function render(){
+      items.forEach((el, i)=>{
+        const p = Math.floor(i / pageSize) + 1;
+        el.style.display = p === cur ? '' : 'none';
+      });
+      if(info) info.textContent = cur + ' / ' + pages;
+      btns.forEach(b=>{
+        const dir = Number(b.dataset.dir);
+        b.disabled = (dir===-1 && cur<=1) || (dir===1 && cur>=pages);
+        b.style.opacity = b.disabled ? '0.35' : '1';
+      });
+    }
+    btns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const dir = Number(b.dataset.dir);
+        cur = Math.max(1, Math.min(pages, cur + dir));
+        render();
+      });
+    });
+    root.dataset.pagerInit="1";
+    render();
+  }
+  function scan(){ document.querySelectorAll('[data-pager=\"income\"]').forEach(init); }
+  scan();
+  document.addEventListener('swup:content:replaced', scan);
+})();
+</script>
 <style>
 @reference "../../styles/main.css";
-.income-card{ background:#fff; border:1px solid oklch(0 0 0 / 0.06); border-radius:0.75rem; padding:0.7rem 0.85rem 0.55rem; }
+.income-card{ background:#fff; border:1px solid oklch(0 0 0 / 0.06); border-radius:0.75rem; padding:0.7rem 0.85rem 0.55rem; min-height:19.5rem; display:flex; flex-direction:column; }
 :root.dark .income-card{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.08); }
 .income-head{ display:flex; align-items:baseline; justify-content:space-between; gap:0.6rem; margin-bottom:0.4rem; }
 .income-title{ font-size:0.82rem; font-weight:700; }
 .income-sub{ font-size:0.62rem; color:var(--guestbook-muted); white-space:nowrap; }
 .income-total{ color:#ef4444; font-weight:700; }
-.income-list{ display:flex; flex-direction:column; }
+.income-list{ display:flex; flex-direction:column; flex:1; }
+.bill-pager{ display:flex; align-items:center; justify-content:center; gap:0.6rem; padding-top:0.55rem; margin-top:auto; border-top:1px solid oklch(0 0 0 / 0.06); }
+:root.dark .bill-pager{ border-color: oklch(1 0 0 / 0.06); }
+.pager-btn{ width:1.6rem; height:1.6rem; border-radius:9999px; border:1px solid oklch(0 0 0 / 0.08); background:#fff; cursor:pointer; font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; }
+:root.dark .pager-btn{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.12); color:#fff; }
+.pager-info{ font-size:0.68rem; color:var(--guestbook-muted); min-width:2.5rem; text-align:center; }
 .income-row{ display:grid; grid-template-columns:1.6rem 1fr auto; gap:0.6rem; align-items:center; padding:0.6rem 0; border-bottom:1px solid oklch(0 0 0 / 0.06); }
 :root.dark .income-row{ border-color: oklch(1 0 0 / 0.06); }
 .income-row:last-child{ border-bottom:none; }
