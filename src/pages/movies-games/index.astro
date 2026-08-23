@@ -221,17 +221,15 @@ const activeTab = sections[0]?.tabKey || "all";
 			<!-- Page header -->
 			<header class="mg-header relative w-full mb-8">
 				<div class="flex items-center gap-3 mb-3">
-					<span class="mg-header-icon">
-						<Icon name="material-symbols:movie-outline-rounded" class="text-[1.375rem] text-neutral-900 dark:text-neutral-100" />
-					</span>
-					<div class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+					<Icon name="material-symbols:movie-outline-rounded" class="text-[1.875rem] text-neutral-900 dark:text-neutral-100" />
+					<div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
 						{i18n(I18nKey.moviesGamesTitle)}
 					</div>
 				</div>
-				<p class="mg-header-subtitle">
+				<p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">
 					{i18n(I18nKey.moviesGamesSubtitle)}
 				</p>
-				<p class="mg-header-meta">
+				<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
 					{i18n(I18nKey.bangumiLastUpdated)} {buildTime}
 				</p>
 			</header>
@@ -317,9 +315,9 @@ const activeTab = sections[0]?.tabKey || "all";
 				</>
 			) : (
 				<div class="flex flex-col items-center justify-center py-20 text-center">
-				<div class="mg-empty-icon">
-					<Icon name="material-symbols:movie-outline" class="w-7 h-7 text-[var(--content-meta)]" />
-				</div>
+					<div class="inline-flex items-center justify-center w-14 h-14 bg-[var(--btn-regular-bg)] rounded-2xl mb-4 border border-[var(--line-divider)]">
+						<Icon name="material-symbols:movie-outline" class="w-7 h-7 text-[var(--content-meta)]" />
+					</div>
 					<h3 class="text-base font-medium text-[var(--deep-text)] dark:text-[var(--title-active)] mb-1.5">
 						{i18n(I18nKey.moviesGamesNoData)}
 					</h3>
@@ -675,69 +673,6 @@ const activeTab = sections[0]?.tabKey || "all";
 		animation: fadeSlideIn 0.4s ease-[var(--ease-standard)] both;
 	}
 
-	/* 头部：macOS 设置风格玻璃图标 + iOS 大标题排版 + 元信息胶囊 */
-	.mg-header-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2.75rem;
-		height: 2.75rem;
-		border-radius: 0.75rem;
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
-	}
-	:root.dark .mg-header-icon {
-		background: oklch(0.2 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06),
-			0 0 1px oklch(0 0 0 / 0.45),
-			0 0 16px -4px oklch(0 0 0 / 0.5);
-	}
-	.mg-header-subtitle {
-		font-size: 0.9rem;
-		color: var(--content-meta);
-		line-height: 1.6;
-	}
-	.mg-header-meta {
-		display: inline-flex;
-		align-items: center;
-		margin-top: 0.625rem;
-		padding: 0.25rem 0.75rem;
-		border-radius: 9999px;
-		font-size: 0.6875rem;
-		color: var(--content-meta);
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
-		font-variant-numeric: tabular-nums;
-	}
-	:root.dark .mg-header-meta {
-		background: oklch(0.2 0 0);
-		box-shadow: 0 0 1px oklch(0 0 0 / 0.45), 0 0 16px -4px oklch(0 0 0 / 0.5);
-	}
-
-	.mg-empty-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 3.5rem;
-		height: 3.5rem;
-		margin-bottom: 1rem;
-		border-radius: 1rem;
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
-	}
-	:root.dark .mg-empty-icon {
-		background: oklch(0.2 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06),
-			0 0 1px oklch(0 0 0 / 0.45),
-			0 0 16px -4px oklch(0 0 0 / 0.5);
-	}
-
 	.mg-icon {
 		transition: transform 0.2s ease-[var(--ease-standard)];
 	}
@@ -759,7 +694,7 @@ const activeTab = sections[0]?.tabKey || "all";
 		to { opacity: 1; }
 	}
 
-	/* 分段控件：白色浮起胶囊容器 + 浅灰填充滑块（macOS 凸起分段风格） */
+	/* 胶囊按钮样式（复用 changelog 风格，边框 1.5px 略细于原版 2px，与书架页一致） */
 	.tools-tab-pill {
 		position: relative;
 		display: flex;
@@ -767,25 +702,16 @@ const activeTab = sections[0]?.tabKey || "all";
 		gap: 0.375rem;
 		padding: 0.375rem;
 		border-radius: 1rem;
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
+		border: 1.5px solid #000;
 	}
 	:root.dark .tools-tab-pill {
-		background: oklch(0.2 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06),
-			0 0 1px oklch(0 0 0 / 0.45),
-			0 0 16px -4px oklch(0 0 0 / 0.5);
+		border-color: #fff;
 	}
 
 	.tools-tab-indicator {
 		position: absolute;
 		border-radius: 9999px;
-		background: oklch(0.955 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.7),
-			0 0 1px oklch(0 0 0 / 0.06),
-			0 0 8px -3px oklch(0 0 0 / 0.12);
+		background: #000;
 		transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 					top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 					width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -795,8 +721,7 @@ const activeTab = sections[0]?.tabKey || "all";
 		z-index: 0;
 	}
 	:root.dark .tools-tab-indicator {
-		background: oklch(0.3 0 0);
-		box-shadow: 0 0 1px oklch(0 0 0 / 0.4), 0 0 8px -3px oklch(0 0 0 / 0.4);
+		background: #fff;
 	}
 
 	.tools-tab-btn {
@@ -819,18 +744,21 @@ const activeTab = sections[0]?.tabKey || "all";
 	}
 
 	.tools-tab-btn-active {
-		color: oklch(0.2 0 0);
+		color: #fff;
 		cursor: default;
 	}
 	:root.dark .tools-tab-btn-active {
-		color: oklch(0.95 0 0);
+		color: #000;
 	}
 
 	.tools-tab-btn-inactive {
-		color: var(--content-meta);
+		color: #000;
 	}
 	.tools-tab-btn-inactive:hover {
 		opacity: 0.7;
+	}
+	:root.dark .tools-tab-btn-inactive {
+		color: #fff;
 	}
 
 	.tools-tab-badge {
@@ -847,27 +775,12 @@ const activeTab = sections[0]?.tabKey || "all";
 	}
 
 	.tools-tab-btn-active .tools-tab-badge {
-		background: oklch(0 0 0 / 0.06);
-		color: inherit;
+		background: rgba(255, 255, 255, 0.25);
+		color: #fff;
 	}
 	:root.dark .tools-tab-btn-active .tools-tab-badge {
-		background: oklch(1 0 0 / 0.1);
-	}
-
-	/* 海报网格：浮起面板（实底 + 顶高光 + 双层投影，凸出页面） */
-	.mg-grid {
-		border-radius: 1rem;
-		padding: 1.25rem;
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 28px -8px oklch(0 0 0 / 0.15);
-	}
-	:root.dark .mg-grid {
-		background: oklch(0.17 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.05),
-			0 0 1px oklch(0 0 0 / 0.5),
-			0 0 28px -8px oklch(0 0 0 / 0.55);
+		background: rgba(0, 0, 0, 0.2);
+		color: #000;
 	}
 
 	.scrollbar-hide {
@@ -885,9 +798,6 @@ const activeTab = sections[0]?.tabKey || "all";
 			padding-top: 1.5rem;
 			padding-bottom: 1.5rem;
 		}
-		.mg-grid {
-			padding: 0.75rem;
-		}
 	}
 
 	/* 影视分页强制 3/9 简化样式（桌面/移动同款，对齐图片） */
@@ -895,51 +805,21 @@ const activeTab = sections[0]?.tabKey || "all";
 	.mg-page-wrapper [data-pagination-section] .mobile-pagination { display: flex !important; }
 	.mg-page-wrapper [data-pagination-section] .mobile-pagination { justify-content: center; }
 
-	/* 分页苹果质感：圆形白浮块箭头 + 胶囊页码指示 */
-	.mg-page-wrapper [data-pagination-section] .mobile-pagination {
-		gap: 0.875rem;
+	/* 海报网格：黑色线框包裹（书架页同款，1.5px 略细于胶囊原版 2px） */
+	.mg-grid {
+		border: 1.5px solid #000;
+		border-radius: 1rem;
+		padding: 20px 16px;
+		gap: 24px 16px;
 	}
-	.mg-page-wrapper [data-pagination-section] .btn-card[data-page] {
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 9999px;
-		border: 1px solid var(--line-divider);
-		background: oklch(1 0 0);
-		color: var(--deep-text);
-		box-shadow: 0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
-		transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease, background-color 0.25s ease;
+	:root.dark .mg-grid {
+		border-color: #fff;
 	}
-	.mg-page-wrapper [data-pagination-section] .btn-card[data-page]:hover:not(:disabled) {
-		background: oklch(0.965 0 0);
-	}
-	.mg-page-wrapper [data-pagination-section] .btn-card[data-page]:active:not(:disabled) {
-		transform: scale(0.92);
-	}
-	.mg-page-wrapper [data-pagination-section] .btn-card[data-page]:disabled {
-		opacity: 0.35;
-		box-shadow: none;
-	}
-	:root.dark .mg-page-wrapper [data-pagination-section] .btn-card[data-page] {
-		background: oklch(0.22 0 0);
-		color: oklch(0.9 0 0);
-		box-shadow: 0 0 1px oklch(0 0 0 / 0.45), 0 0 16px -4px oklch(0 0 0 / 0.5);
-	}
-	:root.dark .mg-page-wrapper [data-pagination-section] .btn-card[data-page]:hover:not(:disabled) {
-		background: oklch(0.28 0 0);
-	}
-	.mg-page-wrapper [data-pagination-section] .mobile-pagination > div {
-		height: 2.5rem;
-		border-radius: 9999px;
-		border-style: solid;
-		background: oklch(1 0 0);
-		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9),
-			0 0 1px oklch(0 0 0 / 0.08),
-			0 0 16px -4px oklch(0 0 0 / 0.12);
-	}
-	:root.dark .mg-page-wrapper [data-pagination-section] .mobile-pagination > div {
-		background: oklch(0.22 0 0);
-		box-shadow: 0 0 1px oklch(0 0 0 / 0.45), 0 0 16px -4px oklch(0 0 0 / 0.5);
+	@media (max-width: 768px) {
+		.mg-grid {
+			padding: 16px 12px;
+			gap: 20px 10px;
+		}
 	}
 
 	/* 首屏防闪：SSR 全量渲染时仅显第一页（12/6），JS 分页接管后按需显示 */
