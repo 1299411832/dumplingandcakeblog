@@ -799,4 +799,9 @@ const activeTab = sections[0]?.tabKey || "all";
 			padding-bottom: 1.5rem;
 		}
 	}
+
+	/* 影视分页强制 3/9 简化样式（桌面/移动同款，对齐图片） */
+	.mg-page-wrapper [data-pagination-section] .desktop-pagination { display: none !important; }
+	.mg-page-wrapper [data-pagination-section] .mobile-pagination { display: flex !important; }
+	.mg-page-wrapper [data-pagination-section] .mobile-pagination { justify-content: center; }
 </style>

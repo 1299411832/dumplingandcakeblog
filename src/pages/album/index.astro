@@ -196,11 +196,11 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
     <!-- 分页控件 -->
     <nav class="album-pagination" data-album-pagination hidden aria-label="相册分页">
       <button type="button" class="album-page-btn" data-page-prev aria-label="上一页">
-        <Icon name="material-symbols:chevron-left-rounded" class="text-lg" />
+        <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" />
       </button>
       <div class="album-page-nums" data-page-nums></div>
       <button type="button" class="album-page-btn" data-page-next aria-label="下一页">
-        <Icon name="material-symbols:chevron-right-rounded" class="text-lg" />
+        <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" />
       </button>
     </nav>
 
@@ -656,6 +656,11 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
   }
 
   .album-page-num {
@@ -663,8 +668,9 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
     align-items: center;
     justify-content: center;
     min-width: 2.75rem;
+    width: 2.75rem;
     height: 2.75rem;
-    padding: 0 0.75rem;
+    padding: 0;
     border: 1px solid var(--line-divider);
     border-radius: 0.5rem;
     background: var(--card-bg);
@@ -691,4 +697,5 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
     transform: none;
     box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   }
+  :root.dark .album-page-num.is-active { color: rgba(0,0,0,0.7); }
 </style>
