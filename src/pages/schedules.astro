@@ -48,7 +48,9 @@ if (!(month >= 1 && month <= 12)) {
 	year = now.getFullYear();
 	month = now.getMonth() + 1;
 }
-const selected = url.searchParams.get("d") || now.toISOString().slice(0, 10);
+const selected =
+	url.searchParams.get("d") ||
+	`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 ---
 <MainGridLayout title="日程" description="日历与日程">
   <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">

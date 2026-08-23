@@ -40,6 +40,9 @@
   font-weight: 700;
   color: var(--text-color);
 }
+:root.dark .circle-header-title {
+  color: oklch(0.92 0 0);
+}
 
 .circle-refresh-btn {
   width: 1.75rem;
@@ -87,6 +90,10 @@
   font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--content-meta);
+}
+:root.dark .circle-notice {
+  background: oklch(0.18 0 0);
+  border: 1px solid oklch(1 0 0 / 0.08);
 }
 
 .notice-icon {
@@ -202,6 +209,20 @@
   border-color: var(--primary);
 }
 
+:root.dark .sort-btn {
+  border-color: oklch(1 0 0 / 0.18);
+  color: oklch(0.72 0 0);
+}
+:root.dark .sort-btn:hover {
+  border-color: oklch(1 0 0 / 0.35);
+  color: oklch(0.92 0 0);
+}
+:root.dark .sort-btn.is-active {
+  background: oklch(0.92 0 0);
+  color: oklch(0.12 0 0);
+  border-color: oklch(0.92 0 0);
+}
+
 /* 加载状态 */
 .circle-loading {
   display: flex;
@@ -300,10 +321,18 @@
   transition: all 0.3s ease;
   overflow: hidden;
 }
+:root.dark .circle-card {
+  background: oklch(0.18 0 0);
+  border-color: oklch(1 0 0 / 0.12);
+}
 
 .circle-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+:root.dark .circle-card:hover {
+  border-color: oklch(1 0 0 / 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 /* 头像水印 - 右下角半透明背景 */
@@ -374,6 +403,9 @@
   position: relative;
   z-index: 1;
 }
+:root.dark .card-title {
+  color: oklch(0.92 0 0);
+}
 
 /* 博主名称 - 左下角胶囊 */
 .card-author-tag {
@@ -391,6 +423,10 @@
   position: relative;
   z-index: 1;
   margin-top: auto;
+}
+:root.dark .card-author-tag {
+  background: oklch(0.22 0 0);
+  color: oklch(0.88 0 0);
 }
 
 /* 加载更多 */
