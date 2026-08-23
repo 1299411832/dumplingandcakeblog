@@ -249,20 +249,33 @@ export function categoryIncomeList(
 		cur.count++;
 		map.set(k, cur);
 	}
-	// 固定展示职业/人情/其他，若无数据则补 0
+	// 兼容“工资”归入职业收入（旧数据分类）
+	if (map.has("工资")) {
+		const wage = map.get("工资")!;
+		const cur = map.get("职业收入") || { amount: 0, count: 0 };
+		cur.amount += wage.amount;
+		cur.count += wage.count;
+		map.set("职业收入", cur);
+		map.delete("工资");
+	}
+	// 按金额降序取前 3 收入分类，避免固定列表漏掉“工资”等
+	const sorted = [...map.entries()]
+		.map(([category, v]) => ({ category, ...v }))
+		.sort((a, b) => b.amount - a.amount)
+		.slice(0, 3);
+	// 若不足 3，用固定占位补齐（保持卡片 3 行结构）
 	const fixed = ["职业收入", "人情收礼", "其他收入"];
-	const result: { category: string; amount: number; count: number }[] = [];
+	const result: { category: string; amount: number; count: number }[] = [
+		...sorted,
+	];
 	for (const cat of fixed) {
-		const v = map.get(cat) || { amount: 0, count: 0 };
-		// 兼容旧分类“工资”映射到职业收入
-		if (cat === "职业收入" && !map.has(cat) && map.has("工资")) {
-			const w = map.get("工资");
-			if (w) result.push({ category: cat, amount: w.amount, count: w.count });
-		} else {
+		if (result.length >= 3) break;
+		if (!result.find((r) => r.category === cat)) {
+			const v = map.get(cat) || { amount: 0, count: 0 };
 			result.push({ category: cat, ...v });
 		}
 	}
-	return result;
+	return result.slice(0, 3);
 }
 
 export function memberMonthlyStats(

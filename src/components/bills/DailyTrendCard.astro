@@ -23,7 +23,12 @@ const incomePoints = data
 const expensePoints = data
 	.map((d, i) => `${xFor(i)},${yFor(d.expense)}`)
 	.join(" ");
-const midIdx = Math.min(14, data.length - 1);
+const now = new Date();
+const isCurrentMonth =
+	now.getFullYear() === year && now.getMonth() + 1 === month;
+const midIdx = isCurrentMonth
+	? Math.min(now.getDate() - 1, data.length - 1)
+	: Math.min(14, data.length - 1);
 const midX = xFor(midIdx);
 const showXLabels = data.filter((_, i) => i % 3 === 0);
 ---
