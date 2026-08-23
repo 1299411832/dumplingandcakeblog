@@ -27,7 +27,13 @@ const items = friendsEntries
 // 新朋友：按添加日期（added）降序取最近 3 个；无 added 时兜底按文件 mtime（无需手动补日期，插件新建时自动写入 added）
 const getFileTime = (item: (typeof items)[number]): number => {
 	try {
-		const filePath = path.join(process.cwd(), "src", "content", "friends", `${item.id}.md`);
+		const filePath = path.join(
+			process.cwd(),
+			"src",
+			"content",
+			"friends",
+			`${item.id}.md`,
+		);
 		const stat = fs.statSync(filePath);
 		return stat.mtime.getTime();
 	} catch {
