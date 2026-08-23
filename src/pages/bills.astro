@@ -44,14 +44,14 @@ const incomeTotalAmt = incomeList.reduce((s, r) => s + r.amount, 0);
   <div class="bills-page">
     <div class="bills-grid">
       <div class="bills-col">
-        <NetAssetCard netAsset={stats.netAsset} asset={stats.asset} liability={stats.liability} />
-        <DailyTrendCard year={year} month={month} data={daily} />
-        <IncomeCategoryCard data={incomeList} totalCount={incomeTotalCount} totalIncome={incomeTotalAmt} />
+        <div class="order-net"><NetAssetCard netAsset={stats.netAsset} asset={stats.asset} liability={stats.liability} /></div>
+        <div class="order-daily"><DailyTrendCard year={year} month={month} data={daily} /></div>
+        <div class="order-income"><IncomeCategoryCard data={incomeList} totalCount={incomeTotalCount} totalIncome={incomeTotalAmt} /></div>
       </div>
       <div class="bills-col">
-        <MonthlySummaryCard income={monthIncome} expense={monthExpense} balance={monthBalance} />
-        <YearlyFlowCard year={year} data={yearly} />
-        <ExpenseRankCard data={expenseRank} totalCount={expenseCount} totalExpense={expenseTotal} />
+        <div class="order-monthly"><MonthlySummaryCard income={monthIncome} expense={monthExpense} balance={monthBalance} /></div>
+        <div class="order-yearly"><YearlyFlowCard year={year} data={yearly} /></div>
+        <div class="order-expense"><ExpenseRankCard data={expenseRank} totalCount={expenseCount} totalExpense={expenseTotal} /></div>
       </div>
     </div>
     <div class="bills-footer">
@@ -71,6 +71,13 @@ const incomeTotalAmt = incomeList.reduce((s, r) => s + r.amount, 0);
 :root.dark .bills-custom-btn{ background: oklch(0.16 0 0 / 0.86); border-color: oklch(1 0 0 / 0.12); color:var(--guestbook-muted); }
 @media(max-width:900px){
   .bills-grid{ grid-template-columns:1fr; }
+  .bills-col{ display:contents; }
+  .order-net{ order:1; }
+  .order-monthly{ order:2; }
+  .order-daily{ order:3; }
+  .order-yearly{ order:4; }
+  .order-income{ order:5; }
+  .order-expense{ order:6; }
 }
 /* 中间放不下时等比再缩一点 */
 @media(max-width:1200px){
