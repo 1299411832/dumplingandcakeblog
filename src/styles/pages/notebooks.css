@@ -200,7 +200,6 @@
 /* ===== 3D 书本卡片 ===== */
 /* 透视容器：固定书宽，与相邻书保持间距以便翻页展开 */
 .nb-book {
-	--book-color: #f50537;
 	--book-width: 176px;
 	--book-depth: 46px;
 	display: block;
@@ -244,16 +243,17 @@
 	border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 上部封皮：封面色或封面图 */
+/* 上部封皮：封面图或 emoji，底色为中性浅灰渐变（封面加载占位/无图时露出） */
 .nb-book-illustration {
 	position: relative;
 	flex: 0 0 56%;
 	min-height: 0;
-	background: var(--book-color);
+	background: linear-gradient(135deg, oklch(0.93 0 0), oklch(0.87 0 0));
 	overflow: hidden;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 :root.dark .nb-book-illustration {
+	background: linear-gradient(135deg, oklch(0.25 0 0), oklch(0.19 0 0));
 	border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 

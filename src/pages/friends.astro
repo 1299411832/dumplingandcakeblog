@@ -34,13 +34,12 @@ const getFileTime = (item: (typeof items)[number]): number => {
 		return 0;
 	}
 };
+const getAddedTime = (item: (typeof items)[number]): number => {
+	if (item.data.added) return item.data.added.getTime();
+	return getFileTime(item);
+};
 const latestItems = [...items]
-	.sort((a, b) => {
-		const at = a.data.added?.getTime() ?? 0;
-		const bt = b.data.added?.getTime() ?? 0;
-		if (bt !== at) return bt - at;
-		return getFileTime(b) - getFileTime(a);
-	})
+	.sort((a, b) => getAddedTime(b) - getAddedTime(a))
 	.slice(0, 3);
 
 // 新朋友区块独立展示后，从分组中排除，避免同一站点出现两次

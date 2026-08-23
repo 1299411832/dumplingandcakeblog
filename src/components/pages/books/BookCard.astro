@@ -67,11 +67,11 @@ const scoreText = score > 0 ? `${score}`.replace(/\.0$/, "") : "";
 		perspective: 900px;
 	}
 
-	/* 书体：3D 旋转层 */
-	.nb-book-inner {
-		position: relative;
-		width: 100%;
-		aspect-ratio: 49 / 60;
+/* 书体：3D 旋转层。比例取微信读书封面实测 250×360（25/36），保证封面整图无裁剪 */
+.nb-book-inner {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 25 / 36;
 		transform-style: preserve-3d;
 		transition: transform 550ms ease-out;
 	}
@@ -101,13 +101,19 @@ const scoreText = score > 0 ? `${score}`.replace(/\.0$/, "") : "";
 		border-color: rgba(255, 255, 255, 0.1);
 	}
 
-	/* 封皮：封面图整铺（无白色文字区） */
-	.nb-book-illustration {
-		position: relative;
-		flex: 1 1 auto;
-		min-height: 0;
-		overflow: hidden;
-	}
+/* 封皮：封面图整铺（无白色文字区）
+   占位背景必须显式声明：notebooks.css 全局给同名类设了 --book-color 红色底，
+   不覆盖会在封面图加载前透出红色 */
+.nb-book-illustration {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	background: linear-gradient(135deg, oklch(0.93 0 0), oklch(0.87 0 0));
+}
+:root.dark .nb-book-illustration {
+	background: linear-gradient(135deg, oklch(0.25 0 0), oklch(0.19 0 0));
+}
 
 	.nb-book-illustration-img {
 		width: 100%;
