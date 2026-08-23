@@ -110,9 +110,9 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "/apps/",
 		icon: "material-symbols:apps",
 	});
-	// 资金
+	// 账单
 	recordChildren.push({
-		name: "资金",
+		name: "账单",
 		url: "/bills/",
 		icon: "material-symbols:account-balance-wallet-outline",
 	});
