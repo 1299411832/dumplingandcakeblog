@@ -193,12 +193,16 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
       )}
     </div>
 
-    <!-- 分页控件 -->
+    <!-- 分页控件（统一样式 3/9 虚线） -->
     <nav class="album-pagination" data-album-pagination hidden aria-label="相册分页">
       <button type="button" class="album-page-btn" data-page-prev aria-label="上一页">
         <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" />
       </button>
-      <div class="album-page-nums" data-page-nums></div>
+      <div class="bg-[var(--card-bg)] flex items-center rounded-lg px-3.5 h-11 gap-1.5 border border-dashed border-[var(--line-divider)] shadow-sm">
+        <span class="album-current-page text-sm font-bold text-[var(--primary)] tabular-nums">1</span>
+        <span class="text-sm text-[var(--content-meta)]">/</span>
+        <span class="album-total-pages text-sm font-bold text-[var(--content-meta)] tabular-nums">1</span>
+      </div>
       <button type="button" class="album-page-btn" data-page-next aria-label="下一页">
         <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" />
       </button>
@@ -264,17 +268,10 @@ function getPreviewPhotos(album: CollectionEntry<"album">) {
       if (prev) prev.disabled = currentPage <= 1;
       if (next) next.disabled = currentPage >= totalPages;
 
-      var nums = nav.querySelector("[data-page-nums]");
-      if (!nums) return;
-      nums.innerHTML = "";
-      for (var i = 1; i <= totalPages; i++) {
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "album-page-num" + (i === currentPage ? " is-active" : "");
-        btn.dataset.pageGo = String(i);
-        btn.textContent = String(i);
-        nums.appendChild(btn);
-      }
+      var curEl = nav.querySelector(".album-current-page");
+      var totalEl = nav.querySelector(".album-total-pages");
+      if (curEl) curEl.textContent = String(currentPage);
+      if (totalEl) totalEl.textContent = String(totalPages);
     }
 
     function updateIndicator(container, button) {

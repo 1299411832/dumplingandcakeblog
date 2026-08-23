@@ -302,9 +302,10 @@ const desktopPageNumbers = generatePageNumbers(currentPage, totalPagesDesktop);
 		display: none;
 	}
 
+	/* 统一为 3/9 简化样式，桌面/移动同款（对齐图片） */
 	@media (min-width: 768px) {
-		.mobile-pagination { display: none; }
-		.desktop-pagination { display: flex; }
+		.mobile-pagination { display: flex; }
+		.desktop-pagination { display: none; }
 	}
 
 	.bangumi-page-btn {
