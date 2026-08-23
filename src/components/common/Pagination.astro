@@ -66,68 +66,92 @@ const getPageUrl = (p: number) => {
   }
   -->
 
-  <!-- 分页控件 -->
+  <!-- 分页控件 - 统一样式 3/9 虚线（对齐图片） -->
   <div class="flex flex-row gap-3 justify-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
-    <a
-      href={page.url.prev || "#"}
-      aria-label={i18n(I18nKey.paginationPrev)}
-      aria-disabled={page.url.prev === undefined ? "true" : "false"}
-      tabindex={page.url.prev === undefined ? "-1" : "0"}
-      class:list={[
-        "btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11",
-        { disabled: page.url.prev == undefined },
-      ]}
-    >
-      <Icon
-        name="material-symbols:chevron-left-rounded"
-        class="text-[1.75rem]"
-        aria-hidden="true"
-      />
-    </a>
-    <div
-      class="bg-(--card-bg) flex flex-row rounded-lg items-center text-neutral-700 dark:text-neutral-300 font-bold"
-    >
-      {
-        pages.map((p) => {
-          if (p == HIDDEN)
-            return <Icon name="material-symbols:more-horiz" class="mx-1" aria-hidden="true" />;
-          if (p == page.currentPage)
+    <!-- 移动端 3/9 -->
+    <div class="flex md:hidden items-center gap-3">
+      <a
+        href={page.url.prev || "#"}
+        aria-label={i18n(I18nKey.paginationPrev)}
+        aria-disabled={page.url.prev === undefined ? "true" : "false"}
+        tabindex={page.url.prev === undefined ? "-1" : "0"}
+        class:list={[
+          "btn-card overflow-hidden rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-(--primary) w-11 h-11 flex items-center justify-center",
+          { disabled: page.url.prev == undefined },
+        ]}
+      >
+        <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" aria-hidden="true" />
+      </a>
+      <div class="bg-[var(--card-bg)] flex items-center rounded-[0.5rem] px-3.5 h-11 gap-1.5 border border-dashed border-[var(--line-divider)] shadow-sm">
+        <span class="text-sm font-bold text-[var(--primary)] tabular-nums">{page.currentPage}</span>
+        <span class="text-sm text-[var(--content-meta)]">/</span>
+        <span class="text-sm font-bold text-[var(--content-meta)] tabular-nums">{page.lastPage}</span>
+      </div>
+      <a
+        href={page.url.next || "#"}
+        aria-label={i18n(I18nKey.paginationNext)}
+        aria-disabled={page.url.next === undefined ? "true" : "false"}
+        tabindex={page.url.next === undefined ? "-1" : "0"}
+        class:list={[
+          "btn-card overflow-hidden rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-(--primary) w-11 h-11 flex items-center justify-center",
+          { disabled: page.url.next == undefined },
+        ]}
+      >
+        <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" aria-hidden="true" />
+      </a>
+    </div>
+    <!-- 桌面端 1 2 3 …14 -->
+    <div class="hidden md:flex flex-row gap-3 justify-center items-center" role="navigation" aria-label={i18n(I18nKey.postList)}>
+      <a
+        href={page.url.prev || "#"}
+        aria-label={i18n(I18nKey.paginationPrev)}
+        aria-disabled={page.url.prev === undefined ? "true" : "false"}
+        tabindex={page.url.prev === undefined ? "-1" : "0"}
+        class:list={[
+          "btn-card overflow-hidden rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-(--primary) w-11 h-11 flex items-center justify-center",
+          { disabled: page.url.prev == undefined },
+        ]}
+      >
+        <Icon name="material-symbols:chevron-left-rounded" class="text-[1.75rem]" aria-hidden="true" />
+      </a>
+      <div class="flex flex-row items-center gap-2 text-neutral-700 dark:text-neutral-300 font-bold">
+        {
+          pages.map((p) => {
+            if (p == HIDDEN)
+              return <Icon name="material-symbols:more-horiz" class="mx-1" aria-hidden="true" />;
+            if (p == page.currentPage)
+              return (
+                <div
+                  class="h-11 w-11 rounded-[0.5rem] bg-[var(--primary)] flex items-center justify-center font-bold text-white dark:text-black/70 border border-[var(--primary)]"
+                  aria-current="page"
+                >
+                  {p}
+                </div>
+              );
             return (
-              <div
-                class="h-11 w-11 rounded-lg bg-(--primary) flex items-center justify-center
-                        font-bold text-white dark:text-black/70"
-                aria-current="page"
+              <a
+                href={url(getPageUrl(p))}
+                aria-label={`${i18n(I18nKey.paginationPage)} ${p}`}
+                class="btn-card w-11 h-11 rounded-[0.5rem] overflow-hidden bg-[var(--card-bg)] border border-[var(--line-divider)] flex items-center justify-center active:scale-90"
               >
                 {p}
-              </div>
+              </a>
             );
-          return (
-            <a
-              href={url(getPageUrl(p))}
-              aria-label={`${i18n(I18nKey.paginationPage)} ${p}`}
-              class="btn-card w-11 h-11 rounded-lg overflow-hidden active:scale-[0.85]"
-            >
-              {p}
-            </a>
-          );
-        })
-      }
+          })
+        }
+      </div>
+      <a
+        href={page.url.next || "#"}
+        aria-label={i18n(I18nKey.paginationNext)}
+        aria-disabled={page.url.next === undefined ? "true" : "false"}
+        tabindex={page.url.next === undefined ? "-1" : "0"}
+        class:list={[
+          "btn-card overflow-hidden rounded-[0.5rem] bg-[var(--card-bg)] border border-[var(--line-divider)] text-(--primary) w-11 h-11 flex items-center justify-center",
+          { disabled: page.url.next == undefined },
+        ]}
+      >
+        <Icon name="material-symbols:chevron-right-rounded" class="text-[1.75rem]" aria-hidden="true" />
+      </a>
     </div>
-    <a
-      href={page.url.next || "#"}
-      aria-label={i18n(I18nKey.paginationNext)}
-      aria-disabled={page.url.next === undefined ? "true" : "false"}
-      tabindex={page.url.next === undefined ? "-1" : "0"}
-      class:list={[
-        "btn-card overflow-hidden rounded-lg text-(--primary) w-11 h-11",
-        { disabled: page.url.next == undefined },
-      ]}
-    >
-      <Icon
-        name="material-symbols:chevron-right-rounded"
-        class="text-[1.75rem]"
-        aria-hidden="true"
-      />
-    </a>
   </div>
 </div>
