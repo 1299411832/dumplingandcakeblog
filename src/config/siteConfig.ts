@@ -219,6 +219,7 @@ export const siteConfig: SiteConfig = {
 			scriptUrl: import.meta.env.PUBLIC_UMAMI_BASE
 				? `${import.meta.env.PUBLIC_UMAMI_BASE}/script.js`
 				: "",
+			shareId: import.meta.env.PUBLIC_UMAMI_SHARE_ID || "axPq9bMWEDi1N6am",
 		},
 	},
 

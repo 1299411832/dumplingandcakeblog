@@ -525,8 +525,15 @@ content:
             label: 简介
             type: text
 
+          - name: images
+            label: 图片（新）
+            type: imgbed
+            list: true
+            options:
+              media: false
+
           - name: image
-            label: 图片
+            label: 图片（旧，兼容保留）
             type: string
             list: true
 
@@ -576,8 +583,15 @@ content:
             label: 简介
             type: text
 
+          - name: images
+            label: 图片（新）
+            type: imgbed
+            list: true
+            options:
+              media: false
+
           - name: image
-            label: 图片
+            label: 图片（旧，兼容保留）
             type: string
             list: true
 

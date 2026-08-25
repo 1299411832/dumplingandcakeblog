@@ -1,10 +1,10 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getCollection, render } from "astro:content";
-import Comment from "@components/comment/index.astro";
-import Markdown from "@components/common/Markdown.astro";
+import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
+import NotebookCommentModal from "@/components/comment/NotebookCommentModal.svelte";
 import ArchiveHeatmap from "@/components/widget/ArchiveHeatmap.astro";
+import { profileConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 export async function getStaticPaths() {
@@ -13,10 +13,7 @@ export async function getStaticPaths() {
 		params: { slug: string };
 		props: {
 			entry: CollectionEntry<"notebooks">;
-			entries?: CollectionEntry<"notebooks">[];
-			sortedEntries?: CollectionEntry<"notebooks">[];
-			item?: CollectionEntry<"notebooks">;
-			isNotebookIndex?: boolean;
+			sortedEntries: CollectionEntry<"notebooks">[];
 		};
 	}[] = [];
 
@@ -50,32 +47,17 @@ export async function getStaticPaths() {
 
 		paths.push({
 			params: { slug: folderName },
-			props: {
-				entry,
-				entries: folderEntries,
-				sortedEntries,
-				isNotebookIndex: true,
-			},
+			props: { entry, sortedEntries },
 		});
-		for (const item of folderEntries) {
-			const itemId = item.id.replace(/\\/g, "/");
-			const itemSlug = itemId.split("/").pop()?.replace(/\.md$/, "") || "";
-			paths.push({
-				params: { slug: `${folderName}/${itemSlug}` },
-				props: { entry, item, isNotebookIndex: false },
-			});
-		}
 	}
 	return paths;
 }
 
-const { entry, sortedEntries, item, isNotebookIndex } = Astro.props as {
+const { entry, sortedEntries } = Astro.props as {
 	entry: CollectionEntry<"notebooks">;
-	sortedEntries?: CollectionEntry<"notebooks">[];
-	item?: CollectionEntry<"notebooks">;
-	isNotebookIndex: boolean;
+	sortedEntries: CollectionEntry<"notebooks">[];
 };
-const notebookContent = !isNotebookIndex && item ? await render(item) : null;
+
 const normalizedEntryId = entry.id.replace(/\\/g, "/");
 const isNotebookRootMatch =
 	normalizedEntryId.match(/^([^/]+)\/(_index|_index\.md|_index\.json)$/) ||
@@ -84,12 +66,7 @@ const folderName = isNotebookRootMatch
 	? isNotebookRootMatch[1]
 	: normalizedEntryId.split("/")[0];
 
-const notebookCommentPath =
-	!isNotebookIndex && item
-		? `/life/notebooks/${item.id.replace(/\\/g, "/").replace(/\.md$/, "")}/`
-		: "";
-
-// 获取所有笔记本列表
+// 所有笔记本列表（面包屑下拉）
 const allNotebooks = await getCollection("notebooks");
 const notebookList = allNotebooks
 	.filter((e) => {
@@ -104,290 +81,413 @@ const notebookList = allNotebooks
 	})
 	.filter((n) => n.name);
 
-const heatmapPosts = isNotebookIndex
-	? (sortedEntries || []).map((e) => ({
-			id: e.id,
-			data: {
-				title: e.data.name || e.id,
-				published: e.data.date instanceof Date ? e.data.date : new Date(0),
-			},
-		}))
-	: [];
+// 热力图数据
+const heatmapPosts = (sortedEntries || []).map((e) => ({
+	id: e.id,
+	data: {
+		title: e.data.name || e.id,
+		published: e.data.date instanceof Date ? e.data.date : new Date(0),
+	},
+}));
 
-interface ArchiveEntry {
-	slug: string;
-	day: string;
-	name: string;
-}
-interface ArchiveMonth {
-	month: number;
-	entries: ArchiveEntry[];
-}
-interface ArchiveYear {
-	year: number;
-	totalCount: number;
-	months: ArchiveMonth[];
-}
-const archiveYears: ArchiveYear[] = [];
-if (isNotebookIndex && sortedEntries && sortedEntries.length > 0) {
-	const yearMap = new Map<number, Map<number, ArchiveEntry[]>>();
-	for (const e of sortedEntries) {
-		const d = e.data.date instanceof Date ? e.data.date : new Date(0);
-		const y = d.getFullYear();
-		const m = d.getMonth() + 1;
-		const noteItemId = e.id.replace(/\\/g, "/");
-		const itemSlug =
-			noteItemId.split("/").pop()?.replace(/\.md$/, "") || "未命名";
-		const monthMap = yearMap.get(y) ?? new Map<number, ArchiveEntry[]>();
-		yearMap.set(y, monthMap);
-		if (!monthMap.has(m)) monthMap.set(m, []);
-		monthMap.get(m)?.push({
-			slug: itemSlug,
-			day: String(d.getDate()).padStart(2, "0"),
-			name: e.data.name || itemSlug,
-		});
-	}
-	for (const [year, monthMap] of Array.from(yearMap.entries()).sort(
-		(a, b) => b[0] - a[0],
-	)) {
-		const months: ArchiveMonth[] = [];
-		let total = 0;
-		for (const [month, entries] of Array.from(monthMap.entries()).sort(
-			(a, b) => b[0] - a[0],
-		)) {
-			months.push({ month, entries });
-			total += entries.length;
+// 归一化图片字段：优先 images，兼容旧 image，支持 string|string[]
+function normalizeImages(raw: string | string[] | undefined): string[] {
+	if (!raw) return [];
+	if (Array.isArray(raw)) {
+		const out: string[] = [];
+		for (const s of raw) {
+			if (typeof s !== "string") continue;
+			const t = s.trim();
+			if (t) out.push(t);
 		}
-		archiveYears.push({ year, totalCount: total, months });
+		return [...new Set(out)];
 	}
+	if (typeof raw === "string") {
+		const t = raw.trim();
+		if (!t) return [];
+		return [
+			...new Set(
+				t
+					.split(/[,;，；\n]/)
+					.map((s) => s.trim())
+					.filter(Boolean),
+			),
+		];
+	}
+	return [];
 }
+
+function getGridCols(count: number): number {
+	if (count === 1) return 1;
+	if (count === 2 || count === 4) return 2;
+	return 3;
+}
+
+const gridMax = 9;
+const noteAvatar = profileConfig.avatar || "/assets/ziyuan/tx.webp";
+
+// 为每篇笔记预处理卡片所需数据（服务端直算，避免客户端再解析 markdown）
+const CLAMP_CHARS = 12;
+const noteCards = (sortedEntries || []).map((e) => {
+	const id = e.id.replace(/\\/g, "/");
+	const slug =
+		id
+			.split("/")
+			.pop()
+			?.replace(/\.(md|mdx)$/, "") || "note";
+	const rawImages =
+		(
+			e.data as unknown as {
+				images?: string | string[];
+				image?: string | string[];
+			}
+		).images ??
+		(
+			e.data as unknown as {
+				images?: string | string[];
+				image?: string | string[];
+			}
+		).image ??
+		"";
+	const images = normalizeImages(rawImages as string | string[]);
+	const rawBody = (e.body || "").trim();
+	const textContent = rawBody || (e.data.summary as string) || "";
+	const date = e.data.date instanceof Date ? e.data.date : null;
+	const dateLabel = date ? `${date.getMonth() + 1}月${date.getDate()}日` : "";
+	const dateFull = date ? date.toISOString().split("T")[0] : "";
+	// 服务端预判是否需截断：按字符阈值近似超三行（避免首屏先展开再合上的闪烁，客户端仅精确校准）
+	const needsClamp = textContent.length > CLAMP_CHARS * 3;
+	const displayText = needsClamp
+		? textContent.slice(0, CLAMP_CHARS)
+		: textContent;
+	return {
+		entry: e,
+		id,
+		slug,
+		anchorId: `note-${slug}`,
+		name: e.data.name || slug,
+		images,
+		gridCols: getGridCols(images.length),
+		textContent,
+		displayText,
+		needsClamp,
+		date,
+		dateLabel,
+		dateFull,
+		tags: (e.data.tags as string[]) || [],
+	};
+});
 ---
 
-{isNotebookIndex ? (
-		<MainGridLayout title={entry.data.name || "笔记本"} description={entry.data.summary || "笔记本记录"}>
-			<nav class="cb" id="nb-breadcrumb" aria-label="Breadcrumb" style="margin-bottom: 0.5rem;">
-				<ol class="cb__list">
-					<li class="cb__item">
-						<a href="/life/notebooks/" class="cb__link">
-							<span class="cb__icon"><Icon name="material-symbols:menu-book-outline" /></span>
-							<span>笔记本</span>
-						</a>
-					</li>
-					<li class="cb__item">
-						<span class="cb__sep" aria-hidden="true">›</span>
-						<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
-							<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
-								<span class="cb__dropdown-label" data-nb-dropdown-label>{entry.data.name || "笔记本"}</span>
-								<span class="cb__dropdown-arrow" aria-hidden="true">
-									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
-								</span>
-							</button>
-							<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
-								{notebookList.map((nb) => (
-									<a href={`/life/notebooks/${nb.folder}/`} class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]} role="menuitem" data-nb-dropdown-item>
-										<span>{nb.name}</span>
-									</a>
-								))}
-							</span>
+<MainGridLayout title={entry.data.name || "笔记本"} description={entry.data.summary || "笔记本记录"}>
+	<nav class="cb" id="nb-breadcrumb" aria-label="Breadcrumb" style="margin-bottom: 0.5rem;">
+		<ol class="cb__list">
+			<li class="cb__item">
+				<a href="/life/notebooks/" class="cb__link">
+					<span class="cb__icon"><Icon name="material-symbols:menu-book-outline" /></span>
+					<span>笔记本</span>
+				</a>
+			</li>
+			<li class="cb__item">
+				<span class="cb__sep" aria-hidden="true">›</span>
+				<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
+					<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
+						<span class="cb__dropdown-label" data-nb-dropdown-label>{entry.data.name || "笔记本"}</span>
+						<span class="cb__dropdown-arrow" aria-hidden="true">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
 						</span>
-					</li>
-				</ol>
-			</nav>
+					</button>
+					<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
+						{notebookList.map((nb) => (
+							<a href={`/life/notebooks/${nb.folder}/`} class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]} role="menuitem" data-nb-dropdown-item>
+								<span>{nb.name}</span>
+							</a>
+						))}
+					</span>
+				</span>
+			</li>
+		</ol>
+	</nav>
 
-			<div class="flex w-full overflow-hidden relative min-h-32">
-				<div class="card-base z-10 px-4 pt-0 pb-6 md:px-9 relative w-full">
+	<div class="flex w-full overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-4 pt-0 pb-6 md:px-9 relative w-full">
 
-					<ArchiveHeatmap posts={heatmapPosts} />
+			<ArchiveHeatmap posts={heatmapPosts} />
 
-				<div class="archive-panel">
-					{archiveYears.length > 0 ? (
-						archiveYears.map((yr) => (
-							<div class="ap-year-block">
-								<div class="ap-year-header">
-									<div class="ap-col"><div class="ap-node ap-year-node"></div></div>
-									<div class="ap-year-label"><h2 class="ap-h1">{yr.year}年</h2><span class="ap-count">共 {yr.totalCount} 篇</span></div>
+			{noteCards.length > 0 ? (
+				<div class="nb-archive-feed" id="nb-archive-feed">
+					{noteCards.map((card) => (
+						<article class="nb-archive-card" id={card.anchorId} data-note-card>
+							<div class="nb-archive-head">
+								<div class="nb-archive-avatar">
+									<img src={noteAvatar} alt="团子的笔记" class="nb-archive-avatar-img" loading="lazy" />
 								</div>
-								<div class="ap-months-area">
-									{yr.months.map((mg) => (
-										<div class="ap-month-block">
-											<div class="ap-month-header">
-												<div class="ap-col"><div class="ap-hline ap-month-hline"></div><div class="ap-node ap-month-node"></div></div>
-												<div class="ap-month-label"><h3 class="ap-h2">{mg.month}月</h3><span class="ap-count">{mg.entries.length} 篇</span></div>
-											</div>
-											<div class="ap-posts-area">
-												<ul class="ap-post-list">
-													{mg.entries.map((entry, idx) => (
-														<li class:list={["ap-post-row", { last: idx === mg.entries.length - 1 }]}>
-															<div class="ap-col"><div class="ap-hline ap-post-hline"></div><div class="ap-node ap-post-node"></div></div>
-															<a href={`/life/notebooks/${folderName}/${entry.slug}/`} class="ap-post-link group btn-plain">
-																<span class="ap-date">{entry.day}</span><span class="ap-type-badge">笔记</span><span class="ap-title group-hover:text-(--primary)">{entry.name}</span>
-															</a>
-														</li>
-													))}
-												</ul>
-											</div>
-										</div>
-									))}
+								<div class="nb-archive-author">
+									<span class="nb-archive-name">团子的笔记</span>
+									{card.dateLabel && (
+										<span class="nb-archive-time">
+											<Icon name="material-symbols:schedule-outline" class="text-[0.75rem]" />
+											{card.dateLabel}
+											<span class="nb-archive-date-full">{card.dateFull}</span>
+										</span>
+									)}
 								</div>
 							</div>
-						))
-					) : (
-						<div class="nb-empty"><span class="nb-empty-icon">📝</span><p>还没有日记内容</p></div>
-					)}
+
+							{card.textContent && (
+								<div class="nb-archive-body">
+									<div
+										class:list={["nb-archive-content", { "is-clamped": card.needsClamp }]}
+										data-note-content
+										data-full-text={card.textContent}
+										data-measured={card.needsClamp ? "1" : "0"}
+									>{card.displayText}</div>
+									<button
+										type="button"
+										class="nb-archive-expand-btn"
+										aria-expanded="false"
+										data-note-expand
+										aria-label="展开全文"
+										style={card.needsClamp ? "" : "display:none"}
+									>
+										<span class="nb-archive-expand-text">展开</span>
+										<Icon name="material-symbols:expand-more-rounded" class="nb-archive-expand-icon" />
+									</button>
+								</div>
+							)}
+
+							{card.images.length > 0 && (
+								<div class={`nb-archive-images image-cols-${card.gridCols}`}>
+									{card.images.map((imgSrc, idx) => {
+										const isHidden = idx >= gridMax;
+										const isLastVisible = idx === gridMax - 1 && card.images.length > gridMax;
+										return (
+											<div class={`nb-image-item ${isHidden ? "hidden-image" : ""}`}>
+												<img
+													src={imgSrc}
+													alt=""
+													class="nb-image-img"
+													loading="lazy"
+													data-fancybox={`gallery-${folderName}-${card.slug}`}
+													data-src={imgSrc}
+												/>
+												{isLastVisible && (
+													<div class="more-overlay">
+														<span class="more-text">+{card.images.length - gridMax + 1}</span>
+													</div>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							)}
+
+							<div class="nb-archive-foot">
+								<div class="nb-archive-tags">
+									<span class="nb-archive-tag">#{card.name}</span>
+								</div>
+								<button
+									type="button"
+									class="nb-archive-comment comment-toggle-btn"
+									aria-label="评论"
+									title="评论此笔记"
+									data-note-id={card.slug}
+									data-note-published={card.dateFull || card.dateLabel}
+									data-note-excerpt={card.textContent.slice(0, 80)}
+								>
+									<Icon name="material-symbols:chat-bubble-outline" class="text-sm" />
+									<span>评论</span>
+								</button>
+							</div>
+						</article>
+					))}
 				</div>
-			</div>
+			) : (
+				<div class="nb-empty"><span class="nb-empty-icon">📝</span><p>还没有日记内容</p></div>
+			)}
 		</div>
+	</div>
 
-		<script is:inline>
-		(function() {
-			if (window.__nbDropdownInited) return;
-			window.__nbDropdownInited = true;
-			function closeDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); if (trigger) trigger.setAttribute("aria-expanded", "false"); dd.classList.remove("is-open"); }
-			function openDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); var menu = dd.querySelector("[data-nb-dropdown-menu]"); if (trigger) trigger.setAttribute("aria-expanded", "true"); if (menu && trigger) { var rect = trigger.getBoundingClientRect(); menu.style.top = (rect.bottom + 6) + "px"; menu.style.left = rect.left + "px"; } dd.classList.add("is-open"); }
+	<script is:inline>
+	(function() {
+		if (window.__nbDropdownInited) return;
+		window.__nbDropdownInited = true;
+		function closeDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); if (trigger) trigger.setAttribute("aria-expanded", "false"); dd.classList.remove("is-open"); }
+		function openDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); var menu = dd.querySelector("[data-nb-dropdown-menu]"); if (trigger) trigger.setAttribute("aria-expanded", "true"); if (menu && trigger) { var rect = trigger.getBoundingClientRect(); menu.style.top = (rect.bottom + 6) + "px"; menu.style.left = rect.left + "px"; } dd.classList.add("is-open"); }
+		document.addEventListener("click", function(e) {
+			var t = e.target; if (!t) return;
+			var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
+			var item = t.closest && t.closest("[data-nb-dropdown-item]");
+			if (trigger) { e.preventDefault(); var dd = trigger.closest("[data-nb-dropdown]"); if (!dd) return; var isOpen = dd.classList.contains("is-open"); document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (!isOpen) openDropdown(dd); return; }
+			if (item) { e.preventDefault(); var href = item.getAttribute("href") || ""; document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (href) window.location.href = href; return; }
+			document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+		});
+	})();
+	</script>
+
+	<NotebookCommentModal client:load />
+
+	<script is:inline>
+	(function() {
+		function bindNotebookCommentDelegate(){
+			if (window.__notebookCommentDelegateBound) return;
+			window.__notebookCommentDelegateBound = true;
 			document.addEventListener("click", function(e) {
-				var t = e.target; if (!t) return;
-				var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
-				var item = t.closest && t.closest("[data-nb-dropdown-item]");
-				if (trigger) { e.preventDefault(); var dd = trigger.closest("[data-nb-dropdown]"); if (!dd) return; var isOpen = dd.classList.contains("is-open"); document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (!isOpen) openDropdown(dd); return; }
-				if (item) { e.preventDefault(); var href = item.getAttribute("href") || ""; document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (href) window.location.href = href; return; }
-				document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+				var btn = e.target.closest(".nb-archive-comment");
+				if (!btn) return;
+				var id = btn.getAttribute("data-note-id") || "";
+				var published = btn.getAttribute("data-note-published") || "";
+				var excerpt = btn.getAttribute("data-note-excerpt") || "";
+				if (!id || !window.__notebookComment || !window.__notebookComment.open) return;
+				e.preventDefault();
+				window.__notebookComment.open(id, published, excerpt);
 			});
-		})();
-		</script>
-	</MainGridLayout>
-) : (
-	<MainGridLayout title={(item?.data?.name || "日记") + " - 笔记本"}>
-		{/* 面包屑：笔记本 › 下拉(切换) › 笔记本名(可点击) › 文章名 */}
-		<nav class="cb" aria-label="Breadcrumb">
-			<ol class="cb__list">
-				<li class="cb__item">
-					<a href="/life/notebooks/" class="cb__link">
-						<span class="cb__icon"><Icon name="material-symbols:menu-book-outline" /></span>
-						<span>笔记本</span>
-					</a>
-				</li>
-				<li class="cb__item">
-					<span class="cb__sep" aria-hidden="true">›</span>
-					<span class="cb__dropdown" data-nb-dropdown data-current={folderName}>
-						<button type="button" class="cb__dropdown-trigger" aria-haspopup="menu" aria-expanded="false" data-nb-dropdown-trigger>
-							<span class="cb__dropdown-label" data-nb-dropdown-label>全部笔记本</span>
-							<span class="cb__dropdown-arrow" aria-hidden="true">
-								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14.975q-.2 0-.375-.062T11.3 14.7l-4.6-4.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275L12 12.55l4.125-4.125q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.975Z"/></svg>
-							</span>
-						</button>
-						<span class="cb__dropdown-menu" role="menu" data-nb-dropdown-menu>
-							{notebookList.map((nb) => (
-								<a href={`/life/notebooks/${nb.folder}/`} class:list={["cb__dropdown-item", { "is-active": nb.folder === folderName }]} role="menuitem" data-nb-dropdown-item>
-									<span>{nb.name}</span>
-								</a>
-							))}
-						</span>
-					</span>
-					<span class="cb__sep" aria-hidden="true">›</span>
-					<a href={`/life/notebooks/${folderName}/`} class="cb__link"><span>{entry.data.name || "笔记本"}</span></a>
-				</li>
-				<li class="cb__item">
-					<span class="cb__sep" aria-hidden="true">›</span>
-					<span class="cb__current">
-						<span class="cb__icon"><Icon name="material-symbols:description-outline" /></span>
-						<span>{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "此笔记"}</span>
-					</span>
-				</li>
-			</ol>
-		</nav>
+		}
+		bindNotebookCommentDelegate();
+		document.addEventListener("swup:content:replaced", bindNotebookCommentDelegate);
+		document.addEventListener("astro:page-load", bindNotebookCommentDelegate);
+	})();
+	</script>
+	<script is:inline>
+	(function() {
+		if (window.__notebookArchiveBound) return;
+		window.__notebookArchiveBound = true;
 
-		<!-- 文章标题区 — 与博客文章页一致的 post-hero 样式 -->
-		<div class="post-hero rounded-(--radius-large) mb-2 onload-animation">
-			<div class="post-hero__content">
-				<h1 class="post-hero__title">
-					{item?.data?.name || item?.id?.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") || "无标题"}
-				</h1>
-				<div class="post-hero__meta-row">
-					{item?.data?.date instanceof Date ? (
-						<span class="post-hero__meta-item">
-							{item.data.date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
-						</span>
-					) : (
-						<span class="post-hero__meta-item">未填写日期</span>
-					)}
-					{item?.data?.tags && item.data.tags.length > 0 && (
-						<>
-							<span class="post-hero__meta-dot">·</span>
-							{item.data.tags.map((tag: string) => (<span class="post-hero__meta-tag">#{tag}&nbsp;</span>))}
-						</>
-					)}
-				</div>
-			</div>
-		</div>
+		var CLAMP_CHARS = 12;
 
-		<!-- 正文卡片 -->
-		<div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-4">
-			<div class="card-base z-10 px-3 md:px-6 lg:px-10 pb-4 pt-0 relative w-full">
-				{notebookContent ? (
-					<Markdown class="mb-6 markdown-content onload-animation">
-						<notebookContent.Content />
-					</Markdown>
-				) : (
-					<p class="text-(--content-meta) text-center py-8">（无内容）</p>
-				)}
-			</div>
-		</div>
+		function setClampedText(content, fullText) {
+			content.textContent = fullText.slice(0, CLAMP_CHARS);
+		}
 
-		<Comment customPath={notebookCommentPath} />
+		function setFullText(content, fullText) {
+			content.textContent = fullText;
+		}
 
-		{/* 笔记本下拉菜单 */}
-		<script is:inline>
-		(function() {
-			if (window.__nbDropdownInited) return;
-			window.__nbDropdownInited = true;
-			function closeDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); if (trigger) trigger.setAttribute("aria-expanded", "false"); dd.classList.remove("is-open"); }
-			function openDropdown(dd) { var trigger = dd.querySelector("[data-nb-dropdown-trigger]"); var menu = dd.querySelector("[data-nb-dropdown-menu]"); if (trigger) trigger.setAttribute("aria-expanded", "true"); if (menu && trigger) { var rect = trigger.getBoundingClientRect(); menu.style.top = (rect.bottom + 6) + "px"; menu.style.left = rect.left + "px"; } dd.classList.add("is-open"); }
-			document.addEventListener("click", function(e) {
-				var t = e.target; if (!t) return;
-				var trigger = t.closest && t.closest("[data-nb-dropdown-trigger]");
-				var item = t.closest && t.closest("[data-nb-dropdown-item]");
-				if (trigger) { e.preventDefault(); var dd = trigger.closest("[data-nb-dropdown]"); if (!dd) return; var isOpen = dd.classList.contains("is-open"); document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (!isOpen) openDropdown(dd); return; }
-				if (item) { e.preventDefault(); var href = item.getAttribute("href") || ""; document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown); if (href) window.location.href = href; return; }
-				document.querySelectorAll("[data-nb-dropdown]").forEach(closeDropdown);
+		function setupExpandButtons() {
+			var cards = document.querySelectorAll("[data-note-card]");
+			cards.forEach(function(card) {
+				var content = card.querySelector("[data-note-content]");
+				var btn = card.querySelector("[data-note-expand]");
+				if (!content || !btn) return;
+				// SSR 已按 12*3 预判；此处仅对预判为折叠的卡做一次精确校准：未超三行则回全文并隐藏按钮（已是全文的不再改动，避免无展开按钮的卡闪一下按钮）
+				var fullText = content.getAttribute("data-full-text") || "";
+				var isClamped = content.classList.contains("is-clamped");
+				var isExpanded = content.classList.contains("is-expanded");
+				if (isExpanded) return;
+				if (!isClamped) {
+					content.setAttribute("data-measured", "1");
+					return;
+				}
+				if (fullText.length <= CLAMP_CHARS) {
+					setFullText(content, fullText);
+					content.classList.remove("is-clamped");
+					btn.style.display = "none";
+					content.setAttribute("data-measured", "1");
+					return;
+				}
+				var lineH = parseFloat(getComputedStyle(content).lineHeight) || 0;
+				if (!lineH) {
+					var fs = parseFloat(getComputedStyle(content).fontSize) || 14;
+					lineH = fs * 1.7;
+				}
+				// 以隐藏容器测全文三行，避免在可见区先展开再合上的闪烁
+				var probe = document.createElement("div");
+				probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;left:-9999px;top:-9999px;width:" + content.clientWidth + "px;font:" + getComputedStyle(content).font + ";line-height:" + getComputedStyle(content).lineHeight + ";white-space:pre-wrap;word-break:break-word;";
+				probe.textContent = fullText;
+				document.body.appendChild(probe);
+				var isOverflow = probe.scrollHeight > lineH * 3 + 1;
+				document.body.removeChild(probe);
+				if (!isOverflow) {
+					setFullText(content, fullText);
+					content.classList.remove("is-clamped");
+					btn.style.display = "none";
+					content.setAttribute("data-measured", "1");
+					return;
+				}
+				setClampedText(content, fullText);
+				content.classList.add("is-clamped");
+				btn.style.display = "";
+				content.setAttribute("data-measured", "1");
 			});
-		})();
-		</script>
-	</MainGridLayout>
-)}
+		}
+
+		function expandCard(card, content, btn) {
+			var fullText = content.getAttribute("data-full-text") || "";
+			setFullText(content, fullText);
+			content.classList.remove("is-clamped");
+			content.classList.add("is-expanded");
+			btn.setAttribute("aria-expanded", "true");
+			btn.style.display = "";
+			var t = btn.querySelector(".nb-archive-expand-text");
+			if (t) t.textContent = "收起";
+			btn.classList.add("is-expanded");
+		}
+
+		function collapseCard(card, content, btn) {
+			var fullText = content.getAttribute("data-full-text") || "";
+			setClampedText(content, fullText);
+			content.classList.remove("is-expanded");
+			content.classList.add("is-clamped");
+			btn.setAttribute("aria-expanded", "false");
+			btn.style.display = "";
+			var t2 = btn.querySelector(".nb-archive-expand-text");
+			if (t2) t2.textContent = "展开";
+			btn.classList.remove("is-expanded");
+		}
+
+		function handleHashScroll() {
+			var hash = window.location.hash;
+			if (!hash || hash.length < 2) return;
+			var id = hash.slice(1);
+			var target = document.getElementById(id);
+			if (!target) return;
+			target.classList.add("is-hash-target");
+			setTimeout(function() { target.classList.remove("is-hash-target"); }, 1800);
+			var rect = target.getBoundingClientRect();
+			var top = window.scrollY + rect.top - 88;
+			window.scrollTo({ top: top, behavior: "smooth" });
+		}
+
+		document.addEventListener("click", function(e) {
+			var target = e.target;
+			if (!target || !target.closest) return;
+			var expandBtn = target.closest("[data-note-expand]");
+			if (!expandBtn) return;
+			var card = expandBtn.closest("[data-note-card]");
+			if (!card) return;
+			var content = card.querySelector("[data-note-content]");
+			if (!content) return;
+			var isExpanded = content.classList.contains("is-expanded");
+			if (isExpanded) {
+				collapseCard(card, content, expandBtn);
+			} else {
+				expandCard(card, content, expandBtn);
+			}
+		});
+
+		function init() {
+			requestAnimationFrame(function() {
+				requestAnimationFrame(setupExpandButtons);
+			});
+			handleHashScroll();
+		}
+
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", init);
+		} else {
+			init();
+		}
+		document.addEventListener("swup:content:replaced", init);
+		document.addEventListener("astro:page-load", init);
+		window.addEventListener("hashchange", handleHashScroll);
+		window.addEventListener("resize", function() {
+			requestAnimationFrame(setupExpandButtons);
+		});
+	})();
+	</script>
+</MainGridLayout>
 
 <style>
-	.archive-panel { --tw: 2rem; --lc: var(--line-color, oklch(0.82 0 0)); --lh: oklch(0.15 0 0); --nc: var(--line-color, oklch(0.82 0 0)); --nh: oklch(0.15 0 0); --lw: 2.5px; position: relative; }
-	:root.dark .archive-panel { --lc: oklch(0.35 0 0); --lh: oklch(0.85 0 0); --nc: oklch(0.35 0 0); --nh: oklch(0.85 0 0); }
-	.ap-year-block { position: relative; margin-bottom: 2.5rem; }
-	.ap-year-block::before { content: ""; position: absolute; left: calc(var(--tw) / 2); top: calc(var(--tw) / 2); bottom: 1rem; width: 0; border-left: var(--lw) dashed var(--lc); z-index: 0; }
-	.ap-months-area { padding-left: var(--tw); }
-	.ap-month-block { position: relative; margin-bottom: 0.5rem; }
-	.ap-month-block::before { content: ""; position: absolute; left: calc(var(--tw) / 2); top: calc(var(--tw) / 2); bottom: 1rem; width: 0; border-left: var(--lw) dashed var(--lc); z-index: 0; }
-	.ap-posts-area { padding-left: var(--tw); }
-	.ap-post-list { list-style: none; margin: 0; padding: 0; }
-	.ap-post-row { position: relative; display: flex; align-items: center; min-height: 2.25rem; transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); }
-	.ap-post-row:hover { transform: translateX(0.375rem); }
-	.ap-col { position: relative; width: var(--tw); flex-shrink: 0; align-self: stretch; }
-	.ap-node { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 50%; z-index: 2; transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
-	.ap-year-node { top: calc(50% - 0.375rem); width: 0.75rem; height: 0.75rem; border: 2px solid var(--nc); background: var(--page-bg, white); }
-	.ap-month-node { top: calc(50% - 0.25rem); width: 0.5rem; height: 0.5rem; background: var(--nc); }
-	.ap-post-node { top: calc(50% - 0.2rem); width: 0.4rem; height: 0.4rem; background: var(--nc); }
-	.ap-post-node.hovered { background: var(--nh); transform: translateX(-50%) scale(1.6); }
-	.ap-hline { position: absolute; height: 0; border-top: var(--lw) dashed var(--lc); z-index: 1; }
-	.ap-month-hline { top: 50%; left: calc(-1 * var(--tw) / 2); width: var(--tw); }
-	.ap-post-hline { top: 50%; left: calc(-1 * var(--tw) / 2); width: var(--tw); }
-	.ap-year-header, .ap-month-header { display: flex; align-items: center; min-height: var(--tw); }
-	.ap-year-label, .ap-month-label { display: flex; align-items: baseline; gap: 0.6rem; padding-left: 0.5rem; flex: 1; }
-	.ap-h1 { font-size: 1.25rem; font-weight: 800; color: var(--deep-text); margin: 0; }
-	.ap-h2 { font-size: 0.9375rem; font-weight: 700; color: var(--deep-text); margin: 0; }
-	.ap-count { font-size: 0.75rem; color: var(--content-meta); }
-	.ap-date { flex-shrink: 0; width: 2.5rem; font-size: 0.8125rem; color: var(--content-meta); font-variant-numeric: tabular-nums; }
-	.ap-type-badge { flex-shrink: 0; font-size: 0.625rem; padding: 0.0625rem 0.375rem; border-radius: 0.25rem; background: oklch(0.92 0 0); color: oklch(0.35 0 0); font-weight: 600; }
-	:root.dark .ap-type-badge { background: oklch(0.25 0 0); color: oklch(0.65 0 0); }
-	.ap-title { flex: 1; min-width: 0; font-size: 0.875rem; color: var(--deep-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.ap-post-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; text-decoration: none; color: inherit; transition: background 0.15s ease; }
-	.ap-post-link:hover { background: var(--btn-plain-bg-hover); }
-
 	.nb-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; background: var(--card-bg); border: 1.5px dashed var(--line-divider); border-radius: 1rem; text-align: center; }
 	.nb-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
 	.nb-empty p { font-size: 0.875rem; color: var(--content-meta); margin: 0; }

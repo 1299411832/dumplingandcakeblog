@@ -59,11 +59,7 @@
   min-width: 4rem;
   max-width: 7.5rem;
   flex: 1;
-  border-left: 1px solid var(--border);
   overflow: hidden;
-}
-.wx-pinned-preview:first-child {
-  border-left: none;
 }
 .wx-pimgs {
   display: grid;

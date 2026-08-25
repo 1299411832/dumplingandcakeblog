@@ -71,11 +71,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			},
 			// 朋友圈
 			LinkPreset.Circle,
-			{
-				name: "日程",
-				url: "/schedules/",
-				icon: "material-symbols:calendar-today-outline",
-			},
 		],
 	});
 
@@ -87,14 +82,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	if (siteConfig.pages.moviesGames) {
 		recordChildren.push(LinkPreset.MoviesGames);
 	}
-	if (siteConfig.pages.musicPage) {
-		recordChildren.push({
-			name: "音乐",
-			url: "/music/",
-			icon: "material-symbols:music-note",
-			external: true,
-		});
-	}
+	// 音乐已移入「我的」分组，此处不再重复
 	if (siteConfig.pages.changelog) {
 		recordChildren.push(LinkPreset.Changelog);
 	}
@@ -104,19 +92,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "/life/places/",
 		icon: "material-symbols:location-on",
 	});
-	// 应用展示
-	recordChildren.push({
-		name: "应用展示",
-		url: "/apps/",
-		icon: "material-symbols:apps",
-	});
-	// 账单
-	recordChildren.push({
-		name: "账单",
-		url: "/bills/",
-		icon: "material-symbols:account-balance-wallet-outline",
-	});
-
 	if (recordChildren.length > 0) {
 		const defaultUrl = siteConfig.pages.books
 			? "/books/"
@@ -131,6 +106,40 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			children: recordChildren,
 		});
 	}
+
+	// 我的 - 日历、资金、应用展示、音乐
+	links.push({
+		name: "我的",
+		url: "/schedules/",
+		icon: "material-symbols:person",
+		children: [
+			{
+				name: "日历",
+				url: "/schedules/",
+				icon: "material-symbols:calendar-today-outline",
+			},
+			{
+				name: "资金",
+				url: "/bills/",
+				icon: "material-symbols:account-balance-wallet-outline",
+			},
+			{
+				name: "应用展示",
+				url: "/apps/",
+				icon: "material-symbols:apps",
+			},
+			...(siteConfig.pages.musicPage
+				? [
+						{
+							name: "音乐",
+							url: "/music/",
+							icon: "material-symbols:music-note",
+							external: true,
+						} as NavBarLink,
+					]
+				: []),
+		],
+	});
 
 	// 关于及其子菜单
 	links.push({

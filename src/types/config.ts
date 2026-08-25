@@ -134,6 +134,7 @@ export type SiteConfig = {
 		umamiAnalytics?: {
 			websiteId: string; // Umami Website ID
 			scriptUrl?: string; // Umami 脚本地址，默认 https://cloud.umami.is/script.js
+			shareId?: string; // Umami 分享链接ID，用于前端实时拉取统计，无需暴露账号密码
 		};
 	};
 

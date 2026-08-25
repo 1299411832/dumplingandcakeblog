@@ -61,15 +61,28 @@ const groups = [
 			{ icon: "material-symbols:chat", label: "留言板", url: "/guestbook/" },
 			{
 				icon: "material-symbols:menu-book-outline",
-				label: "笔记",
+				label: "笔记本",
 				url: "/life/notebooks/",
 			},
 			{ icon: "material-symbols:public", label: "朋友圈", url: "/circle/" },
+		],
+	},
+	{
+		icon: "material-symbols:person",
+		label: "我的",
+		children: [
 			{
 				icon: "material-symbols:calendar-today-outline",
-				label: "日程",
+				label: "日历",
 				url: "/schedules/",
 			},
+			{
+				icon: "material-symbols:account-balance-wallet-outline",
+				label: "资金",
+				url: "/bills/",
+			},
+			{ icon: "material-symbols:apps", label: "应用展示", url: "/apps/" },
+			{ icon: "material-symbols:music-note", label: "音乐", url: "/music/", external: true },
 		],
 	},
 	{
@@ -78,17 +91,10 @@ const groups = [
 		children: [
 			{ icon: "material-symbols:book-5", label: "书架", url: "/books/" },
 			{ icon: "material-symbols:movie", label: "影视", url: "/movies-games/" },
-			{ icon: "material-symbols:music-note", label: "音乐", url: "/music/" },
 			{
 				icon: "material-symbols:location-on",
 				label: "足迹",
 				url: "/life/places/",
-			},
-			{ icon: "material-symbols:apps", label: "应用展示", url: "/apps/" },
-			{
-				icon: "material-symbols:account-balance-wallet-outline",
-				label: "账单",
-				url: "/bills/",
 			},
 			{
 				icon: "material-symbols:history",

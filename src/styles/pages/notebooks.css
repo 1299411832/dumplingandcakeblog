@@ -577,3 +577,304 @@
 	border-color: var(--primary);
 	color: var(--primary);
 }
+
+/* ============================================
+ * 归档卡片流（日历下方）
+ * 视觉参考 nb-note-card（1px 描边 / 0.875rem 圆角 / var(--card-bg)）
+ * 图片网格参考 MomentCard image-cols / more-overlay
+ * ============================================ */
+.nb-archive-feed {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.nb-archive-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 1rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 0.875rem;
+	background: var(--card-bg);
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+	scroll-margin-top: 88px;
+}
+
+.nb-archive-card:hover {
+	border-color: var(--primary);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+	transform: translateY(-2px);
+}
+
+:root.dark .nb-archive-card:hover {
+	box-shadow: 0 6px 20px rgba(255, 255, 255, 0.06);
+}
+
+.nb-archive-card.is-hash-target {
+	border-color: var(--primary);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+/* 头部：头像 + 昵称 + 时间 */
+.nb-archive-head {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+}
+
+.nb-archive-avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	flex-shrink: 0;
+	overflow: hidden;
+	border-radius: 9999px;
+	border: 2px solid var(--primary);
+	background: var(--btn-regular-bg);
+}
+
+.nb-archive-avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.nb-archive-author {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	gap: 0.125rem;
+}
+
+.nb-archive-name {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--deep-text);
+	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.nb-archive-time {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.6875rem;
+	color: var(--content-meta);
+}
+
+.nb-archive-date-full {
+	margin-left: 0.25rem;
+	opacity: 0.7;
+}
+
+/* 正文：>1 行时折为 1 行，行尾紧贴“展开 + 图标”；展开后显示全部 */
+.nb-archive-body {
+	min-width: 0;
+	font-size: 0.875rem;
+	line-height: 1.7;
+	color: var(--deep-text);
+}
+
+.nb-archive-content {
+	white-space: pre-wrap;
+	word-break: break-word;
+	display: block;
+}
+
+.nb-archive-content.is-clamped {
+	display: inline;
+	max-width: none;
+	white-space: nowrap;
+	overflow: clip;
+	text-overflow: clip;
+	vertical-align: baseline;
+}
+
+/* 12 字截断由 JS 注入的内联 span 控制，保持与按钮同基线 */
+.nb-archive-clamp-text {
+	display: inline;
+	vertical-align: baseline;
+}
+
+/* 展开按钮：折叠态与文本同行紧贴，展开态换行居右 — 绿色点缀（与中性主题区分） */
+.nb-archive-expand-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: oklch(0.62 0.15 145);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+	vertical-align: baseline;
+}
+
+.nb-archive-body:has(.is-clamped) .nb-archive-expand-btn {
+	margin-left: 0.3rem;
+}
+
+.nb-archive-content.is-expanded {
+	display: block;
+	white-space: pre-wrap;
+}
+
+/* 展开后按钮换行居右 */
+.nb-archive-body:has(.is-expanded) .nb-archive-expand-btn {
+	display: flex;
+	margin-left: auto;
+	margin-top: 0.35rem;
+}
+
+.nb-archive-expand-btn:hover {
+	opacity: 0.75;
+}
+
+.nb-archive-expand-btn.is-expanded .nb-archive-expand-icon {
+	transform: rotate(180deg);
+}
+
+.nb-archive-expand-icon {
+	transition: transform 0.2s ease;
+	font-size: 1rem;
+	color: oklch(0.62 0.15 145);
+}
+
+/* 图片网格：复刻 MomentCard image-cols 规则 */
+.nb-archive-images {
+	display: grid;
+	gap: 0.375rem;
+}
+
+.nb-archive-images.image-cols-1 {
+	grid-template-columns: 100px;
+}
+
+.nb-archive-images.image-cols-2 {
+	grid-template-columns: repeat(2, 100px);
+}
+
+.nb-archive-images.image-cols-3 {
+	grid-template-columns: repeat(3, 90px);
+}
+
+.nb-image-item {
+	position: relative;
+	border-radius: var(--radius);
+	overflow: hidden;
+	cursor: pointer;
+	background: var(--btn-regular-bg);
+	aspect-ratio: 1;
+}
+
+.nb-image-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: transform 0.3s ease;
+}
+
+.nb-image-item:hover .nb-image-img {
+	transform: scale(1.03);
+}
+
+.nb-image-item.hidden-image {
+	display: none !important;
+}
+
+.nb-image-item .more-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+}
+
+.nb-image-item .more-text {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #fff;
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 底部：标签 + 评论按钮 */
+.nb-archive-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.nb-archive-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+	min-width: 0;
+}
+
+.nb-archive-tag {
+	font-size: 0.6875rem;
+	padding: 0.1875rem 0.5rem;
+	border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+	border-radius: 9999px;
+	color: var(--primary);
+	white-space: nowrap;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.nb-archive-comment {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex-shrink: 0;
+	padding: 0.25rem 0.625rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 9999px;
+	background: transparent;
+	color: var(--content-meta);
+	font-size: 0.6875rem;
+	cursor: pointer;
+	transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.nb-archive-comment:hover {
+	border-color: var(--primary);
+	color: var(--primary);
+}
+
+@media (max-width: 480px) {
+	.nb-archive-images {
+		gap: 0.25rem;
+	}
+
+	.nb-archive-images.image-cols-1 {
+		grid-template-columns: 84px;
+	}
+
+	.nb-archive-images.image-cols-2 {
+		grid-template-columns: repeat(2, 84px);
+	}
+
+	.nb-archive-images.image-cols-3 {
+		grid-template-columns: repeat(3, 76px);
+	}
+
+	.nb-image-item .more-text {
+		font-size: 1.25rem;
+	}
+}

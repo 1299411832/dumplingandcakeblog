@@ -3,7 +3,7 @@ import Icon from "@components/common/Icon.astro";
 import DataMetricCard from "@components/features/DataMetricCard.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { homeConfig } from "@/config";
+import { homeConfig, siteConfig } from "@/config";
 import { getCategoryFromId } from "@/utils/category-tree";
 import {
 	getCategoryList,
@@ -48,14 +48,24 @@ const contactItems = homeConfig.links.map((link) => ({
 const primaryContactItems = contactItems.filter((link) =>
 	primaryContactNames.has(link.name.toLowerCase()),
 );
-const statsApiUrl = url("/api/home-stats.json");
+const umamiBase =
+	(import.meta.env.PUBLIC_UMAMI_BASE as string) ||
+	siteConfig.analytics?.umamiAnalytics?.scriptUrl?.replace(/\/script\.js$/, "") ||
+	"https://umami.tsh520.cn";
+const umamiWebsiteId = siteConfig.analytics?.umamiAnalytics?.websiteId || "";
+const umamiShareId = siteConfig.analytics?.umamiAnalytics?.shareId || "axPq9bMWEDi1N6am";
+const fallbackStatsApiUrl = url("/api/home-stats.json");
 ---
 
 <section
 	class="home-data-layer"
 	aria-labelledby="home-data-layer-title"
 	id="home-data-layer"
-	data-stats-api-url={statsApiUrl}
+	data-umami-base={umamiBase}
+	data-umami-website-id={umamiWebsiteId}
+	data-umami-share-id={umamiShareId}
+	data-stats-fallback-url={fallbackStatsApiUrl}
+	data-stats-api-url={fallbackStatsApiUrl}
 >
 	<div class="home-data-layer__inner">
 		<div class="home-data-layer__heading">
@@ -333,32 +343,106 @@ const statsApiUrl = url("/api/home-stats.json");
 		});
 	}
 
+function renderVisitStats(
+	detail: HTMLElement | null,
+	valueNodes: NodeListOf<HTMLElement>,
+	data: { uv?: number; visitors?: number; pv?: number; pageviews?: number },
+) {
+	const uvRaw = data.uv ?? data.visitors ?? 0;
+	const pvRaw = data.pv ?? data.pageviews ?? 0;
+	const uvCompact = formatCompactNumber(uvRaw);
+	const pvCompact = formatCompactNumber(pvRaw);
+	if (detail) detail.textContent = `访客 ${uvCompact} / 浏览 ${pvCompact}`;
+	valueNodes.forEach((node) => {
+		const isUv = node.dataset.statValue === "UV";
+		const isPv = node.dataset.statValue === "PV";
+		if (!isUv && !isPv) return;
+		const value = isUv ? uvRaw : pvRaw;
+		const compact = formatCompactNumber(value);
+		node.dataset.compactValue = compact;
+		node.dataset.fullValue = Number(value).toLocaleString();
+		node.textContent = compact;
+	});
+}
+
+async function fetchUmamiViaShare(
+	umamiBase: string,
+	websiteId: string,
+	shareId: string,
+): Promise<{ visitors: number; pageviews: number } | null> {
+	const normalizedBase = umamiBase.replace(/\/+$/, "");
+	const shareRes = await fetch(`${normalizedBase}/api/share/${shareId}`, {
+		headers: { Accept: "application/json" },
+	});
+	if (!shareRes.ok) return null;
+	const shareData = (await shareRes.json()) as { token?: string };
+	const shareToken = shareData.token;
+	if (!shareToken) return null;
+	const statsRes = await fetch(
+		`${normalizedBase}/api/websites/${websiteId}/stats?startAt=0&endAt=${Date.now()}`,
+		{
+			headers: {
+				Accept: "application/json",
+				"x-umami-share-token": shareToken,
+				"x-umami-share-context": JSON.stringify({ websiteId }),
+			},
+		},
+	);
+	if (!statsRes.ok) return null;
+	const stats = (await statsRes.json()) as {
+		visitors?: number;
+		pageviews?: number;
+		uv?: number;
+		pv?: number;
+	};
+	return {
+		visitors: Number(stats.visitors ?? stats.uv ?? 0),
+		pageviews: Number(stats.pageviews ?? stats.pv ?? 0),
+	};
+}
+
 function initVisitStats(layer: HTMLElement) {
-	const statsApiUrl = layer.dataset.statsApiUrl;
-	if (!statsApiUrl) return;
+	const umamiBase = (layer.dataset.umamiBase || "").trim();
+	const websiteId = (layer.dataset.umamiWebsiteId || "").trim();
+	const shareId = (layer.dataset.umamiShareId || "").trim();
+	const fallbackUrl = (layer.dataset.statsFallbackUrl || layer.dataset.statsApiUrl || "").trim();
 	const detail = layer.querySelector<HTMLElement>(".data-card[data-stat-kind='visits'] .data-card__detail");
 	const valueNodes = layer.querySelectorAll<HTMLElement>("[data-stat-value]");
-	fetch(statsApiUrl)
+
+	if (umamiBase && websiteId && shareId) {
+		fetchUmamiViaShare(umamiBase, websiteId, shareId)
+			.then((stats) => {
+				if (!stats) throw new Error("Share stats unavailable");
+				renderVisitStats(detail, valueNodes, stats);
+			})
+			.catch(() => {
+				if (!fallbackUrl) {
+					if (detail) detail.textContent = "访客 -- / 浏览 --";
+					return;
+				}
+				fetch(fallbackUrl)
+					.then((response) => {
+						if (!response.ok) throw new Error("Fallback failed");
+						return response.json();
+					})
+					.then((data: { uv?: number; visitors?: number; pv?: number; pageviews?: number }) => {
+						renderVisitStats(detail, valueNodes, data);
+					})
+					.catch(() => {
+						if (detail) detail.textContent = "访客 -- / 浏览 --";
+					});
+			});
+		return;
+	}
+
+	if (!fallbackUrl) return;
+	fetch(fallbackUrl)
 		.then((response) => {
 			if (!response.ok) throw new Error("Failed to load Umami stats");
 			return response.json();
 		})
 		.then((data: { uv?: number; visitors?: number; pv?: number; pageviews?: number }) => {
-			const uvRaw = data.uv || data.visitors || 0;
-			const pvRaw = data.pv || data.pageviews || 0;
-			const uvCompact = formatCompactNumber(uvRaw);
-			const pvCompact = formatCompactNumber(pvRaw);
-			if (detail) detail.textContent = `访客 ${uvCompact} / 浏览 ${pvCompact}`;
-			valueNodes.forEach((node) => {
-				const isUv = node.dataset.statValue === "UV";
-				const isPv = node.dataset.statValue === "PV";
-				if (!isUv && !isPv) return;
-				const value = isUv ? uvRaw : pvRaw;
-				const compact = formatCompactNumber(value);
-				node.dataset.compactValue = compact;
-				node.dataset.fullValue = Number(value).toLocaleString();
-				node.textContent = compact;
-			});
+			renderVisitStats(detail, valueNodes, data);
 		})
 		.catch(() => {
 			if (detail) detail.textContent = "访客 -- / 浏览 --";
