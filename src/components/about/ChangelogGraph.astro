@@ -109,14 +109,14 @@ const pageLabels = Object.fromEntries(
 	</div>
 </div>
 
-<script>
+<script is:inline>
 	function initChangelogGraph() {
 		const rootEl = document.querySelector("[data-changelog]");
 		if (!rootEl) return;
 		const root = rootEl;
-		root.__cleanup?.();
+		if (root.__cleanup) root.__cleanup();
 		const ac = new AbortController();
-		const { signal } = ac;
+		const signal = ac.signal;
 		root.__cleanup = () => ac.abort();
 		const NS = "http://www.w3.org/2000/svg";
 		const grid = root.querySelector("[data-changelog-grid]");
@@ -129,14 +129,15 @@ const pageLabels = Object.fromEntries(
 		const wireAnims = new Set();
 		const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		function visibleCards() { return Array.from(grid.querySelectorAll("[data-changelog-card]")); }
-		function sizeSvg() { wiresSvg.setAttribute("viewBox", `0 0 ${root.scrollWidth} ${root.scrollHeight}`); }
+		function sizeSvg() { if (wiresSvg) wiresSvg.setAttribute("viewBox", `0 0 ${root.scrollWidth} ${root.scrollHeight}`); }
 		function rootRect() { return root.getBoundingClientRect(); }
 		function cardCenter(card) {
 			const r = card.getBoundingClientRect();
 			const rr = rootRect();
 			return { x: r.left - rr.left + r.width / 2, y: r.top - rr.top + r.height / 2 };
 		}
-		function makePath(d, cls, marker = true) {
+		function makePath(d, cls, marker) {
+			if (marker === undefined) marker = true;
 			const p = document.createElementNS(NS, "path");
 			p.setAttribute("d", d); p.setAttribute("class", cls);
 			if (marker) p.setAttribute("marker-end", "url(#changelog-arrow)");
@@ -279,51 +280,57 @@ const pageLabels = Object.fromEntries(
 		}
 		function openDialog(card) {
 			const q = (sel) => dialog.querySelector(sel);
-			q("[data-dialog-num]").textContent = `#${card.dataset.num}`;
+			const numEl = q("[data-dialog-num]");
+			if (numEl) numEl.textContent = `#${card.dataset.num}`;
 			const typeEl = q("[data-dialog-type]");
-			typeEl.textContent = card.querySelector(".changelog-card__type")?.textContent || "";
-			typeEl.dataset.type = card.dataset.type || "";
+			if (typeEl) { typeEl.textContent = card.querySelector(".changelog-card__type")?.textContent || ""; typeEl.dataset.type = card.dataset.type || ""; }
 			const cardDate = card.querySelector(".changelog-card__date");
 			const dlgDate = q("[data-dialog-date]");
-			dlgDate.textContent = cardDate?.textContent || "";
-			dlgDate.dateTime = cardDate?.dateTime || "";
-			q("[data-dialog-title]").textContent = card.querySelector(".changelog-card__title")?.textContent || "";
+			if (dlgDate) { dlgDate.textContent = cardDate?.textContent || ""; if (cardDate?.dateTime) dlgDate.dateTime = cardDate.dateTime; }
+			const titleEl = q("[data-dialog-title]");
+			if (titleEl) titleEl.textContent = card.querySelector(".changelog-card__title")?.textContent || "";
 			const detailRoot = q("[data-dialog-detail]");
-			detailRoot.innerHTML = "";
-			const detailText = card.querySelector(".changelog-card__detail-text")?.textContent?.trim() || "";
-			if (detailText) {
-				const p = document.createElement("p");
-				p.className = "changelog-dialog__detail-text";
-				p.textContent = detailText;
-				detailRoot.appendChild(p);
+			if (detailRoot) {
+				detailRoot.innerHTML = "";
+				const detailText = card.querySelector(".changelog-card__detail-text")?.textContent?.trim() || "";
+				if (detailText) {
+					const p = document.createElement("p");
+					p.className = "changelog-dialog__detail-text";
+					p.textContent = detailText;
+					detailRoot.appendChild(p);
+				}
+				const versionText = card.querySelector(".changelog-card__detail-version")?.textContent?.trim() || "";
+				if (versionText) {
+					const v = document.createElement("p");
+					v.className = "changelog-dialog__detail-version";
+					v.textContent = versionText;
+					detailRoot.appendChild(v);
+				}
 			}
-			const versionText = card.querySelector(".changelog-card__detail-version")?.textContent?.trim() || "";
-			if (versionText) {
-				const v = document.createElement("p");
-				v.className = "changelog-dialog__detail-version";
-				v.textContent = versionText;
-				detailRoot.appendChild(v);
-			}
-			q("[data-dialog-pages]").innerHTML = card.querySelector(".changelog-card__pages")?.innerHTML || "";
+			const pagesEl = q("[data-dialog-pages]");
+			if (pagesEl) pagesEl.innerHTML = card.querySelector(".changelog-card__pages")?.innerHTML || "";
 			const links = JSON.parse(card.dataset.links || "[]");
 			const section = q("[data-dialog-related-section]");
 			const list = q("[data-dialog-related]");
-			list.innerHTML = "";
-			if (links.length === 0) section.hidden = true;
-			else {
-				section.hidden = false;
-				for (const link of links) {
-					const target = root.querySelector(`[data-changelog-card][data-index="${link.t}"]`);
-					if (!target) continue;
-					const li = document.createElement("li");
-					const btn = document.createElement("button");
-					btn.type = "button"; btn.className = "changelog-dialog__related-btn";
-					const numSpan = document.createElement("span"); numSpan.className = "changelog-dialog__related-num"; numSpan.textContent = `#${target.dataset.num}`;
-					const titleSpan = document.createElement("span"); titleSpan.className = "changelog-dialog__related-title"; titleSpan.textContent = target.querySelector(".changelog-card__title")?.textContent || "";
-					const pagesSpan = document.createElement("span"); pagesSpan.className = "changelog-dialog__related-pages"; pagesSpan.textContent = `${sharedPrefix}：${link.p.map((p) => pageLabels[p] || p).join("、")}`;
-					btn.appendChild(numSpan); btn.appendChild(titleSpan); btn.appendChild(pagesSpan);
-					btn.addEventListener("click", () => { closeDialog(); target.scrollIntoView({ behavior: "smooth", block: "center" }); target.classList.add("is-flash"); setTimeout(() => target.classList.remove("is-flash"), 1300); });
-					li.appendChild(btn); list.appendChild(li);
+			if (list) list.innerHTML = "";
+			if (section) {
+				if (links.length === 0) section.hidden = true;
+				else {
+					section.hidden = false;
+					for (const link of links) {
+						const target = root.querySelector(`[data-changelog-card][data-index="${link.t}"]`);
+						if (!target) continue;
+						const li = document.createElement("li");
+						const btn = document.createElement("button");
+						btn.type = "button"; btn.className = "changelog-dialog__related-btn";
+						const numSpan = document.createElement("span"); numSpan.className = "changelog-dialog__related-num"; numSpan.textContent = `#${target.dataset.num}`;
+						const titleSpan = document.createElement("span"); titleSpan.className = "changelog-dialog__related-title"; titleSpan.textContent = target.querySelector(".changelog-card__title")?.textContent || "";
+						const pagesSpan = document.createElement("span"); pagesSpan.className = "changelog-dialog__related-pages"; pagesSpan.textContent = `${sharedPrefix}：${link.p.map((p) => pageLabels[p] || p).join("、")}`;
+						btn.appendChild(numSpan); btn.appendChild(titleSpan); btn.appendChild(pagesSpan);
+						btn.addEventListener("click", () => { closeDialog(); target.scrollIntoView({ behavior: "smooth", block: "center" }); target.classList.add("is-flash"); setTimeout(() => target.classList.remove("is-flash"), 1300); });
+						li.appendChild(btn);
+						if (list) list.appendChild(li);
+					}
 				}
 			}
 			dialog.hidden = false;
@@ -331,13 +338,17 @@ const pageLabels = Object.fromEntries(
 		}
 		function closeDialog() { dialog.hidden = true; document.documentElement.classList.remove("changelog-dialog-open"); }
 		grid.addEventListener("pointerover", (e) => {
-			const card = e.target.closest?.("[data-changelog-card]");
+			const t = e.target;
+			if (!(t instanceof Element)) return;
+			const card = t.closest("[data-changelog-card]");
 			if (!card || card === activeCard) return;
 			activeCard = card; onCardEnter(card);
 		}, { signal });
 		grid.addEventListener("pointerleave", () => { activeCard = null; clearHoverWires(); }, { signal });
 		grid.addEventListener("click", (e) => {
-			const openBtn = e.target.closest?.("[data-changelog-open]");
+			const t = e.target;
+			if (!(t instanceof Element)) return;
+			const openBtn = t.closest("[data-changelog-open]");
 			if (!openBtn) return;
 			const card = openBtn.closest("[data-changelog-card]");
 			if (card) openDialog(card);

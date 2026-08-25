@@ -127,6 +127,9 @@ let pinnedCarouselTimer: ReturnType<typeof setTimeout> | null = null;
 let pinnedPaused = $state(false);
 let coverLifecycles: ReturnType<typeof createArticleCoverLifecycle>[] = [];
 let coverAbortController: AbortController | null = null;
+let pinnedSectionRef = $state<HTMLElement | null>(null);
+let wheelLockUntil = 0;
+let touchStartRef: { x: number; y: number; t: number } | null = null;
 
 const columns = $derived(
 	(() => {
@@ -192,23 +195,67 @@ function stopPinnedCarousel() {
 }
 
 function goToPinned(index: number) {
+	if (pinnedPosts.length === 0) return;
 	pinnedActiveIndex =
 		((index % pinnedPosts.length) + pinnedPosts.length) % pinnedPosts.length;
 	stopPinnedCarousel();
 	startPinnedCarousel();
+	requestAnimationFrame(() => initCoverLifecycles());
+}
+
+function handlePinnedWheel(event: WheelEvent) {
+	if (pinnedPosts.length <= 1) return;
+	const deltaY = event.deltaY;
+	if (Math.abs(deltaY) < 8) return;
+	if (Date.now() < wheelLockUntil) return;
+	event.preventDefault();
+	const dir = deltaY > 0 ? 1 : -1;
+	wheelLockUntil = Date.now() + 550;
+	goToPinned(pinnedActiveIndex + dir);
+}
+
+function handlePinnedTouchStart(event: TouchEvent) {
+	if (pinnedPosts.length <= 1) return;
+	const t = event.touches[0];
+	if (!t) return;
+	touchStartRef = { x: t.clientX, y: t.clientY, t: Date.now() };
+}
+
+function handlePinnedTouchMove(event: TouchEvent) {
+	if (!touchStartRef || pinnedPosts.length <= 1) return;
+	const t = event.touches[0];
+	if (!t) return;
+	const dx = t.clientX - touchStartRef.x;
+	const dy = t.clientY - touchStartRef.y;
+	if (Math.abs(dx) > 28 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+		event.preventDefault();
+	}
+}
+
+function handlePinnedTouchEnd(event: TouchEvent) {
+	if (!touchStartRef || pinnedPosts.length <= 1) return;
+	const t = event.changedTouches[0];
+	const start = touchStartRef;
+	touchStartRef = null;
+	if (!t || !start) return;
+	const dx = t.clientX - start.x;
+	const dy = t.clientY - start.y;
+	if (Math.abs(dx) < 28 || Math.abs(dx) <= Math.abs(dy) * 1.2) return;
+	const dir = dx < 0 ? 1 : -1;
+	goToPinned(pinnedActiveIndex + dir);
 }
 
 function initCoverLifecycles() {
 	if (coverAbortController) coverAbortController.abort();
 	coverAbortController = new AbortController();
 	const signal = coverAbortController.signal;
-	coverLifecycles.forEach((lc) => lc.dispose());
+	for (const lc of coverLifecycles) lc.dispose();
 	coverLifecycles = [];
 	if (typeof document === "undefined") return;
 	const wraps = document.querySelectorAll<HTMLElement>(
 		"[data-article-list-cover-wrap]",
 	);
-	wraps.forEach((wrap) => {
+	for (const wrap of wraps) {
 		const img = wrap.querySelector<HTMLImageElement>(
 			"[data-article-list-cover]",
 		);
@@ -226,7 +273,7 @@ function initCoverLifecycles() {
 		coverLifecycles.push(lc);
 		const observer = new IntersectionObserver(
 			(entries) => {
-				entries.forEach((entry) => lc.setVisible(entry.isIntersecting));
+				for (const entry of entries) lc.setVisible(entry.isIntersecting);
 			},
 			{ rootMargin: "200px 0px" },
 		);
@@ -238,7 +285,7 @@ function initCoverLifecycles() {
 		const rect = wrap.getBoundingClientRect();
 		const visible = rect.top < window.innerHeight + 200 && rect.bottom > -200;
 		lc.setVisible(visible);
-	});
+	}
 }
 
 function handleLayoutChange(event: Event) {
@@ -347,7 +394,7 @@ onMount(() => {
 	return () => {
 		stopPinnedCarousel();
 		if (coverAbortController) coverAbortController.abort();
-		coverLifecycles.forEach((lc) => lc.dispose());
+		for (const lc of coverLifecycles) lc.dispose();
 		window.removeEventListener("resize", onResize);
 		window.removeEventListener("layoutChange", handleLayoutChange);
 		window.removeEventListener("swup:content:replaced", onSwupReplaced);
@@ -380,10 +427,16 @@ $effect(() => {
 		<section
 			class="article-list-pinned"
 			aria-labelledby="article-list-pinned-title"
+			bind:this={pinnedSectionRef}
+			style="touch-action: pan-y;"
 			onmouseenter={() => { pinnedPaused = true; stopPinnedCarousel(); }}
 			onmouseleave={() => { pinnedPaused = false; startPinnedCarousel(); }}
 			onfocusin={() => { pinnedPaused = true; stopPinnedCarousel(); }}
 			onfocusout={() => { pinnedPaused = false; startPinnedCarousel(); }}
+			onwheel={handlePinnedWheel}
+			ontouchstart={handlePinnedTouchStart}
+			ontouchmove={handlePinnedTouchMove}
+			ontouchend={handlePinnedTouchEnd}
 		>
 			<div class="article-list-pinned__heading">
 				<h2 id="article-list-pinned-title" class="article-list-section-title">置顶</h2>
