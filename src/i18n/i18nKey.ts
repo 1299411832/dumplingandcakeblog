@@ -10,6 +10,23 @@ enum I18nKey {
 	changelogRemoval = "changelogRemoval",
 	changelogNoData = "changelogNoData",
 
+	aboutDescription = "aboutDescription",
+	aboutSitePrefix = "aboutSitePrefix",
+	aboutChangelogTitle = "aboutChangelogTitle",
+	aboutChangelogRecentLimit = "aboutChangelogRecentLimit",
+	aboutChangelogPagesLabel = "aboutChangelogPagesLabel",
+	aboutChangelogRelatedLabel = "aboutChangelogRelatedLabel",
+	changelogTypeFeat = "changelogTypeFeat",
+	changelogTypeFix = "changelogTypeFix",
+	changelogTypeStyle = "changelogTypeStyle",
+	changelogTypeRefactor = "changelogTypeRefactor",
+	changelogTypeChore = "changelogTypeChore",
+	close = "close",
+
+	// about Q&A
+	aboutQ1Title = "aboutQ1Title",
+	aboutQ2Title = "aboutQ2Title",
+	aboutQ3Title = "aboutQ3Title",
 	categories = "categories",
 	categoryList = "categoryList",
 	categoryPosts = "categoryPosts",
@@ -352,6 +369,12 @@ enum I18nKey {
 	welcomeCardFlipHint = "welcomeCardFlipHint",
 	welcomeCardDragHint = "welcomeCardDragHint",
 	welcomeCardClose = "welcomeCardClose",
+	tagGraphAccessible = "tagGraphAccessible",
+	tagGraphEmpty = "tagGraphEmpty",
+	tagGraphPreparing = "tagGraphPreparing",
+	tagGraphSectionTitle = "tagGraphSectionTitle",
+	tagGraphFailed = "tagGraphFailed",
+
 	welcomeCardLearnMore = "welcomeCardLearnMore",
 	welcomeCardRecentLabel = "welcomeCardRecentLabel",
 }

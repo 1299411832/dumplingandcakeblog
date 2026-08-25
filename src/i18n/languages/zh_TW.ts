@@ -354,12 +354,35 @@ export const zh_TW: Translation = {
 	[Key.relatedPosts]: "相關閱讀",
 
 	// 歡迎卡片
+	[Key.aboutDescription]:
+		"了解本站作者、內容方向、技術棧與聯絡方式，並查看網站的更新記錄、維護資訊和持續演進的內容規劃。",
+	[Key.aboutSitePrefix]: "關於",
+	[Key.aboutChangelogTitle]: "更新日誌",
+	[Key.aboutChangelogRecentLimit]: "僅展示最近 {count} 條更新",
+	[Key.aboutChangelogPagesLabel]: "涉及頁面",
+	[Key.aboutChangelogRelatedLabel]: "相關更新",
+	[Key.changelogTypeFeat]: "新功能",
+	[Key.changelogTypeFix]: "修復",
+	[Key.changelogTypeStyle]: "樣式",
+	[Key.changelogTypeRefactor]: "重構",
+	[Key.changelogTypeChore]: "維護",
+	[Key.close]: "關閉",
+	[Key.aboutQ1Title]: "這個站點用到了哪些技術棧？",
+	[Key.aboutQ2Title]: "站長的社交圈有哪些？",
+	[Key.aboutQ3Title]: "站點的代碼開源嗎？",
 	[Key.welcomeCardLocation]: "遠方",
 	[Key.welcomeCardGreeting]: "的朋友！",
 	[Key.welcomeCardRecentUpdates]: "最近我更新了這些內容：",
 	[Key.welcomeCardFlipHint]: "點擊翻轉查看更多",
 	[Key.welcomeCardDragHint]: "拖拽關閉",
 	[Key.welcomeCardClose]: "關閉",
+	[Key.tagGraphAccessible]:
+		"標籤關係圖譜，共 {tags} 個標籤、{links} 條關聯。使用方向鍵選擇標籤，回車打開。",
+	[Key.tagGraphEmpty]: "暫無標籤關係",
+	[Key.tagGraphPreparing]: "正在準備圖譜…",
+	[Key.tagGraphSectionTitle]: "標籤關係圖譜",
+	[Key.tagGraphFailed]: "關係圖譜加載失敗",
+
 	[Key.welcomeCardLearnMore]: "了解更多",
 	[Key.welcomeCardRecentLabel]: "最近更新",
 };

@@ -364,12 +364,35 @@ export const ru: Translation = {
 	[Key.relatedPosts]: "Похожие посты",
 
 	// Карточка приветствия
+	[Key.aboutDescription]:
+		"Узнайте об авторе, тематике, стеке технологий, контактах и истории обновлений сайта.",
+	[Key.aboutSitePrefix]: "О сайте",
+	[Key.aboutChangelogTitle]: "Журнал изменений",
+	[Key.aboutChangelogRecentLimit]: "Показаны последние {count} обновлений",
+	[Key.aboutChangelogPagesLabel]: "Затронутые страницы",
+	[Key.aboutChangelogRelatedLabel]: "Связанные обновления",
+	[Key.changelogTypeFeat]: "Функция",
+	[Key.changelogTypeFix]: "Исправление",
+	[Key.changelogTypeStyle]: "Стиль",
+	[Key.changelogTypeRefactor]: "Рефактор",
+	[Key.changelogTypeChore]: "Сопровождение",
+	[Key.close]: "Закрыть",
+	[Key.aboutQ1Title]: "Какой стек использует сайт?",
+	[Key.aboutQ2Title]: "Где найти автора?",
+	[Key.aboutQ3Title]: "Открыт ли исходный код?",
 	[Key.welcomeCardLocation]: "далека",
 	[Key.welcomeCardGreeting]: "!",
 	[Key.welcomeCardRecentUpdates]: "Последние обновления:",
 	[Key.welcomeCardFlipHint]: "Нажмите, чтобы перевернуть",
 	[Key.welcomeCardDragHint]: "Перетащите, чтобы закрыть",
 	[Key.welcomeCardClose]: "Закрыть",
+	[Key.tagGraphAccessible]:
+		"Граф тегов: {tags} тегов, {links} связей. Стрелки — выбор, Enter — открыть.",
+	[Key.tagGraphEmpty]: "Нет связей между тегами",
+	[Key.tagGraphPreparing]: "Подготовка графа…",
+	[Key.tagGraphSectionTitle]: "Граф тегов",
+	[Key.tagGraphFailed]: "Не удалось загрузить граф",
+
 	[Key.welcomeCardLearnMore]: "Подробнее",
 	[Key.welcomeCardRecentLabel]: "Последние обновления",
 };

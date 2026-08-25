@@ -353,12 +353,35 @@ export const zh_CN: Translation = {
 	[Key.relatedPosts]: "相关阅读",
 
 	// 欢迎卡片
+	[Key.aboutDescription]:
+		"了解本站作者、内容方向、技术栈与联系方式，并查看网站的更新记录、维护信息和持续演进的内容规划。",
+	[Key.aboutSitePrefix]: "关于",
+	[Key.aboutChangelogTitle]: "更新日志",
+	[Key.aboutChangelogRecentLimit]: "仅展示最近 {count} 条更新",
+	[Key.aboutChangelogPagesLabel]: "涉及页面",
+	[Key.aboutChangelogRelatedLabel]: "相关更新",
+	[Key.changelogTypeFeat]: "新功能",
+	[Key.changelogTypeFix]: "修复",
+	[Key.changelogTypeStyle]: "样式",
+	[Key.changelogTypeRefactor]: "重构",
+	[Key.changelogTypeChore]: "维护",
+	[Key.close]: "关闭",
+	[Key.aboutQ1Title]: "这个站点用到了哪些技术栈？",
+	[Key.aboutQ2Title]: "站长社交圈有哪些？",
+	[Key.aboutQ3Title]: "站点的代码开源吗？",
 	[Key.welcomeCardLocation]: "远方",
 	[Key.welcomeCardGreeting]: "的朋友！",
 	[Key.welcomeCardRecentUpdates]: "最近我更新了这些内容：",
 	[Key.welcomeCardFlipHint]: "点击翻转查看更多",
 	[Key.welcomeCardDragHint]: "拖拽关闭",
 	[Key.welcomeCardClose]: "关闭",
+	[Key.tagGraphAccessible]:
+		"标签关系图谱，共 {tags} 个标签、{links} 条关联。使用方向键选择标签，回车打开。",
+	[Key.tagGraphEmpty]: "暂无标签关系",
+	[Key.tagGraphPreparing]: "正在准备图谱…",
+	[Key.tagGraphSectionTitle]: "标签关系图谱",
+	[Key.tagGraphFailed]: "关系图谱加载失败",
+
 	[Key.welcomeCardLearnMore]: "了解更多",
 	[Key.welcomeCardRecentLabel]: "最近更新",
 };

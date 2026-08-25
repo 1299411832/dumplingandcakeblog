@@ -29,6 +29,7 @@
 
 /* --- 基础重置 --- */
 @import './base/reset.css';
+@import './base/cursor.css';
 
 /* --- 组件样式 --- */
 @import './components/theme-transition.css';
@@ -52,6 +53,8 @@
 @import './components/home-ticker.css';
 @import './components/page-loader.css';
 @import './components/friend-card.css';
+@import './components/friend-preview.css';
+@import './components/image-pixel-reveal.css';
 @import './components/app-card.css';
 @import './components/archive-panel.css';
 
@@ -71,6 +74,12 @@
 @import './pages/apps.css';
 @import './pages/notebooks.css';
 @import './pages/categories.css';
+@import './components/about-profile-card.css';
+@import './components/about-chat-bubble.css';
+@import './components/about-social-links.css';
+@import './components/about-tech-stack.css';
+@import './components/about-timeline.css';
+@import './components/about-changelog.css';
 @import './components/guestbook-chat.css';
 @import './components/privacy-modal.css';
 @import './components/page-title.css';

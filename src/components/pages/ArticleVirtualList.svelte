@@ -1,5 +1,10 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
+import {
+	createArticleCoverLifecycle,
+	parseArticleCoverApiUrls,
+} from "@/utils/article-cover-lifecycle";
 
 type ArticleListView = "list" | "grid";
 
@@ -20,6 +25,10 @@ export type ArticleListPost = {
 	description: string;
 	imageUrl: string;
 	imageApiUrls: string[];
+	apiUrls?: string[];
+	fallbackImageUrl?: string;
+	categoryHue?: number;
+	wordCount?: number;
 	pinned: boolean;
 	hasRealCover: boolean;
 };
@@ -28,12 +37,31 @@ interface Props {
 	posts: ArticleListPost[];
 	defaultView?: ArticleListView;
 	postsPerPage?: number;
+	allowLayoutSwitch?: boolean;
 }
 
-let { posts, defaultView = "list", postsPerPage = 9 }: Props = $props();
+let {
+	posts,
+	defaultView = "list",
+	postsPerPage = 9,
+	allowLayoutSwitch = true,
+}: Props = $props();
 
 let containerRef = $state<HTMLElement | null>(null);
-let view = $state<ArticleListView>("list");
+let view = $state<ArticleListView>(getInitialViewFromDOM());
+let viewInitialized = false;
+
+function getInitialViewFromDOM(): ArticleListView {
+	if (typeof document !== "undefined") {
+		const attr = document.documentElement.getAttribute("data-article-view");
+		if (isArticleListView(attr)) return attr;
+	}
+	if (typeof localStorage !== "undefined") {
+		const saved = localStorage.getItem("postListLayout");
+		if (isArticleListView(saved)) return saved;
+	}
+	return defaultView;
+}
 let gridColumnCount = $state(3);
 let currentPage = $state(1);
 let isMobile = $state(false);
@@ -70,20 +98,35 @@ const categoryColors = $derived.by(() => {
 	return map;
 });
 
-function getCategoryColor(name: string): string {
-	const color = categoryColors.get(name);
-	return color ? `color: ${color}` : "";
+function getCategoryHue(name: string): number {
+	let hash = 2166136261;
+	for (let i = 0; i < name.length; i++) {
+		hash ^= name.charCodeAt(i);
+		hash = Math.imul(hash, 16777619);
+	}
+	return (hash >>> 0) % 360;
 }
 
-const gridBreakpointMedium = 960;
-const gridBreakpointSmall = 640;
+function getCategoryColor(name: string): string {
+	return `--article-category-hue: ${getCategoryHue(name)}`;
+}
 
-const totalPages = $derived(
-	Math.max(1, Math.ceil(posts.length / postsPerPage)),
-);
+const pinnedPosts = $derived(posts.filter((post) => post.pinned));
+const regularPosts = $derived(posts.filter((post) => !post.pinned));
 const paginatedPosts = $derived(
-	posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage),
+	regularPosts.slice(
+		(currentPage - 1) * postsPerPage,
+		currentPage * postsPerPage,
+	),
 );
+const totalPages = $derived(
+	Math.max(1, Math.ceil(regularPosts.length / postsPerPage)),
+);
+let pinnedActiveIndex = $state(0);
+let pinnedCarouselTimer: ReturnType<typeof setTimeout> | null = null;
+let pinnedPaused = $state(false);
+let coverLifecycles: ReturnType<typeof createArticleCoverLifecycle>[] = [];
+let coverAbortController: AbortController | null = null;
 
 const columns = $derived(
 	(() => {
@@ -113,20 +156,89 @@ function syncViewFromStorage() {
 	const savedView = localStorage.getItem("postListLayout");
 	if (isArticleListView(savedView)) {
 		view = savedView;
+	} else if (!viewInitialized) {
+		view = defaultView;
 	}
+	viewInitialized = true;
 }
 
 function getGridColumnCount() {
 	if (typeof window === "undefined") return 3;
-	const width = containerRef?.clientWidth || window.innerWidth;
-	if (width < gridBreakpointSmall) return 1;
-	if (width < gridBreakpointMedium) return 2;
-	return 3;
+	if (view !== "grid") return 1;
+	return window.innerWidth <= 768 ? 1 : 3;
 }
 
 function updateGridColumns() {
 	if (typeof window === "undefined") return;
-	gridColumnCount = view === "grid" ? getGridColumnCount() : 1;
+	gridColumnCount = getGridColumnCount();
+}
+
+function startPinnedCarousel() {
+	if (pinnedPaused || typeof window === "undefined") return;
+	if (pinnedPosts.length <= 1) return;
+	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	if (pinnedCarouselTimer) clearTimeout(pinnedCarouselTimer);
+	pinnedCarouselTimer = setTimeout(() => {
+		pinnedActiveIndex = (pinnedActiveIndex + 1) % pinnedPosts.length;
+		startPinnedCarousel();
+	}, 6000);
+}
+
+function stopPinnedCarousel() {
+	if (pinnedCarouselTimer) {
+		clearTimeout(pinnedCarouselTimer);
+		pinnedCarouselTimer = null;
+	}
+}
+
+function goToPinned(index: number) {
+	pinnedActiveIndex =
+		((index % pinnedPosts.length) + pinnedPosts.length) % pinnedPosts.length;
+	stopPinnedCarousel();
+	startPinnedCarousel();
+}
+
+function initCoverLifecycles() {
+	if (coverAbortController) coverAbortController.abort();
+	coverAbortController = new AbortController();
+	const signal = coverAbortController.signal;
+	coverLifecycles.forEach((lc) => lc.dispose());
+	coverLifecycles = [];
+	if (typeof document === "undefined") return;
+	const wraps = document.querySelectorAll<HTMLElement>(
+		"[data-article-list-cover-wrap]",
+	);
+	wraps.forEach((wrap) => {
+		const img = wrap.querySelector<HTMLImageElement>(
+			"[data-article-list-cover]",
+		);
+		if (!img) return;
+		const apiUrls = parseArticleCoverApiUrls(img.dataset.apiUrls);
+		const fallbackSrc = img.dataset.fallbackSrc || undefined;
+		const lc = createArticleCoverLifecycle({
+			host: wrap,
+			image: img,
+			apiUrls,
+			fallbackSrc,
+			baseUrl: document.baseURI,
+			signal,
+		});
+		coverLifecycles.push(lc);
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => lc.setVisible(entry.isIntersecting));
+			},
+			{ rootMargin: "200px 0px" },
+		);
+		observer.observe(wrap);
+		signal.addEventListener("abort", () => observer.disconnect(), {
+			once: true,
+		});
+		// initial check: if already visible
+		const rect = wrap.getBoundingClientRect();
+		const visible = rect.top < window.innerHeight + 200 && rect.bottom > -200;
+		lc.setVisible(visible);
+	});
 }
 
 function handleLayoutChange(event: Event) {
@@ -134,6 +246,7 @@ function handleLayoutChange(event: Event) {
 	if (!isArticleListView(layout) || layout === view) return;
 	view = layout;
 	updateGridColumns();
+	requestAnimationFrame(() => initCoverLifecycles());
 }
 
 function handleImageLoad(event: Event) {
@@ -168,6 +281,7 @@ function goToPage(page: number) {
 	}
 	requestAnimationFrame(() => {
 		currentPage = nextPage;
+		requestAnimationFrame(() => initCoverLifecycles());
 	});
 }
 
@@ -194,9 +308,11 @@ function generatePageNumbers(
 const pageNumbers = $derived(generatePageNumbers(currentPage, totalPages));
 
 onMount(() => {
-	view = defaultView;
 	syncViewFromStorage();
+	if (!viewInitialized) view = defaultView;
 	updateGridColumns();
+	startPinnedCarousel();
+	requestAnimationFrame(() => initCoverLifecycles());
 
 	// 检测移动端
 	const checkMobile = () => {
@@ -223,10 +339,15 @@ onMount(() => {
 		syncViewFromStorage();
 		updateGridColumns();
 		checkMobile();
+		startPinnedCarousel();
+		initCoverLifecycles();
 	};
 	window.addEventListener("swup:content:replaced", onSwupReplaced);
 
 	return () => {
+		stopPinnedCarousel();
+		if (coverAbortController) coverAbortController.abort();
+		coverLifecycles.forEach((lc) => lc.dispose());
 		window.removeEventListener("resize", onResize);
 		window.removeEventListener("layoutChange", handleLayoutChange);
 		window.removeEventListener("swup:content:replaced", onSwupReplaced);
@@ -238,6 +359,15 @@ $effect(() => {
 	posts;
 	if (typeof window !== "undefined") updateGridColumns();
 });
+
+$effect(() => {
+	pinnedPosts.length;
+	if (typeof window !== "undefined") {
+		pinnedActiveIndex = 0;
+		stopPinnedCarousel();
+		startPinnedCarousel();
+	}
+});
 </script>
 
 {#if posts.length === 0}
@@ -246,6 +376,103 @@ $effect(() => {
 		<span class="article-list-empty__meta">新的内容会显示在这里。</span>
 	</div>
 {:else}
+	{#if pinnedPosts.length > 0}
+		<section
+			class="article-list-pinned"
+			aria-labelledby="article-list-pinned-title"
+			onmouseenter={() => { pinnedPaused = true; stopPinnedCarousel(); }}
+			onmouseleave={() => { pinnedPaused = false; startPinnedCarousel(); }}
+			onfocusin={() => { pinnedPaused = true; stopPinnedCarousel(); }}
+			onfocusout={() => { pinnedPaused = false; startPinnedCarousel(); }}
+		>
+			<div class="article-list-pinned__heading">
+				<h2 id="article-list-pinned-title" class="article-list-section-title">置顶</h2>
+				<div class="article-list-pinned__switch" class:is-hidden={!allowLayoutSwitch}>
+					<AnimatedTabs activeTab={view} />
+				</div>
+			</div>
+			<div
+				class="article-list-pinned__collection"
+				data-article-list-pinned-carousel
+			>
+				{#each pinnedPosts as pinnedPost, pinnedIndex (pinnedPost.id)}
+					<article
+						class="article-list-pinned-item"
+						data-article-list-pinned-item
+						hidden={pinnedIndex !== pinnedActiveIndex}
+						aria-hidden={pinnedIndex !== pinnedActiveIndex}
+					>
+						<div class="article-list-pinned-item__content">
+							<h3 class="article-list-pinned-item__title">
+								<span class="article-list-pinned-item__title-text">{pinnedPost.title}</span>
+							</h3>
+							<div class="article-list-pinned-item__meta">
+								<span
+									class="article-list-pinned-item__taxonomy article-list-pinned-item__taxonomy--category"
+									style={getCategoryColor(pinnedPost.category)}
+								>
+									{pinnedPost.category}
+								</span>
+								<span class="article-list-pinned-item__meta-item">
+									<svg class="article-calendar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" fill-rule="evenodd" d="M8 4h8V2h2v2h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V2h2zM5 8v12h14V8zm2 3h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm0 4h2v2h-2zm-4 0h2v2h-2zm-4 0h2v2H7z" /></svg>
+									<time datetime={pinnedPost.publishedIso}>{pinnedPost.publishedText}</time>
+								</span>
+								{#if pinnedPost.tags.length > 0}
+									{#each pinnedPost.tags.slice(0, 3) as tag, i (tag.name)}
+										<span class="article-list-pinned-item__taxonomy article-list-pinned-item__taxonomy--tag">{tag.name}</span>
+									{/each}
+									{#if pinnedPost.tags.length > 3}
+										<span class="article-list-pinned-item__tag-overflow">+{pinnedPost.tags.length - 3}</span>
+									{/if}
+								{/if}
+							</div>
+							<p class="article-list-pinned-item__description">{pinnedPost.description}</p>
+						</div>
+						<div class="article-list-pinned-item__cover-wrap image-pixel-reveal-host" data-article-list-cover-wrap>
+							<span class="article-list-pinned-item__cover-loader" aria-hidden="true">
+								<span class="article-list-pinned-item__cover-loader-dot"></span>
+								<span class="article-list-pinned-item__cover-loader-dot"></span>
+								<span class="article-list-pinned-item__cover-loader-dot"></span>
+								<span class="article-list-pinned-item__cover-loader-dot"></span>
+							</span>
+							<span class="image-pixel-reveal" data-image-pixel-reveal aria-hidden="true"></span>
+							{#if pinnedPost.imageUrl}
+								<img
+									class="article-list-pinned-item__cover image-pixel-reveal-source"
+									src={pinnedPost.imageUrl}
+									alt={`置顶文章配图：${pinnedPost.title}`}
+									data-article-list-cover
+									data-fallback-src={pinnedPost.fallbackImageUrl ?? ""}
+									data-api-urls={(pinnedPost.apiUrls ?? pinnedPost.imageApiUrls ?? []).length > 0 ? JSON.stringify(pinnedPost.apiUrls ?? pinnedPost.imageApiUrls) : undefined}
+									loading={pinnedIndex === 0 ? "eager" : "lazy"}
+									decoding="async"
+								/>
+							{:else}
+								<div class="article-grid-card__image-placeholder"></div>
+							{/if}
+						</div>
+						<a href={pinnedPost.url} class="article-list-pinned-item__surface-link" aria-label={`打开置顶文章：${pinnedPost.title}`}></a>
+					</article>
+				{/each}
+			</div>
+			{#if pinnedPosts.length > 1}
+				<div class="article-list-pinned__dots" role="tablist" aria-label="置顶轮播">
+					{#each pinnedPosts as _, dotIndex (dotIndex)}
+						<button
+							type="button"
+							data-article-list-pinned-dot
+							role="tab"
+							aria-label={`切换到第 ${dotIndex + 1} 篇置顶`}
+							aria-selected={dotIndex === pinnedActiveIndex}
+							aria-current={dotIndex === pinnedActiveIndex ? "true" : undefined}
+							onclick={() => goToPinned(dotIndex)}
+						></button>
+					{/each}
+				</div>
+			{/if}
+		</section>
+	{/if}
+
 	<div
 		class="article-list-virtual"
 		data-view={view}
@@ -254,6 +481,10 @@ $effect(() => {
 	>
 		{#if view === "grid"}
 		<div class="article-list-view">
+			<div class="article-list-regular__toolbar" aria-label="常规文章">
+				<h2 class="article-list-regular__title">文章</h2>
+				<span class="article-list-regular__count">共 <strong>{regularPosts.length}</strong> 篇文章</span>
+			</div>
 			<div
 				class="article-list-masonry"
 				style="--cols: {gridColumnCount};"
@@ -264,71 +495,55 @@ $effect(() => {
 						{#each column as entry (entry.post.id)}
 							{@const post = entry.post}
 							{@const isPinned = post.pinned}
-							<a
-								href={post.url}
-								class="article-grid-card"
-								class:is-pinned={isPinned}
-								class:text-only={isMobile}
-								aria-label={`查看文章：${post.title}`}
+							<article
+								class="article-list-card"
+								data-article-list-card
+								style={`--article-category-hue: ${post.categoryHue ?? getCategoryHue(post.category)}`}
 							>
-								{#if !isMobile}
-								<div class="article-grid-card__image-wrapper" class:skeleton-shimmer={!!post.imageUrl}>
-									{#if post.imageUrl}
+								<div
+									class="article-list-card__cover-wrap image-pixel-reveal-host"
+									data-article-list-cover-wrap
+								>
+									<span class="article-list-card__cover-loader" aria-hidden="true">
+										<span class="article-list-card__cover-loader-dot"></span>
+										<span class="article-list-card__cover-loader-dot"></span>
+										<span class="article-list-card__cover-loader-dot"></span>
+										<span class="article-list-card__cover-loader-dot"></span>
+									</span>
+									<span class="image-pixel-reveal" data-image-pixel-reveal aria-hidden="true"></span>
 									<img
-										class="article-grid-card__image"
+										class="article-list-card__cover image-pixel-reveal-source"
 										src={post.imageUrl}
 										alt={`文章配图：${post.title}`}
+										data-article-list-cover
+										data-fallback-src={post.fallbackImageUrl ?? ""}
+										data-api-urls={(post.apiUrls ?? post.imageApiUrls ?? []).length > 0 ? JSON.stringify(post.apiUrls ?? post.imageApiUrls) : undefined}
 										loading="lazy"
 										decoding="async"
-										data-api-index="0"
-										onload={handleImageLoad}
-										onerror={(e) => handleImageError(e, post.imageApiUrls)}
 									/>
-									{:else}
-									<div class="article-grid-card__image-placeholder"></div>
-									{/if}
-									<div class="article-grid-card__gradient-overlay"></div>
-									{#if isPinned}
-										<span class="article-grid-card__pinned-badge--corner">
-											📌 置顶
-										</span>
-									{/if}
 								</div>
-								{/if}
-
-								<div class="article-grid-card__content">
-									<div class="article-grid-card__layer-1">
-										<h3 class="article-grid-card__title">
-											{post.title}
+								<div class="article-list-card__content">
+									<div class="article-list-card__title-row">
+										<h3 class="article-list-card__title">
+											<span class="article-list-card__title-text" title={post.title}>{post.title}</span>
 										</h3>
 									</div>
-
-									<div class="article-grid-card__layer-2">
-										<span class="article-grid-card__meta-item">
+									<div class="article-list-card__meta">
+										<span class="article-list-card__taxonomy">{post.category}</span>
+										<span class="article-list-card__meta-item">
 											<svg class="article-calendar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" fill-rule="evenodd" d="M8 4h8V2h2v2h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V2h2zM5 8v12h14V8zm2 3h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm0 4h2v2h-2zm-4 0h2v2h-2zm-4 0h2v2H7z" /></svg>
 											<time datetime={post.publishedIso}>{post.publishedText}</time>
 										</span>
-									</div>
-
-									<div class="article-grid-card__layer-3">
-										<span class="ag-category" style={getCategoryColor(post.category)}>
-											#{post.category}
+										<span class="article-list-card__meta-item">
+											<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+											<span>{(post.wordCount ?? 0).toLocaleString()} 字</span>
 										</span>
-										{#if post.tags.length > 0}
-											<span class="ag-meta-gap" aria-hidden="true"></span>
-											{#each post.tags.slice(0, 2) as tag, i (tag.name)}
-												{#if i > 0}
-													<span class="ag-meta-divider" aria-hidden="true">/</span>
-												{/if}
-												<span class="ag-tag">{tag.name}</span>
-											{/each}
-											{#if post.tags.length > 2}
-												<span class="ag-tag-more" aria-hidden="true">+{post.tags.length - 2}</span>
-											{/if}
-										{/if}
 									</div>
+									<div class="article-list-card__rule" aria-hidden="true"></div>
+									<p class="article-list-card__description">{post.description}</p>
 								</div>
-							</a>
+								<a href={post.url} class="article-list-card__surface-link" aria-label={`查看文章：${post.title}`} title={post.title}></a>
+							</article>
 						{/each}
 					</div>
 				{/each}
@@ -338,73 +553,50 @@ $effect(() => {
 
 		{#if view === "list"}
 		<div class="article-list-view">
-			<div class="article-list-vertical" aria-label="文章列表">
-				{#each paginatedPosts as post, index (post.id)}
-					{@const isPinned = post.pinned}
-					<a
-						href={post.url}
-						class="article-list-row-card"
-						class:is-pinned={isPinned}
-						class:has-cover={post.hasRealCover}
-						data-post-id={post.id}
-						aria-label={`查看文章：${post.title}`}
-					>
-						{#if post.imageUrl}
-							<div class="article-list-row-card__bg-wrapper">
-								<img
-									class="article-list-row-card__bg-image"
-									src={post.imageUrl}
-									alt={`文章配图：${post.title}`}
-									loading="lazy"
-									decoding="async"
-									data-api-index="0"
-									onload={handleImageLoad}
-									onerror={(e) => handleImageError(e, post.imageApiUrls)}
-								/>
-								<div class="article-list-row-card__gradient-overlay"></div>
-							</div>
-						{/if}
-
-						<div class="article-list-row-card__content">
-							<div class="article-list-row-card__layer-1">
-								{#if isPinned}
-									<span class="article-list-row-card__pinned-badge" aria-label="置顶文章">
-										📌 置顶
-									</span>
-								{/if}
-								<h3 class="article-list-row-card__title">
-									{post.title}
-								</h3>
-							</div>
-
-							<div class="article-list-row-card__layer-2">
-								<span class="al-category" style={getCategoryColor(post.category)}>
-									#{post.category}
-								</span>
-								<span class="article-list-row-card__meta-item">
+			<div class="article-list-regular__toolbar" aria-label="常规文章">
+				<h2 class="article-list-regular__title">文章</h2>
+				<span class="article-list-regular__count">共 <strong>{regularPosts.length}</strong> 篇文章</span>
+			</div>
+			<div class="article-list-vertical article-list-vertical--pinned" aria-label="文章列表">
+				{#each paginatedPosts as post (post.id)}
+					<article class="article-list-pinned-item article-list-row-pinned" data-article-list-pinned-item>
+						<div class="article-list-pinned-item__content">
+							<h3 class="article-list-pinned-item__title">
+								<span class="article-list-pinned-item__title-text" title={post.title}>{post.title}</span>
+							</h3>
+							<div class="article-list-pinned-item__meta">
+								<span class="article-list-pinned-item__taxonomy article-list-pinned-item__taxonomy--category" style={getCategoryColor(post.category)}>{post.category}</span>
+								<span class="article-list-pinned-item__meta-item">
 									<svg class="article-calendar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" fill-rule="evenodd" d="M8 4h8V2h2v2h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V2h2zM5 8v12h14V8zm2 3h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm0 4h2v2h-2zm-4 0h2v2h-2zm-4 0h2v2H7z" /></svg>
 									<time datetime={post.publishedIso}>{post.publishedText}</time>
 								</span>
 								{#if post.tags.length > 0}
-									{#each post.tags.slice(0, 3) as tag, i (tag.name)}
-										{#if i > 0}
-											<span class="al-meta-divider" aria-hidden="true">/</span>
-										{/if}
-										<span class="al-tag">{tag.name}</span>
+									{#each post.tags.slice(0, 3) as tag (tag.name)}
+										<span class="article-list-pinned-item__taxonomy article-list-pinned-item__taxonomy--tag">{tag.name}</span>
 									{/each}
 									{#if post.tags.length > 3}
-										<span class="al-tag-more" aria-hidden="true">+{post.tags.length - 3}</span>
+										<span class="article-list-pinned-item__tag-overflow">+{post.tags.length - 3}</span>
 									{/if}
 								{/if}
 							</div>
-
-							<div class="article-list-row-card__layer-3">
-								<p class="article-list-row-card__description">
-									{post.description}
-								</p>
-							</div>
+							<p class="article-list-pinned-item__description">{post.description}</p>
 						</div>
-					</a>
+						<div class="article-list-pinned-item__cover-wrap image-pixel-reveal-host" data-article-list-cover-wrap aria-hidden="true">
+							<span class="article-list-card__cover-loader" aria-hidden="true">
+								<span class="article-list-card__cover-loader-dot"></span>
+								<span class="article-list-card__cover-loader-dot"></span>
+								<span class="article-list-card__cover-loader-dot"></span>
+								<span class="article-list-card__cover-loader-dot"></span>
+							</span>
+							<span class="image-pixel-reveal" data-image-pixel-reveal aria-hidden="true"></span>
+							{#if post.imageUrl}
+								<img class="article-list-pinned-item__cover image-pixel-reveal-source" src={post.imageUrl} alt="" loading="lazy" decoding="async" data-article-list-cover data-fallback-src={post.fallbackImageUrl ?? ""} data-api-urls={(post.apiUrls ?? post.imageApiUrls ?? []).length > 0 ? JSON.stringify(post.apiUrls ?? post.imageApiUrls) : undefined} />
+							{:else}
+								<div class="article-list-pinned-item__cover" style="background: var(--btn-plain-bg-hover);"></div>
+							{/if}
+						</div>
+						<a href={post.url} class="article-list-pinned-item__surface-link" aria-label={`查看文章：${post.title}`} title={post.title}></a>
+					</article>
 				{/each}
 			</div>
 		</div>

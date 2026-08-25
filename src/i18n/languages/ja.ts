@@ -361,12 +361,35 @@ export const ja: Translation = {
 	[Key.relatedPosts]: "関連投稿",
 
 	// ウェルカムカード
+	[Key.aboutDescription]:
+		"作者、コンテンツの方向性、技術スタック、連絡先、そして更新履歴や今後の展望をご紹介します。",
+	[Key.aboutSitePrefix]: "About",
+	[Key.aboutChangelogTitle]: "更新履歴",
+	[Key.aboutChangelogRecentLimit]: "最近の {count} 件を表示",
+	[Key.aboutChangelogPagesLabel]: "関連ページ",
+	[Key.aboutChangelogRelatedLabel]: "関連する更新",
+	[Key.changelogTypeFeat]: "新機能",
+	[Key.changelogTypeFix]: "修正",
+	[Key.changelogTypeStyle]: "スタイル",
+	[Key.changelogTypeRefactor]: "リファクタ",
+	[Key.changelogTypeChore]: "保守",
+	[Key.close]: "閉じる",
+	[Key.aboutQ1Title]: "どの技術スタックを使っていますか？",
+	[Key.aboutQ2Title]: "作者のSNSは？",
+	[Key.aboutQ3Title]: "サイトはオープンソースですか？",
 	[Key.welcomeCardLocation]: "遠方",
 	[Key.welcomeCardGreeting]: "の友人へ！",
 	[Key.welcomeCardRecentUpdates]: "最近の更新：",
 	[Key.welcomeCardFlipHint]: "タップして裏返す",
 	[Key.welcomeCardDragHint]: "ドラッグして閉じる",
 	[Key.welcomeCardClose]: "閉じる",
+	[Key.tagGraphAccessible]:
+		"タググラフ：{tags} タグ、{links} 本の関連。矢印キーで移動、Enterで開く。",
+	[Key.tagGraphEmpty]: "タグの関連がありません",
+	[Key.tagGraphPreparing]: "グラフを準備中…",
+	[Key.tagGraphSectionTitle]: "タグ関係グラフ",
+	[Key.tagGraphFailed]: "グラフの読み込みに失敗しました",
+
 	[Key.welcomeCardLearnMore]: "詳しく見る",
 	[Key.welcomeCardRecentLabel]: "最近の更新",
 };

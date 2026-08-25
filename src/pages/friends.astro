@@ -245,6 +245,141 @@ const description = i18n(I18nKey.friendsDescription);
     <Comment post={friendsPost} customPath="/friends/" />
   </div>
 
+  <!-- 友链悬浮大图预览 — portal 单例，卡旁白边圆角大图（仅桌面 hover） -->
+  <script is:inline>
+    (function() {
+      if (window.__friendPreviewReady) return;
+      window.__friendPreviewReady = true;
+
+      var GAP = 16;
+      var MARGIN = 12;
+      var activeCard = null;
+      var hideTimer = null;
+
+      function canHover() {
+        return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      }
+
+      function ensurePreview() {
+        var el = document.getElementById("friend-preview");
+        if (el) return el;
+        el = document.createElement("div");
+        el.id = "friend-preview";
+        el.setAttribute("aria-hidden", "true");
+        el.hidden = true;
+        var img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        el.appendChild(img);
+        document.body.appendChild(el);
+        return el;
+      }
+
+      function getPreview() {
+        return document.getElementById("friend-preview");
+      }
+
+      function positionPreview(card) {
+        var el = getPreview();
+        if (!el || !card) return;
+        var rect = card.getBoundingClientRect();
+        var pw = el.offsetWidth || 360;
+        var ph = el.offsetHeight || 225;
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var left, top;
+
+        if (rect.right + GAP + pw + MARGIN <= vw) {
+          left = rect.right + GAP;
+          top = rect.top + (rect.height - ph) / 2;
+        } else if (rect.left - GAP - pw - MARGIN >= 0) {
+          left = rect.left - pw - GAP;
+          top = rect.top + (rect.height - ph) / 2;
+        } else if (rect.top - ph - GAP >= MARGIN) {
+          left = rect.left + (rect.width - pw) / 2;
+          top = rect.top - ph - GAP;
+        } else if (rect.bottom + ph + GAP <= vh - MARGIN) {
+          left = rect.left + (rect.width - pw) / 2;
+          top = rect.bottom + GAP;
+        } else {
+          left = (vw - pw) / 2;
+          top = (vh - ph) / 2;
+        }
+
+        left = Math.max(MARGIN, Math.min(left, vw - pw - MARGIN));
+        top = Math.max(MARGIN, Math.min(top, vh - ph - MARGIN));
+        el.style.left = left + "px";
+        el.style.top = top + "px";
+      }
+
+      function showPreview(card) {
+        if (!canHover()) return;
+        if (!card || !card.dataset.screenshot) return;
+        if (card.classList.contains("friend-card--no-shot")) return;
+        var el = ensurePreview();
+        var img = el.querySelector("img");
+        var src = card.dataset.screenshot;
+        if (!src) return;
+        if (img.getAttribute("src") !== src) img.src = src;
+        el.hidden = false;
+        void el.offsetWidth;
+        el.classList.add("is-visible");
+        activeCard = card;
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        requestAnimationFrame(function() { positionPreview(card); });
+      }
+
+      function hidePreview() {
+        var el = getPreview();
+        if (!el) return;
+        el.classList.remove("is-visible");
+        activeCard = null;
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(function() {
+          if (!el.classList.contains("is-visible")) el.hidden = true;
+        }, 220);
+      }
+
+      function bindPreview() {
+        if (!canHover()) return;
+        ensurePreview();
+        document.querySelectorAll("[data-friends-grid]").forEach(function(grid) {
+          if (grid.dataset.previewBound) return;
+          grid.dataset.previewBound = "1";
+          grid.addEventListener("pointerover", function(e) {
+            var card = e.target.closest(".friend-card");
+            if (!card || !grid.contains(card)) return;
+            if (card === activeCard) return;
+            showPreview(card);
+          });
+          grid.addEventListener("pointerout", function(e) {
+            var card = e.target.closest(".friend-card");
+            if (!card) return;
+            var related = e.relatedTarget;
+            if (related && related.closest && related.closest(".friend-card") === card) return;
+            var nextCard = related && related.closest ? related.closest(".friend-card") : null;
+            if (nextCard && nextCard.dataset.screenshot && !nextCard.classList.contains("friend-card--no-shot")) return;
+            hidePreview();
+          });
+          grid.addEventListener("pointerleave", hidePreview);
+        });
+        window.addEventListener("scroll", hidePreview, { passive: true });
+        window.addEventListener("resize", function() {
+          if (activeCard) positionPreview(activeCard);
+        });
+      }
+
+      function initPreview() {
+        bindPreview();
+      }
+
+      initPreview();
+      document.addEventListener("astro:page-load", initPreview);
+      document.addEventListener("swup:content:replaced", initPreview);
+      document.addEventListener("swup:willReplaceContent", hidePreview);
+    })();
+  </script>
+
   <!-- "添加友链" 按钮滚动到评论区 -->
   <script slot="head" is:inline>
     document.addEventListener('click', function(e) {

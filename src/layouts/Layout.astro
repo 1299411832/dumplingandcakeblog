@@ -312,6 +312,16 @@ const siteLang = lang.replace("_", "-");
         }
       })();
 
+      // 文章列表首屏视图：提前写入 data-article-view，避免 Svelte 水合前闪单列
+      (function applyArticleListView() {
+        try {
+          var saved = localStorage.getItem("postListLayout");
+          if (saved === "grid" || saved === "list") {
+            document.documentElement.setAttribute("data-article-view", saved);
+          }
+        } catch (_) {}
+      })();
+
       // Initialize hide-covers state before first paint
       (function applyHideCovers() {
         const hideCovers = localStorage.getItem("hideCovers");

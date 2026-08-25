@@ -96,6 +96,9 @@
 }
 
 /* GitHub 卡片 */
+/* about 页 Q3 区域：聊天气泡与 GitHub 卡片的更柔和衔接 */
+.custom-md .about-chat-bubble + a.card-github,
+.custom-md a.card-github + .about-chat-bubble { margin-top: 0.25rem; }
 a.card-github {
   display: block;
   background: var(--license-block-bg);
@@ -103,7 +106,7 @@ a.card-github {
   margin: 0.5rem 0;
   padding: 1.1rem 1.5rem;
   color: var(--tw-prose-body);
-  border-radius: var(--radius-large);
+  border-radius: 0.75rem;
   text-decoration-thickness: 0px;
   text-decoration-line: none;
 

@@ -362,12 +362,35 @@ export const en: Translation = {
 	[Key.relatedPosts]: "Related Posts",
 
 	// Welcome Card
+	[Key.aboutDescription]:
+		"Learn about the author, content focus, tech stack, contact info and the site changelog and roadmap.",
+	[Key.aboutSitePrefix]: "About",
+	[Key.aboutChangelogTitle]: "Changelog",
+	[Key.aboutChangelogRecentLimit]: "Showing the {count} most recent updates",
+	[Key.aboutChangelogPagesLabel]: "Pages involved",
+	[Key.aboutChangelogRelatedLabel]: "Related updates",
+	[Key.changelogTypeFeat]: "Feature",
+	[Key.changelogTypeFix]: "Fix",
+	[Key.changelogTypeStyle]: "Style",
+	[Key.changelogTypeRefactor]: "Refactor",
+	[Key.changelogTypeChore]: "Chore",
+	[Key.close]: "Close",
+	[Key.aboutQ1Title]: "What tech stack does this site use?",
+	[Key.aboutQ2Title]: "Where can I find the author?",
+	[Key.aboutQ3Title]: "Is the site open source?",
 	[Key.welcomeCardLocation]: "somewhere",
 	[Key.welcomeCardGreeting]: "!",
 	[Key.welcomeCardRecentUpdates]: "Recent updates:",
 	[Key.welcomeCardFlipHint]: "Tap to flip",
 	[Key.welcomeCardDragHint]: "Drag to dismiss",
 	[Key.welcomeCardClose]: "Close",
+	[Key.tagGraphAccessible]:
+		"Tag graph with {tags} tags and {links} links. Use arrow keys to navigate, press Enter to open.",
+	[Key.tagGraphEmpty]: "No tag relationships",
+	[Key.tagGraphPreparing]: "Preparing graph...",
+	[Key.tagGraphSectionTitle]: "Tag Graph",
+	[Key.tagGraphFailed]: "Failed to load graph",
+
 	[Key.welcomeCardLearnMore]: "Learn More",
 	[Key.welcomeCardRecentLabel]: "Recent Updates",
 };

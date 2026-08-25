@@ -2,10 +2,10 @@
 import { render } from "astro:content";
 import * as path from "node:path";
 import type { GetStaticPaths, ImageMetadata } from "astro";
-import { Icon } from "astro-icon/components";
 import AnimatedTabs from "@/components/controls/AnimatedTabs.svelte";
 import ArticleVirtualList from "@/components/pages/ArticleVirtualList.svelte";
 import { siteConfig } from "@/config";
+import { coverImageConfig } from "@/config/coverImageConfig";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { getCategoryFromId } from "@/utils/category-tree";
 import { getSortedPosts } from "@/utils/content-utils";
@@ -93,6 +93,19 @@ async function resolveArticleImage(entry: (typeof posts)[number]) {
 	};
 }
 
+function getCategoryHue(category: string): number {
+	let hash = 2166136261;
+	for (let i = 0; i < category.length; i++) {
+		hash ^= category.charCodeAt(i);
+		hash = Math.imul(hash, 16777619);
+	}
+	return (hash >>> 0) % 360;
+}
+
+const fallbackImageUrl = coverImageConfig.randomCoverImage.fallback
+	? `${`/${coverImageConfig.randomCoverImage.fallback.replace(/^\/+/, "")}`}`
+	: "";
+
 const articleListPosts = await Promise.all(
 	posts.map(async (entry) => {
 		const { remarkPluginFrontmatter } = await render(entry);
@@ -106,6 +119,9 @@ const articleListPosts = await Promise.all(
 				name: tag,
 				url: getTagUrl(tag),
 			}));
+
+		const wordCount = Number(remarkPluginFrontmatter.words) || 0;
+		const categoryHue = getCategoryHue(category);
 
 		// 判断是否有真实封面（不是随机API）
 		const hasRealCover = !!entry.data.image;
@@ -125,6 +141,10 @@ const articleListPosts = await Promise.all(
 				"暂无文章简介，点击卡片查看完整内容。",
 			imageUrl: articleImage.imageUrl,
 			imageApiUrls: articleImage.imageApiUrls,
+			apiUrls: articleImage.imageApiUrls,
+			fallbackImageUrl,
+			categoryHue,
+			wordCount,
 			pinned: !!entry.data.pinned,
 			hasRealCover,
 		};
@@ -136,42 +156,23 @@ const allowLayoutSwitch = siteConfig.postListLayout.allowSwitch;
 ---
 
 <MainGridLayout title={title} description={description}>
-	<section class="article-list-page">
-		<header class="article-list-page__header">
-			<!-- 页面标题 -->
-			<div class="article-list-page__title-row">
-				<h1 class="article-list-page__title">
-					<span class="article-list-page__title-en">Article Index</span>
-					<span class="article-list-page__title-zh">文章列表</span>
-				</h1>
-			</div>
-
-			<!-- 控制栏 -->
-			<div class="article-list-page__controls">
-				<!-- 左侧：骷髅开关 -->
-				<div class:list={["article-list-page__tabs", { "is-hidden": !allowLayoutSwitch }]}>
-					<AnimatedTabs client:load activeTab={defaultLayout === "grid" ? "grid" : "list"} />
+		<section class="article-list-page article-list-page--compact">
+			<header class="article-list-page__header">
+				<!-- 页面标题 -->
+				<div class="article-list-page__title-row">
+					<h1 class="article-list-page__title">
+						<span class="article-list-page__title-en">Article Index</span>
+						<span class="article-list-page__title-zh">文章列表</span>
+					</h1>
 				</div>
-
-				<!-- 右侧：分类和归档按钮 -->
-				<div class="article-list-page__actions">
-					<a href="/categories/" class="article-action-pill" data-astro-prefetch>
-						<Icon name="material-symbols:folder-outline" is:inline class="text-base" />
-						分类
-					</a>
-					<a href="/archive/" class="article-action-pill" data-astro-prefetch>
-						<Icon name="material-symbols:archive" is:inline class="text-base" />
-						归档
-					</a>
-				</div>
-			</div>
-		</header>
+			</header>
 
 		<ArticleVirtualList
 			client:load
 			posts={articleListPosts}
 			defaultView={defaultLayout === "grid" ? "grid" : "list"}
 			postsPerPage={9}
+			allowLayoutSwitch={allowLayoutSwitch}
 		/>
 	</section>
 </MainGridLayout>

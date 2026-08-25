@@ -482,16 +482,18 @@ onMount(() => {
 
   {#each yearGroups as yg (yg.year)}
     <div class="ap-year-block" use:registerYearBlock={yg.year}>
-      <div class="ap-year-header">
-        <h2 class="ap-h1">{yg.year} · {String(yg.months[0]?.month ?? 1).padStart(2, "0")}</h2>
-        <span class="ap-count">/{yg.totalCount}篇文章</span>
-      </div>
-      {#each yg.months as mg (mg.month)}
+      {#each yg.months as mg, mi (mg.month)}
+        <div class="ap-year-header" style={mi === 0 ? "" : "margin-top:1.25rem"}>
+          <h2 class="ap-h1">{yg.year} · {String(mg.month).padStart(2, "0")}</h2>
+          <span class="ap-count">/{mg.posts.length}篇{activeType === "all" ? "更新" : getTypeLabel(activeType)}</span>
+        </div>
         {#each mg.posts as post (post.id)}
           <div class="ap-row-simple" use:registerPostRow={post.id}>
-            <a href={getItemUrl(post)} aria-label={post.data.title} class="ap-post-link group btn-plain" onmouseenter={() => onPostEnter(post.id)} onmouseleave={onPostLeave}>
-                      <span class="ap-date">{formatDate(post.data.published)}</span>
-              <span class="ap-title group-hover:text-(--primary)">{post.data.title.length > 20 ? post.data.title.slice(0, 20) + "…" : post.data.title}</span>
+            <a href={getItemUrl(post)} aria-label={post.data.title} class="ap-post-link group btn-plain ap-post-link--stack" onmouseenter={() => onPostEnter(post.id)} onmouseleave={onPostLeave}>
+              <span class="ap-row-top">
+                <span class="ap-date">{formatDate(post.data.published)}</span>
+                <span class="ap-title group-hover:text-(--primary)">{post.data.title.length > 20 ? post.data.title.slice(0, 20) + "…" : post.data.title}</span>
+              </span>
               <span class="ap-right-meta">
                 {#if post.data.category}
                   <span class="ap-cat" style={`color:${getCatColor(post.data.category)};`}>#{post.data.category}</span>
@@ -548,7 +550,8 @@ onMount(() => {
   .ap-year-header { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
   .ap-h1 { font-size: 1.35rem; font-weight: 700; color: var(--deep-text); margin: 0; }
   .ap-count { font-size: 0.8rem; color: var(--content-meta); }
-  .ap-post-link { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-height: 2rem; padding: 0.15rem 0; text-decoration: none; overflow: hidden; }
+  .ap-post-link { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-height: 2rem; padding: 0.15rem 0; text-decoration: none; overflow: hidden; justify-content: flex-start; }
+  .ap-row-top { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1; }
   .ap-date { font-size: 0.875rem; color: var(--content-meta); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; width: 2.6rem; }
   .ap-title { font-size: 0.95rem; font-weight: 600; color: var(--deep-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; transition: color 0.15s ease; }
   .ap-right-meta { display: inline-flex; align-items: center; gap: 0.25rem; flex-shrink: 0; font-size: 0.8rem; white-space: nowrap; }
@@ -560,6 +563,11 @@ onMount(() => {
   @media (max-width: 768px) {
     .ap-date { width: 2.4rem; font-size: 0.8rem; }
     .ap-title { font-size: 0.82rem; }
-    .ap-right-meta { display: none; }
+    .ap-post-link--stack { flex-direction: column; align-items: flex-start; gap: 0.25rem; min-height: auto; padding: 0.35rem 0; }
+    .ap-post-link--stack .ap-row-top { display: flex; align-items: center; gap: 0.5rem; width: 100%; min-width: 0; }
+    .ap-post-link--stack .ap-right-meta { width: 100%; padding-left: 3.1rem; justify-content: flex-start; flex-wrap: wrap; }
+  }
+  @media (min-width: 769px) {
+    .ap-post-link--stack .ap-row-top { width: auto; }
   }
 </style>
