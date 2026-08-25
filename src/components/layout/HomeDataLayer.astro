@@ -50,10 +50,14 @@ const primaryContactItems = contactItems.filter((link) =>
 );
 const umamiBase =
 	(import.meta.env.PUBLIC_UMAMI_BASE as string) ||
-	siteConfig.analytics?.umamiAnalytics?.scriptUrl?.replace(/\/script\.js$/, "") ||
+	siteConfig.analytics?.umamiAnalytics?.scriptUrl?.replace(
+		/\/script\.js$/,
+		"",
+	) ||
 	"https://umami.tsh520.cn";
 const umamiWebsiteId = siteConfig.analytics?.umamiAnalytics?.websiteId || "";
-const umamiShareId = siteConfig.analytics?.umamiAnalytics?.shareId || "axPq9bMWEDi1N6am";
+const umamiShareId =
+	siteConfig.analytics?.umamiAnalytics?.shareId || "axPq9bMWEDi1N6am";
 const fallbackStatsApiUrl = url("/api/home-stats.json");
 ---
 

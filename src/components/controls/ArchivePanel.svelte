@@ -37,7 +37,15 @@ const TABS = [
 	{ value: "life", labelKey: I18nKey.life },
 ] as const;
 
-let { sortedPosts = [], selectedYear, availableYears = [] }: { sortedPosts?: Post[]; selectedYear?: number; availableYears?: number[] } = $props();
+let {
+	sortedPosts = [],
+	selectedYear,
+	availableYears = [],
+}: {
+	sortedPosts?: Post[];
+	selectedYear?: number;
+	availableYears?: number[];
+} = $props();
 
 const typeLabels: Record<string, string> = {
 	post: "文章",
@@ -427,7 +435,10 @@ onMount(() => {
 	window.addEventListener("resize", updateTabIndicator);
 	return () => {
 		window.removeEventListener("resize", updateTabIndicator);
-		window.removeEventListener("archive-year-change", onYearChange as EventListener);
+		window.removeEventListener(
+			"archive-year-change",
+			onYearChange as EventListener,
+		);
 	};
 });
 </script>

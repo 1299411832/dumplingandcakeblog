@@ -99,15 +99,20 @@ const allItems = [
 				(a.data.date ? new Date(a.data.date).getTime() : 0),
 		)
 		.slice(0, 2)
-		.map((n) => ({
-			type: "life-notebook",
-			title: `${notebookNames[n.id.split("/")[0]] || n.id.split("/")[0]} · ${n.data.name || "未命名"}`,
-			date: n.data.date || new Date(),
-			url: `/life/notebooks/${n.id.replace(/\\/g, "/").split("/")[0]}/${n.id.split("/").pop()?.replace(/\.md$/, "") || ""}/`,
-			image:
-				n.data.cover || "https://img.tsh520.cn/file/blog/album/武侠风/22.webp",
-			id: n.id,
-		})),
+		.map((n) => {
+			const folder = n.id.replace(/\\/g, "/").split("/")[0];
+			const slug = (n.id.split("/").pop() || "").replace(/\.md$/, "");
+			return {
+				type: "life-notebook",
+				title: `${notebookNames[folder] || folder} · ${n.data.name || "未命名"}`,
+				date: n.data.date || new Date(),
+				url: `/life/notebooks/${folder}/#note-${slug}`,
+				image:
+					n.data.cover ||
+					"https://img.tsh520.cn/file/blog/album/武侠风/22.webp",
+				id: n.id,
+			};
+		}),
 ];
 
 const recentItems = allItems
