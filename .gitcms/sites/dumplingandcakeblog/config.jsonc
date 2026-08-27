@@ -1,0 +1,689 @@
+{
+  "version": "1.2",
+  "media": {
+    "default_library": "repo_media",
+    "libraries": [
+      {
+        "key": "repo_media",
+        "label": "Repository media",
+        "references": {
+          "write": {
+            "mode": "root_relative",
+            "base_path": "/"
+          },
+          "allow_default_library_fallback": true
+        },
+        "limits": {
+          "max_file_size_mb": 10
+        },
+        "driver": "git",
+        "storage": {
+          "root_path": "public"
+        }
+      }
+    ]
+  },
+  "frontmatter_format": "yaml",
+  "publishing_mode": "editorial_workflow",
+  "i18n": {
+    "enabled": true,
+    "locales": [
+      "en",
+      "zh-cn"
+    ],
+    "default_locale": "zh-cn",
+    "prefix_default_locale": true
+  },
+  "collections": [
+    {
+      "name": "bangumi",
+      "git_path": "/src/content/bangumi/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "grouped",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "label": "Category"
+        },
+        {
+          "name": "status",
+          "type": "number",
+          "label": "Status"
+        },
+        {
+          "name": "image",
+          "type": "image",
+          "label": "Image"
+        },
+        {
+          "name": "score",
+          "type": "number",
+          "label": "Score"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "喜剧",
+            "剧情",
+            "爱情"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "published",
+          "type": "datetime",
+          "label": "Published"
+        }
+      ]
+    },
+    {
+      "name": "posts",
+      "git_path": "/src/content/posts/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "grouped",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "published",
+          "type": "datetime",
+          "label": "Published"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "claudecode",
+            "skills",
+            "AI工具"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "description",
+          "type": "richtext",
+          "label": "Description"
+        }
+      ]
+    },
+    {
+      "name": "moments",
+      "git_path": "/src/content/moments/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "published",
+          "type": "datetime",
+          "label": "Published",
+          "withTime": true
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "斩神",
+            "日常"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location"
+        },
+        {
+          "name": "images",
+          "type": "multiselect",
+          "label": "Images",
+          "options": [
+            "https://img.tsh520.cn/file/blog/moments/1780682765774_Image_1780682609129_56.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1780682764288_Image_1780682611674_864.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1780682769376_Image_1780682620273_48.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1780682762878_Image_1780682618137_416.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1780682767167_Image_1780682616197_864.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1780682762667_Image_1780682613833_600.jpg"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "changelog",
+      "git_path": "/src/content/changelog/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "version",
+          "type": "text",
+          "label": "Version"
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "label": "Date"
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Type"
+        },
+        {
+          "name": "description",
+          "type": "richtext",
+          "label": "Description"
+        }
+      ]
+    },
+    {
+      "name": "daohang",
+      "git_path": "/src/content/daohang/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "name",
+          "type": "title",
+          "label": "Name"
+        },
+        {
+          "name": "url",
+          "type": "url",
+          "label": "Url"
+        },
+        {
+          "name": "icon",
+          "type": "image",
+          "label": "Icon"
+        },
+        {
+          "name": "description",
+          "type": "richtext",
+          "label": "Description"
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "label": "Category"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "个人网站",
+            "实用工具"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "color",
+          "type": "text",
+          "label": "Color"
+        },
+        {
+          "name": "featured",
+          "type": "boolean",
+          "label": "Featured",
+          "default": true
+        },
+        {
+          "name": "order",
+          "type": "number",
+          "label": "Order"
+        }
+      ]
+    },
+    {
+      "name": "friends",
+      "git_path": "/src/content/friends/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "imgurl",
+          "type": "image",
+          "label": "Imgurl"
+        },
+        {
+          "name": "desc",
+          "type": "text",
+          "label": "Desc"
+        },
+        {
+          "name": "siteurl",
+          "type": "url",
+          "label": "Siteurl"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "Blog"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "weight",
+          "type": "number",
+          "label": "Weight"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "label": "Enabled",
+          "default": true
+        },
+        {
+          "name": "added",
+          "type": "datetime",
+          "label": "Added"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group"
+        }
+      ]
+    },
+    {
+      "name": "life",
+      "git_path": "/src/content/life/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "grouped",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "date",
+          "type": "datetime",
+          "label": "Date"
+        },
+        {
+          "name": "province",
+          "type": "text",
+          "label": "Province"
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "label": "City"
+        },
+        {
+          "name": "visitCount",
+          "type": "number",
+          "label": "Visit Count"
+        },
+        {
+          "name": "lat",
+          "type": "number",
+          "label": "Lat"
+        },
+        {
+          "name": "lng",
+          "type": "number",
+          "label": "Lng"
+        },
+        {
+          "name": "photos",
+          "type": "multiselect",
+          "label": "Photos",
+          "options": [
+            "https://img.tsh520.cn/file/blog/moments/1000023768.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1000023766.jpg",
+            "https://img.tsh520.cn/file/blog/moments/1000023767.jpg"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "旅游",
+            "2025"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "superpowers",
+      "git_path": "/docs/superpowers/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "grouped",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      }
+    },
+    {
+      "name": "bills",
+      "git_path": "/src/content/bills/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount"
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Type"
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "label": "Category"
+        },
+        {
+          "name": "account",
+          "type": "text",
+          "label": "Account"
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "label": "Date"
+        },
+        {
+          "name": "description",
+          "type": "richtext",
+          "label": "Description"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "欠款"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "name": "album",
+      "git_path": "/src/content/album/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "subtitle",
+          "type": "text",
+          "label": "Subtitle"
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "label": "Date"
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "头像"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "imgbedFolder",
+          "type": "text",
+          "label": "Imgbed Folder"
+        }
+      ]
+    },
+    {
+      "name": "schedules",
+      "git_path": "/src/content/schedules/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "label": "Date"
+        },
+        {
+          "name": "priority",
+          "type": "text",
+          "label": "Priority"
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "label": "Status"
+        },
+        {
+          "name": "repeat",
+          "type": "text",
+          "label": "Repeat"
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "label": "Category"
+        },
+        {
+          "name": "person",
+          "type": "text",
+          "label": "Person"
+        }
+      ]
+    },
+    {
+      "name": "spec",
+      "git_path": "/src/content/spec/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      }
+    },
+    {
+      "name": "tombstones",
+      "git_path": "/src/content/tombstones/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "label": "Note"
+        }
+      ]
+    },
+    {
+      "name": "ziyuan",
+      "git_path": "/src/content/ziyuan/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "content",
+          "type": "richtext",
+          "label": "Content"
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "label": "Closable",
+          "default": true
+        },
+        {
+          "name": "link",
+          "type": "json",
+          "label": "Link"
+        }
+      ]
+    },
+    {
+      "name": "apps",
+      "git_path": "/src/content/apps/",
+      "file_extension": ".md",
+      "filename_pattern": "",
+      "collection_type": "flat",
+      "i18n": {
+        "enabled": true,
+        "strategy": "path"
+      },
+      "frontmatter_schema": [
+        {
+          "name": "title",
+          "type": "title",
+          "label": "Title"
+        },
+        {
+          "name": "imgurl",
+          "type": "url",
+          "label": "Imgurl"
+        },
+        {
+          "name": "desc",
+          "type": "text",
+          "label": "Desc"
+        },
+        {
+          "name": "siteurl",
+          "type": "url",
+          "label": "Siteurl"
+        },
+        {
+          "name": "tags",
+          "type": "multiselect",
+          "label": "Tags",
+          "options": [
+            "AI",
+            "开发工具"
+          ],
+          "color": "blue"
+        },
+        {
+          "name": "weight",
+          "type": "number",
+          "label": "Weight"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "label": "Enabled",
+          "default": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "sites": [
+    {
+      "key": "dumplingandcakeblog",
+      "display_name": "Dumplingandcakeblog",
+      "website_url": "https://dumplingandcakeblog.vercel.app",
+      "root_path": ""
+    }
+  ]
+}
