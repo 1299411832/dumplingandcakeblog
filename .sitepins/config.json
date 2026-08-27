@@ -1,0 +1,33 @@
+{
+  "content": "src/content",
+  "media": "public/assets/images",
+  "public": "public",
+  "configs": [
+    "src/config",
+    "src/content/life/notebooks/锻炼日常/_index.json",
+    "src/content/life/notebooks/锻炼日常",
+    "src/content/life/notebooks/记录100件事/_index.json",
+    "src/content/life/notebooks/记录100件事",
+    "src/content/life/notebooks/每日总结/_index.json",
+    "src/content/life/notebooks/每日总结",
+    "src/content/life/notebooks/日记本/_index.json",
+    "src/content/life/notebooks/日记本",
+    "src/content/life/notebooks/日常随笔/_index.json",
+    "src/content/life/notebooks/日常随笔",
+    "src/content/life/notebooks/我和宝宝的日常/_index.json",
+    "src/content/life/notebooks/我和宝宝的日常",
+    "src/content/life/notebooks/喜马拉雅/_index.json",
+    "src/content/life/notebooks/喜马拉雅",
+    "src/content/life/notebooks",
+    "src/content/life",
+    "tsconfig.json",
+    "src/content",
+    "public/friends-status.json",
+    "public/footprint/static/data/footprints.json",
+    "public/pio/models/live2d/illyasviel/illyasviel.model.json",
+    "public/pio/models/live2d/snow_miku/model.json",
+    "src"
+  ],
+  "custom-commit": false,
+  "arrangement": []
+}
