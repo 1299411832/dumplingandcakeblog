@@ -2,9 +2,9 @@
   "version": 1,
   "sites": [
     {
-      "key": "dumplingandcakeblog",
-      "display_name": "Dumplingandcakeblog",
-      "website_url": "https://dumplingandcakeblog.vercel.app",
+      "key": "ce",
+      "display_name": "Ce",
+      "website_url": "https://ce.miti.cc.cd",
       "root_path": ""
     }
   ]
